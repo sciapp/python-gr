@@ -1,0 +1,13 @@
+build/
+dist/
+gr/_version.py
+gr.egg-info
+.DS_Store
+._*
+.settings
+.pydevproject
+.project
+.idea
+*.pyc
+*.pdb
+version.txt

@@ -1,0 +1,115 @@
+stages:
+- build
+- install
+- deploy
+
+build:
+  stage: build
+  image: ubuntu:16.04
+  script:
+  - apt-get update
+  - apt-get install -y python-pip git
+  - pip install --upgrade pip
+  - python setup.py sdist
+  artifacts:
+    paths:
+    - dist/
+
+install-ubuntu1604:
+  stage: install
+  image: ubuntu:16.04
+  variables:
+    GIT_STRATEGY: none
+  script:
+  - apt-get update
+  - apt-get install -y python-pip git libxt6 libxrender1
+  - pip install --upgrade pip
+  - pip install dist/gr-*.tar.gz
+  - GKS_WSTYPE=png python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
+  artifacts:
+    paths:
+    - gks.png
+
+install-ubuntu1704:
+  stage: install
+  image: ubuntu:17.04
+  variables:
+    GIT_STRATEGY: none
+  script:
+  - apt-get update
+  - apt-get install -y python-pip git libxt6 libxrender1
+  - pip install --upgrade pip
+  - pip install dist/gr-*.tar.gz
+  - GKS_WSTYPE=png python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
+  artifacts:
+    paths:
+    - gks.png
+
+install-debian9:
+  stage: install
+  image: debian:9
+  variables:
+    GIT_STRATEGY: none
+  script:
+  - apt-get update
+  - apt-get install -y python-pip git libxt6 libxrender1
+  - pip install --upgrade pip
+  - pip install dist/gr-*.tar.gz
+  - GKS_WSTYPE=png python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
+  artifacts:
+    paths:
+    - gks.png
+
+install-centos7:
+  stage: install
+  image: centos:7
+  variables:
+    GIT_STRATEGY: none
+  script:
+  - yum install -y libXt libXrender libXext python
+  - curl -LO https://bootstrap.pypa.io/get-pip.py
+  - python get-pip.py
+  - pip install --upgrade pip
+  - pip install dist/gr-*.tar.gz
+  - GKS_WSTYPE=png python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
+  artifacts:
+    paths:
+    - gks.png
+
+install-fedora26:
+  stage: install
+  image: fedora:26
+  variables:
+    GIT_STRATEGY: none
+  script:
+  - dnf install -y libXt libXrender libXext python python-pip
+  - pip install --upgrade pip
+  - pip install dist/gr-*.tar.gz
+  - GKS_WSTYPE=png python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
+  artifacts:
+    paths:
+    - gks.png
+
+install-opensuse42.3:
+  stage: install
+  image: opensuse:42.3
+  variables:
+    GIT_STRATEGY: none
+  script:
+  - zypper install -y libXt6 libXrender1 libXext6 python python-pip
+  - pip install --upgrade pip
+  - pip install dist/gr-*.tar.gz
+  - GKS_WSTYPE=png python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
+  artifacts:
+    paths:
+    - gks.png
+    
+deploy:
+  stage: deploy
+  image: ubuntu:16.04
+  variables:
+    GIT_STRATEGY: none
+  only:
+    - master@Scientific-IT-Systems/python-gr
+  script:
+  - exit 0 # TODO: deploy to PyPI?
