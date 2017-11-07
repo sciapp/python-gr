@@ -22,10 +22,11 @@ install-ubuntu1604:
     GIT_STRATEGY: none
   script:
   - apt-get update
-  - apt-get install -y python-pip git libxt6 libxrender1
+  - apt-get install -y python-pip git libxt6 libxrender1 libgl1-mesa-glx
   - pip install --upgrade pip
   - pip install dist/gr-*.tar.gz
   - GKS_WSTYPE=png python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
+  - python -c 'import gr3'
   artifacts:
     paths:
     - gks.png
@@ -37,10 +38,11 @@ install-ubuntu1704:
     GIT_STRATEGY: none
   script:
   - apt-get update
-  - apt-get install -y python-pip git libxt6 libxrender1
+  - apt-get install -y python-pip git libxt6 libxrender1 libgl1-mesa-glx
   - pip install --upgrade pip
   - pip install dist/gr-*.tar.gz
   - GKS_WSTYPE=png python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
+  - python -c 'import gr3'
   artifacts:
     paths:
     - gks.png
@@ -52,10 +54,11 @@ install-debian9:
     GIT_STRATEGY: none
   script:
   - apt-get update
-  - apt-get install -y python-pip git libxt6 libxrender1
+  - apt-get install -y python-pip git libxt6 libxrender1 libgl1-mesa-glx
   - pip install --upgrade pip
   - pip install dist/gr-*.tar.gz
   - GKS_WSTYPE=png python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
+  - python -c 'import gr3'
   artifacts:
     paths:
     - gks.png
@@ -66,12 +69,13 @@ install-centos7:
   variables:
     GIT_STRATEGY: none
   script:
-  - yum install -y libXt libXrender libXext python
+  - yum install -y libXt libXrender libXext python mesa-libGL
   - curl -LO https://bootstrap.pypa.io/get-pip.py
   - python get-pip.py
   - pip install --upgrade pip
   - pip install dist/gr-*.tar.gz
   - GKS_WSTYPE=png python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
+  - python -c 'import gr3'
   artifacts:
     paths:
     - gks.png
@@ -82,10 +86,11 @@ install-fedora26:
   variables:
     GIT_STRATEGY: none
   script:
-  - dnf install -y libXt libXrender libXext python python-pip
+  - dnf install -y libXt libXrender libXext python python-pip mesa-libGL
   - pip install --upgrade pip
   - pip install dist/gr-*.tar.gz
   - GKS_WSTYPE=png python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
+  - python -c 'import gr3'
   artifacts:
     paths:
     - gks.png
@@ -96,10 +101,11 @@ install-opensuse42.3:
   variables:
     GIT_STRATEGY: none
   script:
-  - zypper install -y libXt6 libXrender1 libXext6 python python-pip
+  - zypper install -y libXt6 libXrender1 libXext6 python python-pip Mesa-libGL1
   - pip install --upgrade pip
   - pip install dist/gr-*.tar.gz
   - GKS_WSTYPE=png python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
+  - python -c 'import gr3'
   artifacts:
     paths:
     - gks.png

@@ -133,10 +133,8 @@ class DownloadBinaryDistribution(build_py):
                 with tarfile.open(fileobj=tar_gz_data) as tar_gz_file:
                     for member in tar_gz_file.getmembers():
                         tar_gz_file.extract(member, os.path.join(os.path.abspath(os.path.dirname(__file__))))
-                        # libraries need to be moved from gr/lib/ to gr/ or gr3/
-                        if member.name in ('gr/lib/libGR3.so', 'gr/lib/libGR3.dll'):
-                            os.rename(os.path.join(base_path, member.name), os.path.join(base_path, 'gr3', os.path.basename(member.name)))
-                        elif os.path.dirname(member.name) == 'gr/lib':
+                        # libraries need to be moved from gr/lib/ to gr/
+                        if os.path.dirname(member.name) == 'gr/lib':
                             if 'plugin' in os.path.basename(member.name):
                                 os.rename(os.path.join(base_path, member.name), os.path.join(base_path, 'gr/lib', os.path.basename(member.name)))
                             else:
@@ -175,8 +173,7 @@ setup(
             'GKSTerm.app/Contents/*',
             'GKSTerm.app/Contents/*/*',
             'GKSTerm.app/Contents/*/*/*'
-        ],
-        'gr3': ['libGR3.so', 'libGR3.dll']
+        ]
     },
     long_description=_long_description,
     classifiers=[
