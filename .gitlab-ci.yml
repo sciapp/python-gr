@@ -116,6 +116,17 @@ deploy:
   variables:
     GIT_STRATEGY: none
   only:
-    - master@Scientific-IT-Systems/python-gr
+    - tags@Scientific-IT-Systems/python-gr
   script:
-  - exit 0 # TODO: deploy to PyPI?
+  - apt-get update
+  - apt-get install -y python-pip git
+  - pip install --upgrade pip
+  - pip install twine
+  - echo "[distutils]"                                 > ~/.pypirc
+  - echo "index-servers ="                            >> ~/.pypirc
+  - echo "    pypi"                                   >> ~/.pypirc
+  - echo "[pypi]"                                     >> ~/.pypirc
+  - echo "repository=https://upload.pypi.org/legacy/" >> ~/.pypirc
+  - echo "username=$PYPIUSERNAME"                     >> ~/.pypirc
+  - echo "password=$PYPIPASSWORD"                     >> ~/.pypirc
+  - twine upload --repository pypi dist/gr-*.tar.gz
