@@ -86,7 +86,7 @@ class DownloadBinaryDistribution(build_py):
             return 'Darwin'
         if sys.platform == 'win32':
             return 'Windows'
-        if sys.platform == 'linux2':
+        if sys.platform.startswith('linux'):
             release_file_names = glob.glob('/etc/*-release')
             release_info = '\n'.join([open(release_file_name).read() for release_file_name in release_file_names])
             if '/etc/os-release' in release_file_names:
