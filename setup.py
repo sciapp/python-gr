@@ -10,6 +10,7 @@ import glob
 import sys
 import os
 import tarfile
+import shutil
 
 try:
     from io import BytesIO
@@ -104,6 +105,8 @@ class DownloadBinaryDistribution(build_py):
         """
         Downloads, unzips and installs GKS, GR and GR3 binaries.
         """
+        build_py.run(self)
+        base_path = os.path.realpath(self.build_lib)
         if runtime_helper.load_runtime(silent=True) is None:
             version = _runtime_version
             operating_system = DownloadBinaryDistribution.detect_os()
@@ -122,10 +125,9 @@ class DownloadBinaryDistribution(build_py):
                 # wrap response as file-like object
                 tar_gz_data = BytesIO(response.read())
                 # extract shared libraries from downloaded zip archive
-                base_path = os.path.join(os.path.abspath(os.path.dirname(__file__)))
                 with tarfile.open(fileobj=tar_gz_data) as tar_gz_file:
                     for member in tar_gz_file.getmembers():
-                        tar_gz_file.extract(member, os.path.join(os.path.abspath(os.path.dirname(__file__))))
+                        tar_gz_file.extract(member, base_path)
                         # libraries need to be moved from gr/lib/ to gr/ or gr3/
                         if member.name in ('gr/lib/libGR3.so', 'gr/lib/libGR3.dll'):
                             os.rename(os.path.join(base_path, member.name), os.path.join(base_path, 'gr3', os.path.basename(member.name)))
@@ -133,14 +135,25 @@ class DownloadBinaryDistribution(build_py):
                             if 'plugin' in os.path.basename(member.name):
                                 os.rename(os.path.join(base_path, member.name), os.path.join(base_path, 'gr/lib', os.path.basename(member.name)))
                             else:
-                                os.rename(os.path.join(base_path, member.name), os.path.join(base_path, 'gr', os.path.basename(member.name)))
+                                dest = os.path.join(base_path, 'gr', os.path.basename(member.name))
+                                shutil.rmtree(dest, ignore_errors=True)
+                                os.rename(os.path.join(base_path, member.name), dest)
                 if sys.platform == 'darwin':
                     # GKSTerm.app needs to be moved from gr/Applications to gr/
-                    os.rename(os.path.join(base_path, 'gr', 'Applications', 'GKSTerm.app'), os.path.join(base_path, 'gr', 'GKSTerm.app'))
+                    dest = os.path.join(base_path, 'gr', 'GKSTerm.app')
+                    shutil.rmtree(dest, ignore_errors=True)
+                    os.rename(os.path.join(base_path, 'gr', 'Applications',
+                                           'GKSTerm.app'), dest)
+                rmdirs = (
+                    'gr/Applications',
+                    'gr/python',
+                    'gr/lib/python',
+                )
+                for directory in rmdirs:
+                    shutil.rmtree(os.path.join(base_path, directory), ignore_errors=True)
 
-        if runtime_helper.load_runtime(silent=False) is None:
+        if runtime_helper.load_runtime(search_dirs=[os.path.join(base_path, 'gr')], silent=False) is None:
             raise RuntimeError("Unable to install GR runtime")
-        build_py.run(self)
 
 
 setup(
