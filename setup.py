@@ -3,14 +3,12 @@
 
 from __future__ import print_function
 
-from setuptools import setup
+from setuptools import setup, find_packages
 from setuptools.command.build_py import build_py
 
 import glob
 import sys
 import os
-import platform
-import stat
 import tarfile
 
 try:
@@ -20,24 +18,19 @@ except ImportError:
     from StringIO import StringIO as BytesIO
     from urllib2 import urlopen, URLError
 
+import vcversioner
+
+
 sys.path.insert(0, os.path.abspath('gr'))
-try:
-    import vcversioner
-except ImportError:
-    import _version
-    _wrapper_version = _version.__version__
-else:
-    _wrapper_version = vcversioner.find_version(version_module_paths=[os.path.join("gr", "_version.py")]).version
 import runtime_helper
 sys.path.pop(0)
 
-# TODO: load runtime version from file
 _runtime_version = runtime_helper.required_runtime_version()
 
 
 __author__ = "Florian Rhiem <f.rhiem@fz-juelich.de>, Christian Felder <c.felder@fz-juelich.de>"
-__version__ = _wrapper_version
-__copyright__ = """Copyright (c) 2012-2015: Josef Heinen, Florian Rhiem,
+__version__ = vcversioner.find_version(version_module_paths=[os.path.join("gr", "_version.py")]).version
+__copyright__ = """Copyright (c) 2012-2017: Josef Heinen, Florian Rhiem,
 Christian Felder and other contributors:
 
 http://gr-framework.org/credits.html
@@ -164,20 +157,8 @@ setup(
     install_requires=[
         'numpy >= 1.6',
     ],
-    packages=["gr", "gr.pygr", "gr.matplotlib", "gr3", "qtgr", "qtgr.events"],
-    package_data={
-        'gr': [
-            '*.so',
-            '*.dll',
-            'lib/*.so',
-            'lib/*.dll',
-            'fonts/*',
-            'GKSTerm.app/Contents/*',
-            'GKSTerm.app/Contents/*/*',
-            'GKSTerm.app/Contents/*/*/*'
-        ],
-        'gr3': ['libGR3.so', 'libGR3.dll']
-    },
+    packages=find_packages(exclude=["tests", "tests.*"]),
+    include_package_data=True,
     long_description=_long_description,
     classifiers=[
         'Framework :: IPython',
