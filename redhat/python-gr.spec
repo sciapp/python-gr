@@ -21,6 +21,16 @@ Source:				python-gr-%{fixedversion}.tar%{?compression:.%{compression}}
 BuildRequires:		git
 BuildRequires:		gr
 Requires:               gr
+
+# wxWidgets BuildRequires / Requires
+%if 0%{?suse_version}
+BuildRequires: libwx_baseu-2_8-0-stl
+BuildRequires: libwx_gtk2u_core-2_8-0-stl
+BuildRequires: libwx_baseu-2_8-0-compat-lib-stl
+BuildRequires: libwx_gtk2u_core-2_8-0-compat-lib-stl
+BuildRequires: wxWidgets-devel
+%endif
+
 %if 0%{?__jcns}
 BuildRequires: python-local
 BuildRequires: python-setuptools-local
