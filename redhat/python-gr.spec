@@ -11,16 +11,16 @@ Name:          python-gr-local
 Name:          python-gr
 %endif
 
-Summary:			GR, a universal framework for visualization applications
-Version:			1.0.1
-Release:			2%{?dist}
-License:			MIT
-Group:				Development/Libraries
-Source:				python-gr-%{fixedversion}.tar%{?compression:.%{compression}}
+Summary:       GR, a universal framework for visualization applications
+Version:       1.0.1
+Release:       2%{?dist}
+License:       MIT
+Group:         Development/Libraries
+Source:        python-gr-%{fixedversion}.tar%{?compression:.%{compression}}
 # for vcversioner
-BuildRequires:		git
-BuildRequires:		gr
-Requires:               gr
+BuildRequires: git
+BuildRequires: gr
+Requires:      gr
 
 # wxWidgets BuildRequires / Requires
 %if 0%{?suse_version}
