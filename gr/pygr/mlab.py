@@ -15,6 +15,12 @@ import gr
 import gr3
 
 
+try:
+    basestring
+except NameError:
+    basestring = str
+
+
 def plot(*args, **kwargs):
     global _plt
     _plt.kwargs.update(kwargs)
