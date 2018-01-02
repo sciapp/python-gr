@@ -5,6 +5,7 @@ from __future__ import print_function
 
 from setuptools import setup, find_packages
 from setuptools.command.build_py import build_py
+from setuptools.command.sdist import sdist
 
 import glob
 import hashlib
@@ -74,6 +75,20 @@ except IOError as e:
           e, file=sys.stderr)
 
 
+class DownloadHashes(sdist):
+    def run(self):
+        """
+        Download hashes for binary distributions during sdist creation
+
+        This step prepares the actual downloading of the binary distribution
+        during the build_py step by making sure the hashes of the individual
+        tar files will be available.
+
+        """
+        DownloadBinaryDistribution.get_expected_hashes(_runtime_version)
+        sdist.run(self)
+
+
 class DownloadBinaryDistribution(build_py):
     @staticmethod
     def detect_os():
@@ -106,15 +121,14 @@ class DownloadBinaryDistribution(build_py):
     def get_expected_hashes(version):
         hash_file_name = 'gr-{version}.sha512.txt'.format(version=version)
         local_hash_file_name = os.path.join(os.path.dirname(__file__), hash_file_name)
-        print(local_hash_file_name)
         try:
             with open(local_hash_file_name, 'r') as hash_file:
                 hash_file_content = hash_file.read()
-        except:
+        except IOError:
             hash_file_url = 'https://gr-framework.org/downloads/' + hash_file_name
             response = urlopen(hash_file_url)
             if response.getcode() != 200:
-                raise RuntimeError('Failed to download hashes from: {}'.format(distribution_url))
+                raise RuntimeError('Failed to download hashes from: ' + distribution_url)
             hash_file_content = response.read().decode('utf-8')
             # store hashes for later use
             with open(local_hash_file_name, 'w') as hash_file:
@@ -154,16 +168,18 @@ class DownloadBinaryDistribution(build_py):
                 distribution_url = 'http://gr-framework.org/downloads/' + file_name
                 response = urlopen(distribution_url)
                 if response.getcode() != 200:
-                    raise URLError('GR runtime not found on: {}'.format(distribution_url))
+                    raise URLError('GR runtime not found on: ' + distribution_url)
                 # wrap response as file-like object
                 tar_gz_data = BytesIO(response.read())
                 expected_hash = DownloadBinaryDistribution.get_expected_hash(version, file_name)
-                hash = hashlib.sha512(tar_gz_data.read()).hexdigest()
+                calculated_hash = hashlib.sha512(tar_gz_data.read()).hexdigest()
                 tar_gz_data.seek(0)
-                if hash != expected_hash:
+                if calculated_hash != expected_hash:
                     raise RuntimeError("Downloaded binary distribution of GR runtime does not match expected hash")
+
                 # extract shared libraries from downloaded .tar.gz archive
-                with tarfile.open(fileobj=tar_gz_data) as tar_gz_file:
+                tar_gz_file = tarfile.open(fileobj=tar_gz_data)
+                try:
                     for member in tar_gz_file.getmembers():
                         tar_gz_file.extract(member, base_path)
                         # libraries need to be moved from gr/lib/ to gr/
@@ -174,6 +190,8 @@ class DownloadBinaryDistribution(build_py):
                                 dest = os.path.join(base_path, 'gr', os.path.basename(member.name))
                                 shutil.rmtree(dest, ignore_errors=True)
                                 os.rename(os.path.join(base_path, member.name), dest)
+                finally:
+                    tar_gz_file.close()
                 if sys.platform == 'darwin':
                     # GKSTerm.app needs to be moved from gr/Applications to gr/
                     dest = os.path.join(base_path, 'gr', 'GKSTerm.app')
@@ -191,8 +209,6 @@ class DownloadBinaryDistribution(build_py):
         if runtime_helper.load_runtime(search_dirs=[os.path.join(base_path, 'gr')], silent=False) is None:
             raise RuntimeError("Unable to install GR runtime")
 
-# already download hashes during sdist creation
-DownloadBinaryDistribution.get_expected_hashes(_runtime_version)
 
 setup(
     name="gr",
@@ -225,6 +241,7 @@ setup(
         'Topic :: Scientific/Engineering :: Visualization',
     ],
     cmdclass={
+        'sdist': DownloadHashes,
         'build_py': DownloadBinaryDistribution
     }
 )
