@@ -1,0 +1,11 @@
+include gr-*.sha512.txt
+include LICENSE.md
+include README.md
+include README.rst
+include version.txt
+include vcversioner.py
+graft gr
+graft gr3
+graft qtgr
+graft tests
+global-exclude *.py[cod] __pycache__ *.db

@@ -9,7 +9,8 @@ import sys
 
 
 def required_runtime_version():
-    return '0.27.0'
+    # TODO: load runtime version from file
+    return '0.28.0'
 
 
 def _version_string_to_tuple(version_string):
@@ -23,19 +24,26 @@ def _version_string_to_tuple(version_string):
     return tuple(int(v) for v in version_string.split('.', 3))
 
 
-def load_runtime(silent=False):
+def load_runtime(search_dirs=[], silent=False):
     if sys.platform == "win32":
         library_extension = ".dll"
     else:
         library_extension = ".so"
 
-    search_directories = [
+    search_directories = list(search_dirs)
+    search_directories.extend([
         os.environ.get('GRLIB'),
         os.path.realpath(os.path.dirname(__file__)),
-        os.path.join(os.path.expanduser('~'), 'gr', 'lib'),
-        '/usr/local/gr/lib' if sys.platform != "win32" else None,
-        '/usr/gr/lib' if sys.platform != "win32" else None
-    ]
+        os.path.realpath(os.path.join(os.path.dirname(__file__), '..', 'build', 'lib', 'gr')),
+    ])
+    if sys.platform != "win32":
+        search_directories.extend(
+            [
+                os.path.join(os.path.expanduser('~'), 'gr', 'lib'),
+                '/usr/local/gr/lib',
+                '/usr/gr/lib',
+            ]
+        )
 
     search_path = os.environ.get('PATH', '')
     for directory in search_directories:
@@ -65,7 +73,6 @@ def load_runtime(silent=False):
             if version_compatible:
                 return library
     if not silent:
-        # TODO: OS-specific dependencies
         sys.stderr.write("""GR runtime not found.
 Please visit https://gr-framework.org and install at least the following version of the GR runtime:
 {}

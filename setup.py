@@ -3,15 +3,16 @@
 
 from __future__ import print_function
 
-from setuptools import setup
+from setuptools import setup, find_packages
 from setuptools.command.build_py import build_py
+from setuptools.command.sdist import sdist
 
 import glob
+import hashlib
 import sys
 import os
-import platform
-import stat
 import tarfile
+import shutil
 
 try:
     from io import BytesIO
@@ -20,24 +21,19 @@ except ImportError:
     from StringIO import StringIO as BytesIO
     from urllib2 import urlopen, URLError
 
+import vcversioner
+
+
 sys.path.insert(0, os.path.abspath('gr'))
-try:
-    import vcversioner
-except ImportError:
-    import _version
-    _wrapper_version = _version.__version__
-else:
-    _wrapper_version = vcversioner.find_version(version_module_paths=[os.path.join("gr", "_version.py")]).version
 import runtime_helper
 sys.path.pop(0)
 
-# TODO: load runtime version from file
 _runtime_version = runtime_helper.required_runtime_version()
 
 
 __author__ = "Florian Rhiem <f.rhiem@fz-juelich.de>, Christian Felder <c.felder@fz-juelich.de>"
-__version__ = _wrapper_version
-__copyright__ = """Copyright (c) 2012-2015: Josef Heinen, Florian Rhiem,
+__version__ = vcversioner.find_version(version_module_paths=[os.path.join("gr", "_version.py")]).version
+__copyright__ = """Copyright (c) 2012-2017: Josef Heinen, Florian Rhiem,
 Christian Felder and other contributors:
 
 http://gr-framework.org/credits.html
@@ -79,6 +75,20 @@ except IOError as e:
           e, file=sys.stderr)
 
 
+class DownloadHashes(sdist):
+    def run(self):
+        """
+        Download hashes for binary distributions during sdist creation
+
+        This step prepares the actual downloading of the binary distribution
+        during the build_py step by making sure the hashes of the individual
+        tar files will be available.
+
+        """
+        DownloadBinaryDistribution.get_expected_hashes(_runtime_version)
+        sdist.run(self)
+
+
 class DownloadBinaryDistribution(build_py):
     @staticmethod
     def detect_os():
@@ -107,10 +117,42 @@ class DownloadBinaryDistribution(build_py):
             return 'x86_64'
         return 'i686'
 
+    @staticmethod
+    def get_expected_hashes(version):
+        hash_file_name = 'gr-{version}.sha512.txt'.format(version=version)
+        local_hash_file_name = os.path.join(os.path.dirname(__file__), hash_file_name)
+        try:
+            with open(local_hash_file_name, 'r') as hash_file:
+                hash_file_content = hash_file.read()
+        except IOError:
+            hash_file_url = 'https://gr-framework.org/downloads/' + hash_file_name
+            response = urlopen(hash_file_url)
+            if response.getcode() != 200:
+                raise RuntimeError('Failed to download hashes from: ' + distribution_url)
+            hash_file_content = response.read().decode('utf-8')
+            # store hashes for later use
+            with open(local_hash_file_name, 'w') as hash_file:
+                hash_file.write(hash_file_content)
+        expected_hashes = {}
+        for line in hash_file_content.split('\n'):
+            if ' *' in line:
+                expected_hash, hashed_file_name = line.split(' *')
+                expected_hashes[hashed_file_name] = expected_hash
+        return expected_hashes
+
+    @staticmethod
+    def get_expected_hash(version, file_name):
+        expected_hashes = DownloadBinaryDistribution.get_expected_hashes(version)
+        if file_name not in expected_hashes:
+            raise RuntimeError('No hash known for file: ' + file_name)
+        return expected_hashes[file_name]
+
     def run(self):
         """
         Downloads, unzips and installs GKS, GR and GR3 binaries.
         """
+        build_py.run(self)
+        base_path = os.path.realpath(self.build_lib)
         if runtime_helper.load_runtime(silent=True) is None:
             version = _runtime_version
             operating_system = DownloadBinaryDistribution.detect_os()
@@ -118,34 +160,54 @@ class DownloadBinaryDistribution(build_py):
                 arch = DownloadBinaryDistribution.detect_architecture()
 
                 # download binary distribution for system
-                distribution_url = 'https://gr-framework.org/downloads/gr-{version}-{os}-{arch}.tar.gz'.format(
+                file_name = 'gr-{version}-{os}-{arch}.tar.gz'.format(
                     version=version,
                     os=operating_system,
                     arch=arch
                 )
+                distribution_url = 'http://gr-framework.org/downloads/' + file_name
                 response = urlopen(distribution_url)
                 if response.getcode() != 200:
-                    raise URLError('GR runtime not found on: {}'.format(distribution_url))
+                    raise URLError('GR runtime not found on: ' + distribution_url)
                 # wrap response as file-like object
                 tar_gz_data = BytesIO(response.read())
-                # extract shared libraries from downloaded zip archive
-                base_path = os.path.join(os.path.abspath(os.path.dirname(__file__)))
-                with tarfile.open(fileobj=tar_gz_data) as tar_gz_file:
+                expected_hash = DownloadBinaryDistribution.get_expected_hash(version, file_name)
+                calculated_hash = hashlib.sha512(tar_gz_data.read()).hexdigest()
+                tar_gz_data.seek(0)
+                if calculated_hash != expected_hash:
+                    raise RuntimeError("Downloaded binary distribution of GR runtime does not match expected hash")
+
+                # extract shared libraries from downloaded .tar.gz archive
+                tar_gz_file = tarfile.open(fileobj=tar_gz_data)
+                try:
                     for member in tar_gz_file.getmembers():
-                        tar_gz_file.extract(member, os.path.join(os.path.abspath(os.path.dirname(__file__))))
+                        tar_gz_file.extract(member, base_path)
                         # libraries need to be moved from gr/lib/ to gr/
                         if os.path.dirname(member.name) == 'gr/lib':
                             if 'plugin' in os.path.basename(member.name):
                                 os.rename(os.path.join(base_path, member.name), os.path.join(base_path, 'gr/lib', os.path.basename(member.name)))
                             else:
-                                os.rename(os.path.join(base_path, member.name), os.path.join(base_path, 'gr', os.path.basename(member.name)))
+                                dest = os.path.join(base_path, 'gr', os.path.basename(member.name))
+                                shutil.rmtree(dest, ignore_errors=True)
+                                os.rename(os.path.join(base_path, member.name), dest)
+                finally:
+                    tar_gz_file.close()
                 if sys.platform == 'darwin':
                     # GKSTerm.app needs to be moved from gr/Applications to gr/
-                    os.rename(os.path.join(base_path, 'gr', 'Applications', 'GKSTerm.app'), os.path.join(base_path, 'gr', 'GKSTerm.app'))
+                    dest = os.path.join(base_path, 'gr', 'GKSTerm.app')
+                    shutil.rmtree(dest, ignore_errors=True)
+                    os.rename(os.path.join(base_path, 'gr', 'Applications',
+                                           'GKSTerm.app'), dest)
+                rmdirs = (
+                    'gr/Applications',
+                    'gr/python',
+                    'gr/lib/python',
+                )
+                for directory in rmdirs:
+                    shutil.rmtree(os.path.join(base_path, directory), ignore_errors=True)
 
-        if runtime_helper.load_runtime(silent=False) is None:
+        if runtime_helper.load_runtime(search_dirs=[os.path.join(base_path, 'gr')], silent=False) is None:
             raise RuntimeError("Unable to install GR runtime")
-        build_py.run(self)
 
 
 setup(
@@ -162,19 +224,8 @@ setup(
     install_requires=[
         'numpy >= 1.6',
     ],
-    packages=["gr", "gr.pygr", "gr.matplotlib", "gr3", "qtgr", "qtgr.events"],
-    package_data={
-        'gr': [
-            '*.so',
-            '*.dll',
-            'lib/*.so',
-            'lib/*.dll',
-            'fonts/*',
-            'GKSTerm.app/Contents/*',
-            'GKSTerm.app/Contents/*/*',
-            'GKSTerm.app/Contents/*/*/*'
-        ]
-    },
+    packages=find_packages(exclude=["tests", "tests.*"]),
+    include_package_data=True,
     long_description=_long_description,
     classifiers=[
         'Framework :: IPython',
@@ -190,6 +241,7 @@ setup(
         'Topic :: Scientific/Engineering :: Visualization',
     ],
     cmdclass={
+        'sdist': DownloadHashes,
         'build_py': DownloadBinaryDistribution
     }
 )
