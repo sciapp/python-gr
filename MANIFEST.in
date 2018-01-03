@@ -1,3 +1,4 @@
+include gr-*.sha512.txt
 include LICENSE.md
 include README.md
 include README.rst
