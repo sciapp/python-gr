@@ -1717,7 +1717,8 @@ def inqcolor(color):
 def inqcolorfromrgb(red, green, blue):
     return __gr.gr_inqcolorfromrgb(c_double(red),
                                    c_double(green),
-                                   c_double(green))
+                                   c_double(blue))
+
 
 def hsvtorgb(h, s, v):
     r = c_double()
