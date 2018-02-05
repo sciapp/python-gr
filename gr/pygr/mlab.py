@@ -224,7 +224,7 @@ def subplot(nr, nc, p):
         x_max = max(x_max, c/nc)
         y_min = min(y_min, (r-1)/nr)
         y_max = max(y_max, r/nr)
-    _plt.kwargs['subplot'] = [xmin, xmax, ymin, ymax]
+    _plt.kwargs['subplot'] = [x_min, x_max, y_min, y_max]
     _plt.kwargs['clear'] = (p[0] == 1)
     _plt.kwargs['update'] = (p[-1] == nr * nc)
 
