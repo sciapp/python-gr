@@ -180,6 +180,10 @@ def ylabel(s):
     _plot_data(ylabel=s)
 
 
+def zlabel(s):
+    _plot_data(zlabel=s)
+
+
 def xlim(a):
     _plot_data(xlim=a)
 
