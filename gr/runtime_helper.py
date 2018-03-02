@@ -10,7 +10,7 @@ import sys
 
 def required_runtime_version():
     # TODO: load runtime version from file
-    return '0.28.1'
+    return '0.30.0'
 
 
 def _version_string_to_tuple(version_string):
@@ -24,16 +24,18 @@ def _version_string_to_tuple(version_string):
     return tuple(int(v) for v in version_string.split('.', 3))
 
 
-def load_runtime(search_dirs=[], silent=False):
+def load_runtime(search_dirs=(), silent=False):
     if sys.platform == "win32":
         library_extension = ".dll"
+        library_directory = "bin"
     else:
         library_extension = ".so"
+        library_directory = "lib"
 
     search_directories = list(search_dirs)
     search_directories.extend([
         os.environ.get('GRLIB'),
-        os.path.realpath(os.path.dirname(__file__)),
+        os.path.realpath(os.path.join(os.path.dirname(__file__), library_directory)),
         os.path.realpath(os.path.join(os.path.dirname(__file__), '..', 'build', 'lib', 'gr')),
     ])
     if sys.platform != "win32":
