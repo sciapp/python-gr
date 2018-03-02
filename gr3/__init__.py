@@ -81,18 +81,20 @@ if _impl != 'PyPy':
 
 
 def load_runtime(silent=False):
+    if sys.platform == "win32":
+        library_extension = ".dll"
+        library_directory = "bin"
+    else:
+        library_extension = ".so"
+        library_directory = "lib"
     search_directories = [
         os.environ.get('GR3LIB'),
         os.environ.get('GRLIB'),
-        os.path.realpath(os.path.dirname(gr.__file__)),
+        os.path.realpath(os.path.join(os.path.dirname(gr.__file__), library_directory)),
         os.path.join(os.path.expanduser('~'), 'gr', 'lib'),
         '/usr/local/gr/lib' if sys.platform != "win32" else None,
         '/usr/gr/lib' if sys.platform != "win32" else None
     ]
-    if sys.platform == "win32":
-        library_extension = ".dll"
-    else:
-        library_extension = ".so"
 
     # Detect whether this is a site-package installation
     if os.access(os.path.join(os.path.dirname(__file__), "libGR3" + library_extension), os.R_OK):

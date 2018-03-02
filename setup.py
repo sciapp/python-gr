@@ -182,31 +182,14 @@ class DownloadBinaryDistribution(build_py):
                 try:
                     for member in tar_gz_file.getmembers():
                         tar_gz_file.extract(member, base_path)
-                        # libraries need to be moved from gr/lib/ to gr/
-                        if os.path.dirname(member.name) == 'gr/lib':
-                            if 'plugin' in os.path.basename(member.name):
-                                os.rename(os.path.join(base_path, member.name), os.path.join(base_path, 'gr/lib', os.path.basename(member.name)))
-                            else:
-                                dest = os.path.join(base_path, 'gr', os.path.basename(member.name))
-                                shutil.rmtree(dest, ignore_errors=True)
-                                os.rename(os.path.join(base_path, member.name), dest)
                 finally:
                     tar_gz_file.close()
-                if sys.platform == 'darwin':
-                    # GKSTerm.app needs to be moved from gr/Applications to gr/
-                    dest = os.path.join(base_path, 'gr', 'GKSTerm.app')
-                    shutil.rmtree(dest, ignore_errors=True)
-                    os.rename(os.path.join(base_path, 'gr', 'Applications',
-                                           'GKSTerm.app'), dest)
-                rmdirs = (
-                    'gr/Applications',
-                    'gr/python',
-                    'gr/lib/python',
-                )
-                for directory in rmdirs:
-                    shutil.rmtree(os.path.join(base_path, directory), ignore_errors=True)
 
-        if runtime_helper.load_runtime(search_dirs=[os.path.join(base_path, 'gr')], silent=False) is None:
+        if sys.platform == 'win32':
+            search_dir = os.path.join(base_path, 'gr', 'bin')
+        else:
+            search_dir = os.path.join(base_path, 'gr', 'lib')
+        if runtime_helper.load_runtime(search_dirs=[search_dir], silent=False) is None:
             raise RuntimeError("Unable to install GR runtime")
 
 
