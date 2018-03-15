@@ -10,6 +10,7 @@ from __future__ import unicode_literals
 
 
 import collections
+import warnings
 import numpy as np
 import gr
 import gr3
@@ -608,7 +609,9 @@ def _plot_data(**kwargs):
         else:
             _draw_axes(kind)
 
-    colormap = _plt.kwargs.get('colormap', gr.COLORMAP_COOLWARM)
+    if 'cmap' in _plt.kwargs:
+        warnings.warn('The parameter "cmap" has been replaced by "colormap". The value of "cmap" will be ignored.', stacklevel=3)
+    colormap = _plt.kwargs.get('colormap', gr.COLORMAP_VIRIDIS)
     if colormap is not None:
         gr.setcolormap(colormap)
     gr.uselinespec(" ")
@@ -784,7 +787,9 @@ def _plot_img(I):
         y_min = max(0.5 * (viewport[3] + viewport[2] - h), viewport[2])
         y_max = min(0.5 * (viewport[3] + viewport[2] + h), viewport[3])
 
-    colormap = _plt.kwargs.get('cmap', gr.COLORMAP_TEMPERATURE)
+    if 'cmap' in _plt.kwargs:
+        warnings.warn('The parameter "cmap" has been replaced by "colormap". The value of "cmap" will be ignored.', stacklevel=3)
+    colormap = _plt.kwargs.get('colormap', gr.COLORMAP_VIRIDIS)
     if colormap is not None:
         gr.setcolormap(colormap)
     gr.selntran(0)
