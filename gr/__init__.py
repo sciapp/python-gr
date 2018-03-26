@@ -7,7 +7,7 @@ import gr
 """
 
 import os
-from numpy import array, ndarray, float64, int32
+from numpy import array, ndarray, float64, int32, empty, prod
 from ctypes import c_int, c_double, c_char_p, c_void_p, c_uint8
 from ctypes import byref, POINTER, addressof, CDLL, CFUNCTYPE
 from ctypes import create_string_buffer, cast
@@ -2404,6 +2404,62 @@ def tricontour(px, py, pz, levels):
     n = min(nx, ny, nz)
     __gr.gr_tricontour(c_int(n), _px.data, _py.data, _pz.data, c_int(nlevels), _levels.data)
 
+def interp2(x, y, z, xq, yq, method, extrapval, flatten=True):
+    """
+    Interpolation in two dimensions using one of four different methods. The
+    input points are located on a grid, described by `x`, `y` and `z`.
+    The target grid ist described by `xq` and `yq`.
+    Returns an array containing the resulting z-values.
+
+    **Parameters**
+    `x` :
+        Array containing the input grid's x-values
+    `y` :
+        Array containing the input grid's y-values
+    `z` :
+        Array containing the input grid's z-values (number of values: nx * ny)
+    `xq` :
+        Array containing the target grid's x-values
+    `yq` :
+        Array containing the target grid's y-values
+    `method` :
+        Used method for interpolation
+    `extrapval` :
+        The extrapolation value
+    `flatten` (optional):
+        Default: `True`
+        If `flatten=True` the resulting NumPy Array is flat [...]
+        If `flatten=False` the resulting NumPy Array is a
+        2-dimensional array [[], ..., []]
+
+    The available methods for interpolation are the following:
+
+    +-----------------+---+-------------------------------------------+
+    | INTERP2_NEAREST | 0 | Nearest neighbour interpolation           |
+    +-----------------+---+-------------------------------------------+
+    | INTERP2_LINEAR  | 1 | Linear interpolation                      |
+    +-----------------+---+-------------------------------------------+
+    | INTERP_2_SPLINE | 2 | Interpolation using natural cubic splines |
+    +-----------------+---+-------------------------------------------+
+    | INTERP2_CUBIC   | 3 | Cubic interpolation                       |
+    +-----------------+---+-------------------------------------------+
+
+    """
+    nx = len(x)
+    ny = len(y)
+    nz = len(z)
+    nxq = len(xq)
+    nyq = len(yq)
+    _x = floatarray(nx, x)
+    _y = floatarray(ny, y)
+    _z = floatarray(nz, z)
+    _xq = floatarray(nxq, xq)
+    _yq = floatarray(nyq, yq)
+    zq = empty([nxq, nyq], dtype=float64)
+    __gr.gr_interp2(c_int(nx), c_int(ny), _x.data, _y.data, _z.data, c_int(nxq), c_int(nyq), _xq.data, _yq.data, zq.ctypes.data_as(POINTER(c_double)), c_int(method), c_double(extrapval))
+    if flatten:
+        zq.shape = prod(zq.shape)
+    return zq
 
 def wrapper_version():
     """
@@ -2874,3 +2930,8 @@ GRAPHIC_TYPE = {GRAPHIC_GRX: "Graphics Format (*.grx)"}
 MPL_SUPPRESS_CLEAR = 1
 MPL_POSTPONE_UPDATE = 2
 
+# interp2 methods
+INTERP2_NEAREST = 0
+INTERP2_LINEAR = 1
+INTERP2_CUBIC = 3
+INTERP2_SPLINE = 2
