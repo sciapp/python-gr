@@ -14,6 +14,18 @@ build:
   artifacts:
     paths:
     - dist/
+    - tests/
+    - tox.ini
+
+install-tox:
+  stage: install
+  image: iffregistry.fz-juelich.de/docker-images/python-testing/debian:latest
+  variables:
+    GIT_STRATEGY: none
+  script:
+  - apt-get update
+  - apt-get install -y git libxt6 libxrender1 libgl1-mesa-glx
+  - tox
 
 install-ubuntu1604-python2:
   stage: install
