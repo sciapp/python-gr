@@ -5,7 +5,7 @@ import logging
 # local library
 import gr
 from gr.pygr import DeviceCoordConverter
-from qtgr.backend import QtCore
+from qtgr.backend import QtCore, backend, QT_PYQT5
 from qtgr.events.mouse import MouseEvent, WheelEvent, PickEvent, LegendEvent,\
     ROIEvent, MouseGestureEvent
 from qtgr.events.gestures import MouseGestureBase, PanGesture, SelectGesture
@@ -67,8 +67,13 @@ class EventFilter(QtCore.QObject):
         if event.buttons() & QtCore.Qt.RightButton:
             btn_mask |= MouseEvent.RIGHT_BUTTON
 
+        if backend == QT_PYQT5:
+            delta = event.angleDelta().y()
+        else:
+            delta = event.delta()
+
         return WheelEvent(type, target.dwidth, target.dheight, event.x(),
-                          event.y(), btn_mask, event.delta())
+                          event.y(), btn_mask, delta)
 
     def mouseEvent(self, type, target, event):
         """transform QMouseEvent to MouseEvent"""
