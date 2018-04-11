@@ -5,19 +5,26 @@
 Demo showing the capabilities of qtgr
 """
 
+from __future__ import print_function
+
 # standard library
 import sys
 import os
 import time
 import logging
-# third party
-from PyQt4 import QtCore
-from PyQt4 import QtGui
-from PyQt4 import uic
-# local library
-import gr # TESTING shell
-import qtgr
+
+import gr
+
+# force desired backend if specified
+if len(sys.argv) > 1:
+    if sys.argv[1] == "PySide":
+        print("PySide is not supported in this demo. Falling back to default "
+              "backend order.", file=sys.stderr)
+    else:
+        gr.QT_BACKEND_ORDER = [sys.argv[1]]
+
 from qtgr.events import GUIConnector, MouseEvent, PickEvent, LegendEvent
+from qtgr.backend import QtWidgets, backend, uic
 from gr.pygr import Plot, PlotAxes, PlotCurve, ErrorBar
 
 __author__ = "Christian Felder <c.felder@fz-juelich.de>"
@@ -56,7 +63,8 @@ following projects, which have their own licenses:
 
 _log = logging.getLogger(__name__)
 
-class MainWindow(QtGui.QMainWindow):
+
+class MainWindow(QtWidgets.QMainWindow):
 
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
@@ -84,6 +92,8 @@ class MainWindow(QtGui.QMainWindow):
         self._shell.returnPressed.connect(self._shellEx)
         self._actionSave.triggered.connect(self.save)
         self._actionPrint.triggered.connect(self.printGR)
+        self._actionAboutQt.triggered.connect(
+            lambda: QtWidgets.QMessageBox.aboutQt(self))
         self._gr.logXinDomain.connect(self._logXinDomain)
         self._gr.logYinDomain.connect(self._logYinDomain)
         self._gr.modePick.connect(self._pickModeChanged)
@@ -115,7 +125,7 @@ class MainWindow(QtGui.QMainWindow):
         self._plot2.addAxes(PlotAxes(self._plot2.viewport).addCurves(
                                          PlotCurve(x2, y2, legend="second")))
 
-        self._plot.title = "QtGR Demo"
+        self._plot.title = "QtGR Demo (%s)" % backend
         self._plot.subTitle = "Multiple Axes Example"
         self._plot.xlabel = "x"
         self._plot.ylabel = "f(x)"
@@ -131,8 +141,8 @@ class MainWindow(QtGui.QMainWindow):
         self._gr2.addPlot(self._plot2)
 
     def save(self):
-        qpath = QtGui.QFileDialog.getSaveFileName(self, "", "", self._saveTypes,
-                                                  gr.PRINT_TYPE[gr.PRINT_PDF])
+        qpath = QtWidgets.QFileDialog.getSaveFileName(self, "", "", self._saveTypes,
+                                                      gr.PRINT_TYPE[gr.PRINT_PDF])
         if qpath:
             if sys.version_info[0] == 2:
                 path = unicode(qpath)
@@ -228,7 +238,6 @@ class MainWindow(QtGui.QMainWindow):
     def _pickModeChanged(self, bool):
         self._btnPick.setChecked(bool)
 
-    @QtCore.pyqtSlot()
     def _shellEx(self):
         input = str(self._shell.text())
         exec(input)
@@ -246,13 +255,12 @@ class MainWindow(QtGui.QMainWindow):
             self._chkLogY.setChecked(bool)
 
 if __name__ == '__main__':
-    import sys
 #    logging.basicConfig(level=logging.CRITICAL)
 #    for name in [__name__, qtgr.__name__, qtgr.events.__name__,
 #                 qtgr.events.base.__name__,
 #                 gr.pygr.base.__name__, gr.pygr.__name__]:
 #        logging.getLogger(name).setLevel(logging.DEBUG)
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     mainWin = MainWindow()
     mainWin.show()
     sys.exit(app.exec_())
