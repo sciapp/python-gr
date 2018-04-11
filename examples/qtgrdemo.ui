@@ -221,7 +221,7 @@
      <x>0</x>
      <y>0</y>
      <width>1280</width>
-     <height>22</height>
+     <height>27</height>
     </rect>
    </property>
    <widget class="QMenu" name="_menuFile">
@@ -232,6 +232,7 @@
     <addaction name="separator"/>
     <addaction name="_actionPrint"/>
     <addaction name="separator"/>
+    <addaction name="_actionAboutQt"/>
     <addaction name="_actionQuit"/>
    </widget>
    <addaction name="_menuFile"/>
@@ -259,6 +260,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+P</string>
+   </property>
+  </action>
+  <action name="_actionAboutQt">
+   <property name="text">
+    <string>About Qt...</string>
    </property>
   </action>
  </widget>

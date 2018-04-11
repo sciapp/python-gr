@@ -55,6 +55,7 @@ QGestureRecognizer = None
 QPainter = None
 QPrinter = None
 QPrintDialog = None
+uic = None
 
 getGKSConnectionId = None
 QtVersionTuple = None
@@ -83,14 +84,16 @@ VersionTuple = collections.namedtuple('VersionTuple', ['major', 'minor', 'patch'
 
 
 def _importPySide():
-    global QApplication, QtCore, QtGui, QWidget, QGesture, QGestureRecognizer,\
-        QPainter, QPrinter, QPrintDialog, getGKSConnectionId
-    global QtVersionTuple
+    global QApplication, QtCore, QtGui, QtWidgets, QtPrintSupport, QWidget, \
+        QGesture, QGestureRecognizer, QPainter, QPrinter, QPrintDialog, uic
+    global getGKSConnectionId, QtVersionTuple
 
     from PySide import QtCore
     from PySide import QtGui
     from PySide.QtGui import QApplication, QWidget, QGesture, \
         QGestureRecognizer, QPainter, QPrinter, QPrintDialog
+    QtWidgets = QtGui
+    QtPrintSupport = QtGui
     try:
         from PySide import shiboken
     except ImportError:
@@ -110,14 +113,17 @@ def _importPySide():
 
 
 def _importPyQt4():
-    global QApplication, QtCore, QtGui, QWidget, QGesture, QGestureRecognizer,\
-        QPainter, QPrinter, QPrintDialog, getGKSConnectionId
-    global QtVersionTuple
+    global QApplication, QtCore, QtGui, QtWidgets, QtPrintSupport, QWidget, \
+        QGesture, QGestureRecognizer, QPainter, QPrinter, QPrintDialog, uic
+    global getGKSConnectionId, QtVersionTuple
 
     from PyQt4 import QtCore
     from PyQt4 import QtGui
     from PyQt4.QtGui import QApplication, QWidget, QGesture, \
         QGestureRecognizer, QPainter, QPrinter, QPrintDialog
+    from PyQt4 import uic
+    QtWidgets = QtGui
+    QtPrintSupport = QtGui
     import sip
 
     # a bit of compatibility...
@@ -138,7 +144,7 @@ def _importPyQt4():
 
 def _importPyQt5():
     global QApplication, QtCore, QtGui, QtWidgets, QtPrintSupport, QWidget, \
-        QGesture, QGestureRecognizer, QPainter, QPrinter, QPrintDialog
+        QGesture, QGestureRecognizer, QPainter, QPrinter, QPrintDialog, uic
     global getGKSConnectionId, QtVersionTuple
 
     from PyQt5 import QtCore
@@ -148,6 +154,7 @@ def _importPyQt5():
     from PyQt5.QtGui import QPainter
     from PyQt5.QtWidgets import QApplication, QWidget, QGesture, QGestureRecognizer
     from PyQt5.QtPrintSupport import QPrinter, QPrintDialog
+    from PyQt5 import uic
     import sip
 
     # a bit of compatibility...
