@@ -1458,12 +1458,13 @@ class PlotAxes(GRViewPort, GRMeta):
     COORDLIST_CLASS = Coords2DList
 
     def __init__(self, viewport, xtick=None, ytick=None, majorx=None,
-                 majory=None, drawX=True, drawY=True):
+                 majory=None, drawX=True, drawY=True, ticksize=0.01):
         super(PlotAxes, self).__init__(viewport)
         self._xtick, self._ytick = xtick, ytick
         self._majorx, self._majory = None, None
         self.majorx, self.majory = majorx, majory
         self._drawX, self._drawY = drawX, drawY
+        self._ticksize = ticksize
         self._curves = self.COORDLIST_CLASS()
         self._visibleCurves = self.COORDLIST_CLASS()
         self._backgroundColor = 0
@@ -1566,6 +1567,16 @@ class PlotAxes(GRViewPort, GRMeta):
     @majory.setter
     def majory(self, minorCount):
         self._majory = minorCount if minorCount is None or minorCount > 0 else 1
+
+    @property
+    def ticksize(self):
+        """get current ticksize setting specified in normalized device
+        coordinate unit."""
+        return self._ticksize
+
+    @ticksize.setter
+    def ticksize(self, value):
+        self._ticksize = value
 
     @property
     def scale(self):
@@ -1861,7 +1872,8 @@ class PlotAxes(GRViewPort, GRMeta):
                 if not self.isYDrawingEnabled():
                     majory = -majory
                 gr.axeslbl(self.xtick, self.ytick, xmin, ymin, majorx, majory,
-                           0.01, self._xtick_callback, self._ytick_callback)
+                           self.ticksize, self._xtick_callback,
+                           self._ytick_callback)
             elif self.getId() == 2:
                 # second x, y axis
                 majorx, majory = self.majorx, self.majory
@@ -1870,7 +1882,7 @@ class PlotAxes(GRViewPort, GRMeta):
                 if not self.isYDrawingEnabled():
                     majory = -majory
                 gr.axeslbl(self.xtick, self.ytick, xmax, ymax, majorx, majory,
-                           - 0.01, self._xtick_callback,
+                           -self.ticksize, self._xtick_callback,
                            self._ytick_callback)
             for curve in curves:
                 curve.drawGR()
