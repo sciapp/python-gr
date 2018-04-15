@@ -5,7 +5,7 @@ Simulation demo: movie of growing particles on substrate
 import os, sys
 import numpy
 import gr
-from gr.pygr import imshow
+from gr.pygr import heatmap
 import math
 from bornagain import *
 
@@ -34,7 +34,7 @@ def RunSimulation():
     interference = InterferenceFunctionRadialParaCrystal(distance)
     pdf = FTDistribution1DGauss(3 * nanometer)
     interference.setProbabilityDistribution(pdf)
-    particle_layout.addInterferenceFunction(interference)
+    particle_layout.setInterferenceFunction(interference)
 
     # air layer with particles and substrate form multi layer
     air_layer = Layer(mAir)
@@ -70,4 +70,6 @@ if __name__ == '__main__':
         SetParameters(i)
         result = RunSimulation() + 1 # for log scale
         result = numpy.log10(result)
-        imshow(result, cmap=gr.COLORMAP_PILATUS)
+        heatmap(result, colormap=gr.COLORMAP_PILATUS,
+                xlim=(-4, 4), ylim=(0, 8),
+                xlabel="\\phi_f", ylabel="\\alpha_f")
