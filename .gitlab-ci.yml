@@ -8,9 +8,10 @@ build:
   image: ubuntu:16.04
   script:
   - apt-get update
-  - apt-get install -y python-pip git
-  - pip install --upgrade pip
-  - python setup.py sdist
+  - apt-get install -y virtualenv python-pip git
+  - virtualenv env
+  - env/bin/pip install --upgrade pip
+  - env/bin/python setup.py sdist
   artifacts:
     paths:
     - dist/
@@ -22,11 +23,12 @@ install-ubuntu1604-python2:
     GIT_STRATEGY: none
   script:
   - apt-get update
-  - apt-get install -y python-pip git libxt6 libxrender1 libgl1-mesa-glx
-  - pip install --upgrade pip
-  - pip install dist/gr-*.tar.gz
-  - GKS_WSTYPE=png python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
-  - python -c 'import gr3'
+  - apt-get install -y virtualenv python-pip git libxt6 libxrender1 libgl1-mesa-glx
+  - virtualenv env
+  - env/bin/pip install --upgrade pip
+  - env/bin/pip install dist/gr-*.tar.gz
+  - GKS_WSTYPE=png env/bin/python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
+  - env/bin/python -c 'import gr3'
   artifacts:
     paths:
     - gks.png
@@ -38,11 +40,12 @@ install-ubuntu1604-python3:
     GIT_STRATEGY: none
   script:
   - apt-get update
-  - apt-get install -y python3-pip git libxt6 libxrender1 libgl1-mesa-glx
-  - pip3 install --upgrade pip
-  - pip3 install dist/gr-*.tar.gz
-  - GKS_WSTYPE=png python3 -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
-  - python3 -c 'import gr3'
+  - apt-get install -y python3-venv python3-pip git libxt6 libxrender1 libgl1-mesa-glx
+  - python3 -m venv env
+  - env/bin/pip install --upgrade pip
+  - env/bin/pip install dist/gr-*.tar.gz
+  - GKS_WSTYPE=png env/bin/python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
+  - env/bin/python -c 'import gr3'
   artifacts:
     paths:
     - gks.png
@@ -54,11 +57,12 @@ install-ubuntu1710-python2:
     GIT_STRATEGY: none
   script:
   - apt-get update
-  - apt-get install -y python-pip git libxt6 libxrender1 libgl1-mesa-glx
-  - pip install --upgrade pip
-  - pip install dist/gr-*.tar.gz
-  - GKS_WSTYPE=png python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
-  - python -c 'import gr3'
+  - apt-get install -y virtualenv python-pip git libxt6 libxrender1 libgl1-mesa-glx
+  - virtualenv env
+  - env/bin/pip install --upgrade pip
+  - env/bin/pip install dist/gr-*.tar.gz
+  - GKS_WSTYPE=png env/bin/python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
+  - env/bin/python -c 'import gr3'
   artifacts:
     paths:
     - gks.png
@@ -70,11 +74,12 @@ install-ubuntu1710-python3:
     GIT_STRATEGY: none
   script:
   - apt-get update
-  - apt-get install -y python3-pip git libxt6 libxrender1 libgl1-mesa-glx
-  - pip3 install --upgrade pip
-  - pip3 install dist/gr-*.tar.gz
-  - GKS_WSTYPE=png python3 -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
-  - python3 -c 'import gr3'
+  - apt-get install -y python3-venv python3-pip git libxt6 libxrender1 libgl1-mesa-glx
+  - python3 -m venv env
+  - env/bin/pip install --upgrade pip
+  - env/bin/pip install dist/gr-*.tar.gz
+  - GKS_WSTYPE=png env/bin/python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
+  - env/bin/python -c 'import gr3'
   artifacts:
     paths:
     - gks.png
@@ -86,11 +91,12 @@ install-debian9-python2:
     GIT_STRATEGY: none
   script:
   - apt-get update
-  - apt-get install -y python-pip git libxt6 libxrender1 libgl1-mesa-glx
-  - pip install --upgrade pip
-  - pip install dist/gr-*.tar.gz
-  - GKS_WSTYPE=png python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
-  - python -c 'import gr3'
+  - apt-get install -y virtualenv python-pip git libxt6 libxrender1 libgl1-mesa-glx
+  - virtualenv env
+  - env/bin/pip install --upgrade pip
+  - env/bin/pip install dist/gr-*.tar.gz
+  - GKS_WSTYPE=png env/bin/python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
+  - env/bin/python -c 'import gr3'
   artifacts:
     paths:
     - gks.png
@@ -102,11 +108,12 @@ install-debian9-python3:
     GIT_STRATEGY: none
   script:
   - apt-get update
-  - apt-get install -y python3-pip git libxt6 libxrender1 libgl1-mesa-glx
-  - pip3 install --upgrade pip
-  - pip3 install dist/gr-*.tar.gz
-  - GKS_WSTYPE=png python3 -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
-  - python3 -c 'import gr3'
+  - apt-get install -y python3-venv python3-pip git libxt6 libxrender1 libgl1-mesa-glx
+  - python3 -m venv env
+  - env/bin/pip install --upgrade pip
+  - env/bin/pip install dist/gr-*.tar.gz
+  - GKS_WSTYPE=png env/bin/python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
+  - env/bin/python -c 'import gr3'
   artifacts:
     paths:
     - gks.png
