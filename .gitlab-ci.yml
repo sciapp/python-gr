@@ -189,14 +189,14 @@ deploy:
     - tags@Scientific-IT-Systems/python-gr
   script:
   - apt-get update
-  - apt-get install -y python-pip git
-  - pip install --upgrade pip
-  - pip install twine
+  - apt-get install -y virtualenv python-pip git
+  - virtualenv env
+  - env/bin/pip install --upgrade pip
+  - env/bin/pip install twine
   - echo "[distutils]"                                 > ~/.pypirc
   - echo "index-servers ="                            >> ~/.pypirc
   - echo "    pypi"                                   >> ~/.pypirc
   - echo "[pypi]"                                     >> ~/.pypirc
-  - echo "repository=https://upload.pypi.org/legacy/" >> ~/.pypirc
   - echo "username=$PYPIUSERNAME"                     >> ~/.pypirc
   - echo "password=$PYPIPASSWORD"                     >> ~/.pypirc
-  - twine upload --repository pypi dist/gr-*.tar.gz
+  - env/bin/twine upload --repository pypi dist/gr-*.tar.gz
