@@ -121,7 +121,7 @@ def heatmap(d, **kwargs):
     d = np.array(d, copy=False)
     if len(d.shape) != 2:
         raise ValueError('expected 2-D array')
-    width, height = d.shape
+    height, width = d.shape
     _plt.kwargs.update(kwargs)
     _plt.args = [(np.arange(width), np.arange(height), d, None, "")]
     _plot_data(kind='heatmap')
@@ -684,7 +684,7 @@ def _plot_data(**kwargs):
                 _colorbar()
         elif kind == 'heatmap':
             x_min, x_max, y_min, y_max = _plt.kwargs['window']
-            width, height = z.shape
+            height, width = z.shape
             cmap = _colormap()
             icmap = np.zeros(256, np.uint32)
             for i in range(256):
@@ -696,11 +696,11 @@ def _plot_data(**kwargs):
             if z_max > z_min:
                 data = (z - z_min) / (z_max - z_min) * 255
             else:
-                data = np.zeros((width, height))
-            rgba = np.zeros((width, height), np.uint32)
+                data = np.zeros((height, width))
+            rgba = np.zeros((height, width), np.uint32)
             for x in range(width):
                 for y in range(height):
-                    rgba[x, y] = icmap[int(data[x, y])]
+                    rgba[y, x] = icmap[int(data[y, x])]
             gr.drawimage(x_min, x_max, y_min, y_max, width, height, rgba)
             _colorbar()
         elif kind == 'wireframe':
@@ -762,7 +762,7 @@ def _plot_img(I):
             return
     else:
         I = np.array(I)
-        width, height = I.shape
+        height, width = I.shape
         data = np.array(1000+(1.0*I - I.min()) / I.ptp() * 255, np.int32)
 
     if _plt.kwargs['clear']:
