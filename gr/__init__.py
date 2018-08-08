@@ -1295,7 +1295,7 @@ def textext(x, y, string):
     +--------+---------+
     |Μ μ     |mu       |
     +--------+---------+
-    |Ν ν     |nu       |
+    |Ν ν     |Nu / v   |
     +--------+---------+
     |Ξ ξ     |xi       |
     +--------+---------+
@@ -1319,6 +1319,8 @@ def textext(x, y, string):
     +--------+---------+
     |Ω ω     |omega    |
     +--------+---------+
+
+    Note: `\v` is a replacement for `\nu` which would conflict with `\n` (newline)
 
     For more sophisticated mathematical formulas, you should use the `gr.mathtex`
     function.
