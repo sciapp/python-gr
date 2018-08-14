@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-simple, matlab-style api
+This module offers a simple, matlab-style API built on top of the gr package.
 """
 
 from __future__ import absolute_import
@@ -23,6 +23,29 @@ except NameError:
 
 
 def plot(*args, **kwargs):
+    """
+    Draws one or more line plots.
+
+    This function can receive one or more of the following:
+
+    - x values and y values, or
+    - x values and a callable to determine y values, or
+    - y values only, with their indices as x values
+
+    :param args: the data to plot
+
+    **Usage examples:**
+
+    >>> # Create example data
+    >>> x = np.linspace(-2, 2, 40)
+    >>> y = 0.2*x+0.4
+    >>> # Plot x and y
+    >>> mlab.plot(x, y)
+    >>> # Plot x and a callable
+    >>> mlab.plot(x, lambda x: 0.2*x + 0.4)
+    >>> # Plot y, using its indices for the x values
+    >>> mlab.plot(y)
+    """
     global _plt
     _plt.kwargs.update(kwargs)
     if _plt.kwargs['ax']:
@@ -33,6 +56,27 @@ def plot(*args, **kwargs):
 
 
 def oplot(*args, **kwargs):
+    """
+    Draws one or more line plots over another plot.
+
+    This function can receive one or more of the following:
+
+    - x values and y values, or
+    - x values and a callable to determine y values, or
+    - y values only, with their indices as x values
+
+    :param args: the data to plot
+
+    **Usage examples:**
+
+    >>> # Create example data
+    >>> x = np.linspace(-2, 2, 40)
+    >>> y = 0.2*x+0.4
+    >>> # Draw the first plot
+    >>> mlab.plot(x, y)
+    >>> # Plot graph over it
+    >>> mlab.oplot(x, lambda x: 0.1*x**2 + 0.4*x)
+    """
     global _plt
     _plt.kwargs.update(kwargs)
     _plt.args += _plot_args(args)
@@ -40,6 +84,40 @@ def oplot(*args, **kwargs):
 
 
 def scatter(*args, **kwargs):
+    """
+    Draws one or more scatter plots.
+
+    This function can receive one or more of the following:
+
+    - x values and y values, or
+    - x values and a callable to determine y values, or
+    - y values only, with their indices as x values
+
+    Additional to x and y values, you can provide values for the markers'
+    size and color. Size values will determine the marker size in percent of
+    the regular size, and color values will be used in combination with the
+    current colormap.
+
+    :param args: the data to plot
+
+    **Usage examples:**
+
+    >>> # Create example data
+    >>> x = np.linspace(-2, 2, 40)
+    >>> y = 0.2*x+0.4
+    >>> # Plot x and y
+    >>> mlab.scatter(x, y)
+    >>> # Plot x and a callable
+    >>> mlab.scatter(x, lambda x: 0.2*x + 0.4)
+    >>> # Plot y, using its indices for the x values
+    >>> mlab.scatter(y)
+    >>> # Plot a diagonal with increasing size and color
+    >>> x = np.linspace(0, 1, 11)
+    >>> y = np.linspace(0, 1, 11)
+    >>> s = np.linspace(50, 400, 11)
+    >>> c = np.linspace(0, 255, 11)
+    >>> mlab.scatter(x, y, s, c)
+    """
     global _plt
     _plt.kwargs.update(kwargs)
     _plt.args = _plot_args(args, fmt='xyac')
@@ -47,6 +125,26 @@ def scatter(*args, **kwargs):
 
 
 def polar(*args, **kwargs):
+    """
+    Draws one or more polar plots.
+
+    This function can receive one or more of the following:
+
+    - angle values and radius values, or
+    - angle values and a callable to determine radius values
+
+    :param args: the data to plot
+
+    **Usage examples:**
+
+    >>> # Create example data
+    >>> angles = np.linspace(0, 2*math.pi, 40)
+    >>> radii = np.linspace(0, 2, 40)
+    >>> # Plot angles and radii
+    >>> mlab.polar(angles, radii)
+    >>> # Plot angles and a callable
+    >>> mlab.polar(angles, lambda radius: math.cos(radius)**2)
+    """
     global _plt
     _plt.kwargs.update(kwargs)
     _plt.args = _plot_args(args)
@@ -54,20 +152,88 @@ def polar(*args, **kwargs):
 
 
 def trisurf(*args, **kwargs):
+    """
+    Draws a triangular surface plot.
+
+    This function uses the current colormap to display a series of points
+    as a triangular surface plot. It will use a Delaunay triangulation to
+    interpolate the z values between x and y values. If the series of points
+    is concave, this can lead to interpolation artifacts on the edges of the
+    plot, as the interpolation may occur in very acute triangles.
+
+    :param x: the x coordinates to plot
+    :param y: the y coordinates to plot
+    :param z: the z coordinates to plot
+
+    **Usage examples:**
+
+    >>> # Create example point data
+    >>> x = np.random.uniform(-4, 4, 100)
+    >>> y = np.random.uniform(-4, 4, 100)
+    >>> z = np.sin(x) + np.cos(y)
+    >>> # Draw the triangular surface plot
+    >>> mlab.trisurf(x, y, z)
+    """
     global _plt
     _plt.kwargs.update(kwargs)
     _plt.args = _plot_args(args, fmt='xyzc')
     _plot_data(kind='trisurf')
 
 
-def tricont(*args, **kwargs):
+def tricont(x, y, z, *args, **kwargs):
+    """
+    Draws a triangular contour plot.
+
+    This function uses the current colormap to display a series of points
+    as a triangular contour plot. It will use a Delaunay triangulation to
+    interpolate the z values between x and y values. If the series of points
+    is concave, this can lead to interpolation artifacts on the edges of the
+    plot, as the interpolation may occur in very acute triangles.
+
+    :param x: the x coordinates to plot
+    :param y: the y coordinates to plot
+    :param z: the z coordinates to plot
+
+    **Usage examples:**
+
+    >>> # Create example point data
+    >>> x = np.random.uniform(-4, 4, 100)
+    >>> y = np.random.uniform(-4, 4, 100)
+    >>> z = np.sin(x) + np.cos(y)
+    >>> # Draw the triangular contour plot
+    >>> mlab.tricont(x, y, z)
+    """
     global _plt
     _plt.kwargs.update(kwargs)
+    args = [x, y, z] + list(args)
     _plt.args = _plot_args(args, fmt='xyzc')
     _plot_data(kind='tricont')
 
 
 def stem(*args, **kwargs):
+    """
+    Draws a stem plot.
+
+    This function can receive one or more of the following:
+
+    - x values and y values, or
+    - x values and a callable to determine y values, or
+    - y values only, with their indices as x values
+
+    :param args: the data to plot
+
+    **Usage examples:**
+
+    >>> # Create example data
+    >>> x = np.linspace(-2, 2, 40)
+    >>> y = 0.2*x+0.4
+    >>> # Plot x and y
+    >>> mlab.stem(x, y)
+    >>> # Plot x and a callable
+    >>> mlab.stem(x, lambda x: 0.2*x + 0.4)
+    >>> # Plot y, using its indices for the x values
+    >>> mlab.stem(y)
+    """
     global _plt
     _plt.kwargs.update(kwargs)
     _plt.args = _plot_args(args)
@@ -87,15 +253,69 @@ def _hist(x, nbins=0):
     return counts, edges
 
 
-def histogram(x, **kwargs):
+def histogram(x, num_bins=None, **kwargs):
+    """
+    Draws a histogram.
+
+    If **num_bins** is **None** or 0, this function computes the number of
+    bins as :math:`\\text{round}(3.3\cdot\log_{10}(n))+1` with n as the number
+    of elements in x, otherwise the given number of bins is used for the
+    histogram.
+
+    :param x: the values to draw as histogram
+    :param num_bins: the number of bins in the histogram
+
+    **Usage examples:**
+
+    >>> # Create example data
+    >>> x = np.random.uniform(-1, 1, 100)
+    >>> # Draw the histogram
+    >>> mlab.histogram(x)
+    >>> # Draw the histogram with 19 bins
+    >>> mlab.histogram(x, num_bins=19)
+    """
     global _plt
     _plt.kwargs.update(kwargs)
-    hist, bins = _hist(x)
+    hist, bins = _hist(x, num_bins)
     _plt.args = [(np.array(bins), np.array(hist), None, None, "")]
     _plot_data(kind='hist')
 
 
 def contour(*args, **kwargs):
+    """
+    Draws a contour plot.
+
+    This function uses the current colormap to display a either a series of
+    points or a two-dimensional array as a contour plot. It can receive one
+    or more of the following:
+
+    - x values, y values and z values, or
+    - N x values, M y values and z values on a NxM grid, or
+    - N x values, M y values and a callable to determine z values
+
+    If a series of points is passed to this function, their values will be
+    interpolated on a grid. For grid points outside the convex hull of the
+    provided points, a value of 0 will be used.
+
+    :param args: the data to plot
+
+    **Usage examples:**
+
+    >>> # Create example point data
+    >>> x = np.random.uniform(-4, 4, 100)
+    >>> y = np.random.uniform(-4, 4, 100)
+    >>> z = np.sin(x) + np.cos(y)
+    >>> # Draw the contour plot
+    >>> mlab.contour(x, y, z)
+    >>> # Create example grid data
+    >>> x = np.linspace(-2, 2, 40)
+    >>> y = np.linspace(0, np.pi, 20)
+    >>> z = np.sin(x[:, np.newaxis]) + np.cos(y[np.newaxis, :])
+    >>> # Draw the contour plot
+    >>> mlab.contour(x, y, z)
+    >>> # Draw the contour plot using a callable
+    >>> mlab.contour(x, y, lambda x, y: np.sin(x) + np.cos(y))
+    """
     global _plt
     _plt.kwargs.update(kwargs)
     _plt.args = _plot_args(args, fmt='xyzc')
@@ -103,6 +323,40 @@ def contour(*args, **kwargs):
 
 
 def contourf(*args, **kwargs):
+    """
+    Draws a filled contour plot.
+
+    This function uses the current colormap to display a either a series of
+    points or a two-dimensional array as a filled contour plot. It can
+    receive one or more of the following:
+
+    - x values, y values and z values, or
+    - N x values, M y values and z values on a NxM grid, or
+    - N x values, M y values and a callable to determine z values
+
+    If a series of points is passed to this function, their values will be
+    interpolated on a grid. For grid points outside the convex hull of the
+    provided points, a value of 0 will be used.
+
+    :param args: the data to plot
+
+    **Usage examples:**
+
+    >>> # Create example point data
+    >>> x = np.random.uniform(-4, 4, 100)
+    >>> y = np.random.uniform(-4, 4, 100)
+    >>> z = np.sin(x) + np.cos(y)
+    >>> # Draw the filled contour plot
+    >>> mlab.contourf(x, y, z)
+    >>> # Create example grid data
+    >>> x = np.linspace(-2, 2, 40)
+    >>> y = np.linspace(0, np.pi, 20)
+    >>> z = np.sin(x[:, np.newaxis]) + np.cos(y[np.newaxis, :])
+    >>> # Draw the filled contour plot
+    >>> mlab.contourf(x, y, z)
+    >>> # Draw the filled contour plot using a callable
+    >>> mlab.contourf(x, y, lambda x, y: np.sin(x) + np.cos(y))
+    """
     global _plt
     _plt.kwargs.update(kwargs)
     _plt.args = _plot_args(args, fmt='xyzc')
@@ -110,24 +364,102 @@ def contourf(*args, **kwargs):
 
 
 def hexbin(*args, **kwargs):
+    """
+    Draws a hexagon binning plot.
+
+    This function uses hexagonal binning and the the current colormap to
+    display a series of points. It  can receive one or more of the following:
+
+    - x values and y values, or
+    - x values and a callable to determine y values, or
+    - y values only, with their indices as x values
+
+    :param args: the data to plot
+
+    **Usage examples:**
+
+    >>> # Create example data
+    >>> x = np.random.normal(0, 1, 100000)
+    >>> y = np.random.normal(0, 1, 100000)
+    >>> # Draw the hexbin plot
+    >>> mlab.hexbin(x, y)
+    """
     global _plt
     _plt.kwargs.update(kwargs)
     _plt.args = _plot_args(args)
     _plot_data(kind='hexbin')
 
 
-def heatmap(d, **kwargs):
+def heatmap(data, **kwargs):
+    """
+    Draws a heatmap.
+
+    This function uses the current colormap to display a two-dimensional
+    array as a heatmap. The array is drawn with its first value in the upper
+    left corner, so in some cases it may be neccessary to flip the columns
+    (see the example below).
+
+    By default the function will use the row and column indices for the x- and
+    y-axes, so setting the axis limits is recommended. Also note that the
+    values in the array must lie within the current z-axis limits so it may
+    be neccessary to adjust these limits or clip the range of array values.
+
+    :param data: the heatmap data
+
+    **Usage examples:**
+
+    >>> # Create example data
+    >>> x = np.linspace(-2, 2, 40)
+    >>> y = np.linspace(0, np.pi, 20)
+    >>> z = np.sin(x[np.newaxis, :]) + np.cos(y[:, np.newaxis])
+    >>> # Draw the heatmap
+    >>> mlab.heatmap(z[::-1, :], xlim=(-2, 2), ylim=(0, np.pi))
+    """
     global _plt
-    d = np.array(d, copy=False)
-    if len(d.shape) != 2:
+    data = np.array(data, copy=False)
+    if len(data.shape) != 2:
         raise ValueError('expected 2-D array')
-    height, width = d.shape
+    height, width = data.shape
     _plt.kwargs.update(kwargs)
-    _plt.args = [(np.arange(width), np.arange(height), d, None, "")]
+    _plt.args = [(np.arange(width), np.arange(height), data, None, "")]
     _plot_data(kind='heatmap')
 
 
 def wireframe(*args, **kwargs):
+    """
+    Draws a three-dimensional wireframe plot.
+
+    This function uses the current colormap to display a either a series of
+    points or a two-dimensional array as a wireframe plot. It can receive one
+    or more of the following:
+
+    - x values, y values and z values, or
+    - N x values, M y values and z values on a NxM grid, or
+    - N x values, M y values and a callable to determine z values
+
+    If a series of points is passed to this function, their values will be
+    interpolated on a grid. For grid points outside the convex hull of the
+    provided points, a value of 0 will be used.
+
+    :param args: the data to plot
+
+    **Usage examples:**
+
+    >>> # Create example point data
+    >>> x = np.random.uniform(-4, 4, 100)
+    >>> y = np.random.uniform(-4, 4, 100)
+    >>> z = np.sin(x) + np.cos(y)
+    >>> # Draw the wireframe plot
+    >>> mlab.wireframe(x, y, z)
+    >>> # Create example grid data
+    >>> x = np.linspace(-2, 2, 40)
+    >>> y = np.linspace(0, np.pi, 20)
+    >>> z = np.sin(x[:, np.newaxis]) + np.cos(y[np.newaxis, :])
+    >>> # Draw the wireframe plot
+    >>> mlab.wireframe(x, y, z)
+    >>> # Draw the wireframe plot using a callable
+    >>> mlab.wireframe(x, y, lambda x, y: np.sin(x) + np.cos(y))
+    """
     global _plt
     _plt.kwargs.update(kwargs)
     _plt.args = _plot_args(args, fmt='xyzc')
@@ -135,6 +467,40 @@ def wireframe(*args, **kwargs):
 
 
 def surface(*args, **kwargs):
+    """
+    Draws a three-dimensional surface plot.
+
+    This function uses the current colormap to display a either a series of
+    points or a two-dimensional array as a surface plot. It can receive one or
+    more of the following:
+
+    - x values, y values and z values, or
+    - N x values, M y values and z values on a NxM grid, or
+    - N x values, M y values and a callable to determine z values
+
+    If a series of points is passed to this function, their values will be
+    interpolated on a grid. For grid points outside the convex hull of the
+    provided points, a value of 0 will be used.
+
+    :param args: the data to plot
+
+    **Usage examples:**
+
+    >>> # Create example point data
+    >>> x = np.random.uniform(-4, 4, 100)
+    >>> y = np.random.uniform(-4, 4, 100)
+    >>> z = np.sin(x) + np.cos(y)
+    >>> # Draw the surface plot
+    >>> mlab.surface(x, y, z)
+    >>> # Create example grid data
+    >>> x = np.linspace(-2, 2, 40)
+    >>> y = np.linspace(0, np.pi, 20)
+    >>> z = np.sin(x[:, np.newaxis]) + np.cos(y[np.newaxis, :])
+    >>> # Draw the surface plot
+    >>> mlab.surface(x, y, z)
+    >>> # Draw the surface plot using a callable
+    >>> mlab.surface(x, y, lambda x, y: np.sin(x) + np.cos(y))
+    """
     global _plt
     _plt.kwargs.update(kwargs)
     _plt.args = _plot_args(args, fmt='xyzc')
@@ -142,20 +508,83 @@ def surface(*args, **kwargs):
 
 
 def plot3(*args, **kwargs):
+    """
+    Draws one or more three-dimensional line plots.
+
+    :param x: the x coordinates to plot
+    :param y: the y coordinates to plot
+    :param z: the z coordinates to plot
+
+    **Usage examples:**
+
+    >>> # Create example data
+    >>> x = np.random.uniform(-1, 1, 100)
+    >>> y = np.random.uniform(-1, 1, 100)
+    >>> z = np.random.uniform(-1, 1, 100)
+    >>> # Plot the points
+    >>> mlab.plot3(x, y, z)
+    """
     global _plt
     _plt.kwargs.update(kwargs)
     _plt.args = _plot_args(args, fmt='xyac')
     _plot_data(kind='plot3')
 
 
-def scatter3(*args, **kwargs):
+def scatter3(x, y, z, c=None, *args, **kwargs):
+    """
+    Draws one or more three-dimensional scatter plots.
+
+    Additional to x, y and z values, you can provide values for the markers'
+    color. Color values will be used in combination with the current colormap.
+
+    :param x: the x coordinates to plot
+    :param y: the y coordinates to plot
+    :param z: the z coordinates to plot
+    :param c: the optional color values to plot
+
+    **Usage examples:**
+
+    >>> # Create example data
+    >>> x = np.random.uniform(-1, 1, 100)
+    >>> y = np.random.uniform(-1, 1, 100)
+    >>> z = np.random.uniform(-1, 1, 100)
+    >>> c = np.random.uniform(1, 1000, 100)
+    >>> # Plot the points
+    >>> mlab.scatter3(x, y, z)
+    >>> # Plot the points with colors
+    >>> mlab.scatter3(x, y, z, c)
+    """
     global _plt
     _plt.kwargs.update(kwargs)
+    args = [x, y, z] + list(args)
+    if c is not None:
+        args.append(c)
     _plt.args = _plot_args(args, fmt='xyac')
     _plot_data(kind='scatter3')
 
 
 def isosurface(v, **kwargs):
+    """
+    Draws an isosurface.
+
+    This function can draw an image either from reading a file or using a
+    two-dimensional array and the current colormap. Values greater than the
+    isovalue will be seen as outside the isosurface, while values less than
+    the isovalue will be seen as inside the isosurface.
+
+    :param v: the volume data
+    :param isovalue: the isovalue
+
+    **Usage examples:**
+
+    >>> # Create example data
+    >>> x = np.linspace(-1, 1, 40)[:, np.newaxis, np.newaxis]
+    >>> y = np.linspace(-1, 1, 40)[np.newaxis, :, np.newaxis]
+    >>> z = np.linspace(-1, 1, 40)[np.newaxis, np.newaxis, :]
+    >>> v = 1-(x**2 + y**2 + z**2)**0.5
+    >>> # Draw an image from a 2d array
+    >>> mlab.isosurface(v, isovalue=0.2)
+    """
     global _plt
     _plt.kwargs.update(kwargs)
     _plt.args = [(None, None, v, None, '')]
@@ -163,53 +592,462 @@ def isosurface(v, **kwargs):
 
 
 def imshow(image, **kwargs):
+    """
+    Draws an image.
+
+    This function can draw an image either from reading a file or using a
+    two-dimensional array and the current colormap.
+
+    :param image: an image file name or two-dimensional array
+
+    **Usage examples:**
+
+    >>> # Create example data
+    >>> x = np.linspace(-2, 2, 40)
+    >>> y = np.linspace(0, np.pi, 20)
+    >>> z = np.sin(x[np.newaxis, :]) + np.cos(y[:, np.newaxis])
+    >>> # Draw an image from a 2d array
+    >>> mlab.imshow(z)
+    >>> # Draw an image from a file
+    >>> mlab.imshow("example.png")
+    """
     global _plt
     _plt.kwargs.update(kwargs)
     _plt.args = [(None, None, image, None, "")]
     _plot_data(kind='imshow')
 
 
-def title(s):
-    _plot_data(title=s)
+def title(title=""):
+    """
+    Sets the plot title.
+
+    The plot title is drawn using the extended text function
+    :py:func:`gr.textext`. You can use a subset of LaTeX math syntax, but will
+    need to escape certain characters, e.g. parentheses. For more information
+    see the documentation of :py:func:`gr.textext`.
+
+    :param title: the plot title
+
+    **Usage examples:**
+
+    >>> # Set the plot title to "Example Plot"
+    >>> mlab.title("Example Plot")
+    >>> # Clear the plot title
+    >>> mlab.title()
+    """
+    _plot_data(title=title)
 
 
-def xlabel(s):
-    _plot_data(xlabel=s)
+def xlabel(x_label=""):
+    """
+    Sets the x-axis label.
+
+    The axis labels are drawn using the extended text function
+    :py:func:`gr.textext`. You can use a subset of LaTeX math syntax, but will
+    need to escape certain characters, e.g. parentheses. For more information
+    see the documentation of :py:func:`gr.textext`.
+
+    :param x_label: the x-axis label
+
+    **Usage examples:**
+
+    >>> # Set the x-axis label to "x"
+    >>> mlab.xlabel("x")
+    >>> # Clear the x-axis label
+    >>> mlab.xlabel()
+    """
+    _plot_data(xlabel=x_label)
 
 
-def ylabel(s):
-    _plot_data(ylabel=s)
+def ylabel(y_label=""):
+    """
+    Sets the y-axis label.
+
+    The axis labels are drawn using the extended text function
+    :py:func:`gr.textext`. You can use a subset of LaTeX math syntax, but will
+    need to escape certain characters, e.g. parentheses. For more information
+    see the documentation of :py:func:`gr.textext`.
+
+    :param y_label: the y-axis label
+
+    **Usage examples:**
+
+    >>> # Set the y-axis label to "y\(x\)"
+    >>> mlab.ylabel("y\(x\)")
+    >>> # Clear the y-axis label
+    >>> mlab.ylabel()
+    """
+    _plot_data(ylabel=y_label)
 
 
-def zlabel(s):
-    _plot_data(zlabel=s)
+def zlabel(z_label=""):
+    """
+    Sets the z-axis label.
+
+    The axis labels are drawn using the extended text function
+    :py:func:`gr.textext`. You can use a subset of LaTeX math syntax, but will
+    need to escape certain characters, e.g. parentheses. For more information
+    see the documentation of :py:func:`gr.textext`.
+
+    :param z_label: the z-axis label
+
+    **Usage examples:**
+
+    >>> # Set the z-axis label to "z(x, y)"
+    >>> mlab.zlabel("z\(x, y\)")
+    >>> # Clear the z-axis label
+    >>> mlab.zlabel()
+    """
+    _plot_data(zlabel=z_label)
 
 
-def xlim(a):
-    _plot_data(xlim=a)
+def xlim(x_min=None, x_max=None):
+    """
+    Sets the limits for the x-axis.
+
+    The x-axis limits can either be passed as individual arguments or as a
+    tuple of (**x_min**, **x_max**). Setting either limit to **None** will
+    cause it to be automatically determined based on the data, which is the
+    default behavior.
+
+    :param x_min:
+        - the x-axis lower limit, or
+        - **None** to use an automatic lower limit, or
+        - a tuple of both x-axis limits
+    :param x_max:
+        - the x-axis upper limit, or
+        - **None** to use an automatic upper limit, or
+        - **None** if both x-axis limits were passed as first argument
+
+    **Usage examples:**
+
+    >>> # Set the x-axis limits to -1 and 1
+    >>> mlab.xlim(-1, 1)
+    >>> # Set the x-axis limits to -1 and 1 using a tuple
+    >>> mlab.xlim((-1, 1))
+    >>> # Reset the x-axis limits to be determined automatically
+    >>> mlab.xlim()
+    >>> # Reset the x-axis upper limit and set the lower limit to 0
+    >>> mlab.xlim(0, None)
+    >>> # Reset the x-axis lower limit and set the upper limit to 1
+    >>> mlab.xlim(None, 1)
+    """
+    if x_max is None and x_min is not None:
+        try:
+            x_min, x_max = x_min
+        except TypeError:
+            pass
+    _plot_data(xlim=(x_min, x_max))
 
 
-def ylim(a):
-    _plot_data(ylim=a)
+def ylim(y_min=None, y_max=None):
+    """
+    Sets the limits for the y-axis and updates the current plot.
+
+    The y-axis limits can either be passed as individual arguments or as a
+    tuple of (**y_min**, **y_max**). Setting either limit to **None** will
+    cause it to be automatically determined based on the data, which is the
+    default behavior.
+
+    :param y_min:
+        - the y-axis lower limit, or
+        - **None** to use an automatic lower limit, or
+        - a tuple of both y-axis limits
+    :param y_max:
+        - the y-axis upper limit, or
+        - **None** to use an automatic upper limit, or
+        - **None** if both y-axis limits were passed as first argument
+
+    **Usage examples:**
+
+    >>> # Set the y-axis limits to -1 and 1
+    >>> mlab.ylim(-1, 1)
+    >>> # Set the y-axis limits to -1 and 1 using a tuple
+    >>> mlab.ylim((-1, 1))
+    >>> # Reset the y-axis limits to be determined automatically
+    >>> mlab.ylim()
+    >>> # Reset the y-axis upper limit and set the lower limit to 0
+    >>> mlab.ylim(0, None)
+    >>> # Reset the y-axis lower limit and set the upper limit to 1
+    >>> mlab.ylim(None, 1)
+    """
+    if y_max is None and y_min is not None:
+        try:
+            y_min, y_max = y_min
+        except TypeError:
+            pass
+    _plot_data(ylim=(y_min, y_max))
 
 
-def zlim(a):
-    _plot_data(zlim=a)
+def zlim(z_min=None, z_max=None):
+    """
+    Sets the limits for the z-axis and updates the current plot.
+
+    The z-axis limits can either be passed as individual arguments or as a
+    tuple of (**z_min**, **z_max**). Setting either limit to **None** will
+    cause it to be automatically determined based on the data, which is the
+    default behavior.
+
+    :param z_min:
+        - the z-axis lower limit, or
+        - **None** to use an automatic lower limit, or
+        - a tuple of both z-axis limits
+    :param z_max:
+        - the z-axis upper limit, or
+        - **None** to use an automatic upper limit, or
+        - **None** if both z-axis limits were passed as first argument
+
+    **Usage examples:**
+
+    >>> # Set the z-axis limits to -1 and 1
+    >>> mlab.zlim(-1, 1)
+    >>> # Set the z-axis limits to -1 and 1 using a tuple
+    >>> mlab.zlim((-1, 1))
+    >>> # Reset the z-axis limits to be determined automatically
+    >>> mlab.zlim()
+    >>> # Reset the z-axis upper limit and set the lower limit to 0
+    >>> mlab.zlim(0, None)
+    >>> # Reset the z-axis lower limit and set the upper limit to 1
+    >>> mlab.zlim(None, 1)
+    """
+    if z_max is None and z_min is not None:
+        try:
+            z_min, z_max = z_min
+        except TypeError:
+            pass
+    _plot_data(zlim=(z_min, z_max))
+
+
+def xlog(xlog=True):
+    """
+    Enables or disables a logarithmic scale for the x-axis.
+
+    :param xlog: whether or not the x-axis should be logarithmic
+
+    **Usage examples:**
+
+    >>> # Enable a logarithic x-axis
+    >>> mlab.xlog()
+    >>> # Disable it again
+    >>> mlab.xlog(False)
+    """
+    _plot_data(xlog=xlog)
+
+
+def ylog(ylog=True):
+    """
+    Enables or disables a logarithmic scale for the y-axis.
+
+    :param ylog: whether or not the y-axis should be logarithmic
+
+    **Usage examples:**
+
+    >>> # Enable a logarithic y-axis
+    >>> mlab.ylog()
+    >>> # Disable it again
+    >>> mlab.ylog(False)
+    """
+    _plot_data(ylog=ylog)
+
+
+def zlog(zlog=True):
+    """
+    Enables or disables a logarithmic scale for the z-axis.
+
+    :param zlog: whether or not the z-axis should be logarithmic
+
+    **Usage examples:**
+
+    >>> # Enable a logarithic z-axis
+    >>> mlab.zlog()
+    >>> # Disable it again
+    >>> mlab.zlog(False)
+    """
+    _plot_data(zlog=zlog)
+
+
+def xflip(xflip=True):
+    """
+    Enables or disables x-axis flipping/reversal.
+
+    :param xflip: whether or not the x-axis should be flipped
+
+    **Usage examples:**
+
+    >>> # Flips/Reverses the x-axis
+    >>> mlab.xlog()
+    >>> # Restores the x-axis
+    >>> mlab.xlog(False)
+    """
+    _plot_data(xflip=xflip)
+
+
+def yflip(yflip=True):
+    """
+    Enables or disables y-axis flipping/reversal.
+
+    :param yflip: whether or not the y-axis should be flipped
+
+    **Usage examples:**
+
+    >>> # Flips/Reverses the y-axis
+    >>> mlab.ylog()
+    >>> # Restores the y-axis
+    >>> mlab.ylog(False)
+    """
+    _plot_data(yflip=yflip)
+
+
+def zflip(zflip=True):
+    """
+    Enables or disables z-axis flipping/reversal.
+
+    :param zflip: whether or not the z-axis should be flipped
+
+    **Usage examples:**
+
+    >>> # Flips/Reverses the z-axis
+    >>> mlab.zlog()
+    >>> # Restores the z-axis
+    >>> mlab.zlog(False)
+    """
+    _plot_data(zflip=zflip)
+
+
+def colormap(colormap):
+    """
+    Sets the colormap for the current plot or enables manual colormap control.
+
+    :param colormap:
+        - The name of a gr colormap
+        - One of the gr colormap constants (**gr.COLORMAP_...**)
+        - **None**, if the colormap should use the current colors set by
+          :py:func:`gr.setcolorrep`
+
+    **Usage examples:**
+
+    >>> # Use one of the built-in colormap names
+    >>> mlab.colormap('viridis')
+    >>> # Use one of the built-in colormap constants
+    >>> mlab.colormap(gr.COLORMAP_BWR)
+    >>> # Use a custom colormap
+    >>> for i in range(256):
+    ...     gr.setcolorrep(1.0-i/255.0, 1.0, i/255.0)
+    ...
+    >>> mlab.colormap(None)
+    """
+    _plot_data(colormap=colormap)
+
+
+def tilt(tilt):
+    """
+    Sets the 3d axis tilt of the current plot.
+
+    The tilt can be any value between 0 and 90, and controls the angle
+    between the viewer and the X-Y-plane.
+
+    :param tilt: the 3d axis tilt
+
+    **Usage examples:**
+
+    >>> # Create example data
+    >>> x = np.random.uniform(0, 1, 100)
+    >>> y = np.random.uniform(0, 1, 100)
+    >>> z = np.random.uniform(0, 1, 100)
+    >>> # Set the tilt and draw an example plot
+    >>> mlab.tilt(45)
+    >>> mlab.plot3(x, y, z)
+    """
+    _plot_data(tilt=tilt)
+
+
+def rotation(rotation):
+    """
+    Sets the 3d axis rotation of the current plot.
+
+    The rotation can be any value between 0 and 90, and controls the angle
+    between the viewer projected onto the X-Y-plane and the x-axis.
+
+    :param rotation: the 3d axis rotation
+
+    **Usage examples:**
+
+    >>> # Create example data
+    >>> x = np.random.uniform(0, 1, 100)
+    >>> y = np.random.uniform(0, 1, 100)
+    >>> z = np.random.uniform(0, 1, 100)
+    >>> # Set the rotation and draw an example plot
+    >>> mlab.rotation(45)
+    >>> mlab.plot3(x, y, z)
+    """
+    _plot_data(rotation=rotation)
+
+
+def legend(*labels, **kwargs):
+    """
+    Sets the labels and location for the legend of the current plot.
+
+    The labels for the legend are drawn using the extended text function
+    :py:func:`gr.textext`. You can use a subset of LaTeX math syntax, but will
+    need to escape certain characters, e.g. parentheses. For more information
+    see the documentation of :py:func:`gr.textext`.
+
+    :param labels: the labels for each graph in the current plot
+    :param location: the location of the legend (from 1 to 10)
+
+    **Usage examples:**
+
+    >>> # Set the labels for the two graphs "f(x)" and "g(x)"
+    >>> mlab.legend("f\(x\)", "g\(x\)")
+    >>> # Set the labels and draws the legend in the lower right corner
+    >>> mlab.legend("f\(x\)", "g\(x\)", location=4)
+    >>> # Resets the legend
+    >>> mlab.legend()
+    """
+    if not all(isinstance(label, basestring) for label in labels):
+        raise TypeError('list of strings expected')
+    _plot_data(labels=labels, **kwargs)
 
 
 def savefig(filename):
+    """
+    Saves the current figure to a file.
+
+    This function draw the current figure using one of GR's workstation types
+    to create a file of the given name. Which file types are supported depends
+    on the installed workstation types, but GR usually is built with support
+    for .png, .jpg, .pdf, .ps, .gif and various other file formats.
+
+    :param filename: the filename the figure should be saved to
+
+    **Usage examples:**
+
+    >>> # Create a simple plot
+    >>> mlab.plot(range(100), lambda x: 1/(x+1))
+    >>> # Save the figure to a file
+    >>> mlab.savefig("example.png")
+    """
     gr.beginprint(filename)
     _plot_data()
     gr.endprint()
 
 
-def legend(*args, **kwargs):
-    if not all(isinstance(s, basestring) for s in args):
-        raise TypeError('list of strings expected')
-    _plot_data(labels=args)
-
-
 def figure(**kwargs):
+    """
+    Creates a new figure with the given settings.
+
+    Settings like the current colormap, title or axis limits as stored in the
+    current figure. This function creates a new figure, restores the default
+    settings and applies any settings passed to the function as keyword
+    arguments.
+
+    **Usage examples:**
+
+    >>> # Restore all default settings
+    >>> mlab.figure()
+    >>> # Restore all default settings and set the title
+    >>> mlab.figure(title="Example Figure")
+    """
     global _plt
     _plt = _Figure()
     _plt.kwargs.update(kwargs)
@@ -217,25 +1055,75 @@ def figure(**kwargs):
 
 
 def hold(flag):
+    """
+    Sets the hold flag for combining multiple plots.
+
+    The hold flag prevents drawing of axes and clearing of previous plots, so
+    that the next plot will be drawn on top of the previous one.
+
+    :param flag: the value of the hold flag
+
+    **Usage examples:**
+
+    >>> # Create example data
+    >>> x = np.linspace(0, 1, 100)
+    >>> # Draw the first plot
+    >>> mlab.plot(x, lambda x: x**2)
+    >>> # Set the hold flag
+    >>> mlab.hold(True)
+    >>> # Draw additional plots
+    >>> mlab.plot(x, lambda x: x**4)
+    >>> mlab.plot(x, lambda x: x**8)
+    >>> # Reset the hold flag
+    >>> mlab.hold(False)
+    """
     global _plt
     _plt.kwargs['ax'] = flag
     _plt.kwargs['clear'] = not flag
 
 
-def subplot(nr, nc, p):
+def subplot(num_rows, num_columns, subplot_indices):
+    """
+    Sets current subplot index.
+
+    By default, the current plot will cover the whole window. To display more
+    than one plot, the window can be split into a number of rows and columns,
+    with the current plot covering one or more cells in the resulting grid.
+
+    Subplot indices are one-based and start at the upper left corner, with a
+    new row starting after every **num_columns** subplots.
+
+    :param num_rows: the number of subplot rows
+    :param num_columns: the number of subplot columns
+    :param subplot_indices:
+        - the subplot index to be used by the current plot
+        - a pair of subplot indices, setting which subplots should be covered
+          by the current plot
+
+    **Usage examples:**
+
+    >>> # Set the current plot to the second subplot in a 2x3 grid
+    >>> mlab.subplot(2, 3, 2)
+    >>> # Set the current plot to cover the first two rows of a 4x2 grid
+    >>> mlab.subplot(4, 2, (1, 4))
+    >>> # Use the full window for the current plot
+    >>> mlab.subplot(1, 1, 1)
+    """
     global _plt
     x_min = y_min = 1
     x_max = y_max = 0
-    for i in p:
-        r = nr - (i-1) // nc
-        c = (i-1) % nc + 1
-        x_min = min(x_min, (c-1)/nc)
-        x_max = max(x_max, c/nc)
-        y_min = min(y_min, (r-1)/nr)
-        y_max = max(y_max, r/nr)
+    if isinstance(subplot_indices, int):
+        subplot_indices = (subplot_indices,)
+    for subplot_index in subplot_indices:
+        row = num_rows - (subplot_index-1.0) // num_columns
+        column = (subplot_index-1.0) % num_columns + 1
+        x_min = min(x_min, (column-1)/num_columns)
+        x_max = max(x_max, column/num_columns)
+        y_min = min(y_min, (row-1)/num_rows)
+        y_max = max(y_max, row/num_rows)
     _plt.kwargs['subplot'] = [x_min, x_max, y_min, y_max]
-    _plt.kwargs['clear'] = (p[0] == 1)
-    _plt.kwargs['update'] = (p[-1] == nr * nc)
+    _plt.kwargs['clear'] = (subplot_indices[0] == 1)
+    _plt.kwargs['update'] = (subplot_indices[-1] == num_rows * num_columns)
 
 
 class _Figure(object):
@@ -330,7 +1218,6 @@ def _set_viewport(kind, subplot):
         gr.setviewport(x_center - r, x_center + r, y_center - r, y_center + r)
 
 
-
 def _minmax():
     global _plt
     x_min = y_min = z_min = float('infinity')
@@ -344,10 +1231,27 @@ def _minmax():
         if z is not None:
             z_min = min(z.min(), z_min)
             z_max = max(z.max(), z_max)
+    x_range = _plt.kwargs.get('xlim', (x_min, x_max))
+    y_range = _plt.kwargs.get('ylim', (y_min, y_max))
+    z_range = _plt.kwargs.get('zlim', (z_min, z_max))
 
-    _plt.kwargs['xrange'] = _plt.kwargs.get('xlim', (x_min, x_max))
-    _plt.kwargs['yrange'] = _plt.kwargs.get('ylim', (y_min, y_max))
-    _plt.kwargs['zrange'] = _plt.kwargs.get('zlim', (z_min, z_max))
+    # Replace None with values determined above
+    if x_range[0] is None:
+        x_range = (x_min, x_range[1])
+    if x_range[1] is None:
+        x_range = (x_range[0], x_max)
+    if y_range[0] is None:
+        y_range = (y_min, y_range[1])
+    if y_range[1] is None:
+        y_range = (y_range[0], y_may)
+    if z_range[0] is None:
+        z_range = (z_min, z_range[1])
+    if z_range[1] is None:
+        z_range = (z_range[0], z_maz)
+
+    _plt.kwargs['xrange'] = x_range
+    _plt.kwargs['yrange'] = y_range
+    _plt.kwargs['zrange'] = z_range
 
 
 def _set_window(kind):
@@ -421,6 +1325,7 @@ def _set_window(kind):
 
     _plt.kwargs['scale'] = scale
     gr.setscale(scale)
+
 
 def _draw_axes(kind, pass_=1):
     global _plt
@@ -510,8 +1415,9 @@ def _draw_polar_axes():
         gr.polyline([sinf, 0], [cosf, 0])
         gr.settextalign(gr.TEXT_HALIGN_CENTER, gr.TEXT_VALIGN_HALF)
         x, y = gr.wctondc(1.1 * sinf, 1.1 * cosf)
-        gr.textext(x, y, "%d^o" % alpha)
+        gr.textext(x, y, "%d\xb0" % alpha)
     gr.restorestate()
+
 
 def _draw_legend():
     global _plt
@@ -613,6 +1519,9 @@ def _plot_data(**kwargs):
         warnings.warn('The parameter "cmap" has been replaced by "colormap". The value of "cmap" will be ignored.', stacklevel=3)
     colormap = _plt.kwargs.get('colormap', gr.COLORMAP_VIRIDIS)
     if colormap is not None:
+        if not isinstance(colormap, int):
+            colormap_name = 'COLORMAP_' + colormap.upper()
+            colormap = getattr(gr, colormap_name)
         gr.setcolormap(colormap)
     gr.uselinespec(" ")
     for x, y, z, c, spec in _plt.args:
@@ -663,6 +1572,9 @@ def _plot_data(**kwargs):
             h = [z_min + i/19*(z_max-z_min) for i in range(20)]
             if x.shape == y.shape == z.shape:
                 x, y, z = gr.gridit(x, y, z, 200, 200)
+                z = np.array(z)
+            else:
+                z = np.ascontiguousarray(z)
             z.shape = np.prod(z.shape)
             gr.contour(x, y, h, z, 1000)
             _colorbar(0, 20)
@@ -673,9 +1585,16 @@ def _plot_data(**kwargs):
             gr.setscale(scale)
             if x.shape == y.shape == z.shape:
                 x, y, z = gr.gridit(x, y, z, 200, 200)
-                z.shape = (200, 200)
+                z = np.array(z)
+            else:
+                z = np.ascontiguousarray(z)
+            z.shape = np.prod(z.shape)
             gr.surface(x, y, z, gr.OPTION_CELL_ARRAY)
             _colorbar()
+            h = [z_min + i/19*(z_max-z_min) for i in range(20)]
+            for i in range(1000, 1256):
+                gr.setcolorrep(i, 0, 0, 0)
+            gr.contour(x, y, h, z, 1000)
         elif kind == 'hexbin':
             nbins = _plt.kwargs.get('nbins', 40)
             cntmax = gr.hexbin(x, y, nbins)
@@ -706,14 +1625,19 @@ def _plot_data(**kwargs):
         elif kind == 'wireframe':
             if x.shape == y.shape == z.shape:
                 x, y, z = gr.gridit(x, y, z, 50, 50)
-            gr.setfillcolorind(0)
+                z = np.array(z)
+            else:
+                z = np.ascontiguousarray(z)
             z.shape = np.prod(z.shape)
+            gr.setfillcolorind(0)
             gr.surface(x, y, z, gr.OPTION_FILLED_MESH)
             _draw_axes(kind, 2)
-
         elif kind == 'surface':
             if x.shape == y.shape == z.shape:
                 x, y, z = gr.gridit(x, y, z, 200, 200)
+                z = np.array(z)
+            else:
+                z = np.ascontiguousarray(z)
             z.shape = np.prod(z.shape)
             if _plt.kwargs.get('accelerate', True):
                 gr3.clear()
@@ -726,7 +1650,16 @@ def _plot_data(**kwargs):
             gr.polyline3d(x, y, z)
             _draw_axes(kind, 2)
         elif kind == 'scatter3':
-            gr.polymarker3d(x, y, z)
+            gr.setmarkertype(gr.MARKERTYPE_SOLID_CIRCLE)
+            if c is not None:
+                c_min = c.min()
+                c_ptp = c.ptp()
+                for i in range(len(x)):
+                    c_index = 1000 + int(255 * (c[i]-c_min)/c_ptp)
+                    gr.setmarkercolorind(c_index)
+                    gr.polymarker3d([x[i]], [y[i]], [z[i]])
+            else:
+                gr.polymarker3d(x, y, z)
             _draw_axes(kind, 2)
         elif kind == 'imshow':
             _plot_img(z)
@@ -791,6 +1724,9 @@ def _plot_img(I):
         warnings.warn('The parameter "cmap" has been replaced by "colormap". The value of "cmap" will be ignored.', stacklevel=3)
     colormap = _plt.kwargs.get('colormap', gr.COLORMAP_VIRIDIS)
     if colormap is not None:
+        if not isinstance(colormap, int):
+            colormap_name = 'COLORMAP_' + colormap.upper()
+            colormap = getattr(gr, colormap_name)
         gr.setcolormap(colormap)
     gr.selntran(0)
     if isinstance(I, basestring):
@@ -833,21 +1769,28 @@ def _plot_iso(v):
     if v_min == v_max:
         return
     uint16_max = np.iinfo(np.uint16).max
+    if v.dtype == np.uint16:
+        isovalue = int(_plt.kwargs.get('isovalue', 0.5 * uint16_max))
+    else:
+        isovalue = _plt.kwargs.get('isovalue', 0.5)
+        isovalue = int((isovalue - v_min) / (v_max - v_min) * uint16_max)
     v = (np.clip(v, v_min, v_max) - v_min) / (v_max - v_min) * uint16_max
     values = v.astype(np.uint16)
     nx, ny, nz = v.shape
-    isovalue = _plt.kwargs.get('isovalue', 0.5)
     rotation = np.radians(_plt.kwargs.get('rotation', 40))
     tilt = np.radians(_plt.kwargs.get('tilt', 70))
     gr3.clear()
     mesh = gr3.createisosurfacemesh(values, (2/(nx-1), 2/(ny-1), 2/(nz-1)),
-                                    (-1., -1., -1.),
-                                    int(isovalue * uint16_max))
+                                    (-1., -1., -1.), isovalue)
     color = _plt.kwargs.get('color', (0.0, 0.5, 0.8))
     gr3.setbackgroundcolor(1, 1, 1, 0)
     gr3.drawmesh(mesh, 1, (0, 0, 0), (0, 0, 1), (0, 1, 0), color, (1, 1, 1))
     r = 2.5
-    gr3.cameralookat(r*np.sin(tilt)*np.sin(rotation), r*np.cos(tilt), r*np.sin(tilt)*np.cos(rotation), 0, 0, 0, 0, 1, 0)
+    if tilt != 0:
+        up = (0, 1, 0)
+    else:
+        up = (0, 0, 1)
+    gr3.cameralookat(r*np.sin(tilt)*np.sin(rotation), r*np.cos(tilt), r*np.sin(tilt)*np.cos(rotation), 0, 0, 0, up[0], up[1], up[2])
     gr3.drawimage(x_min, x_max, y_min, y_max, 500, 500, gr3.GR3_Drawable.GR3_DRAWABLE_GKS)
     gr3.deletemesh(mesh)
     gr.selntran(1)
@@ -857,6 +1800,9 @@ def _plot_polar(theta, rho):
     global _plt
     window = _plt.kwargs['window']
     r_min, r_max = window[2:]
+    tick = 0.5 * gr.tick(r_min, r_max)
+    n = int(round((r_max - r_min) / tick + 0.5))
+    r_max = r_min + n * tick
     rho = (rho - r_min) / (r_max - r_min)
     x = rho * np.cos(theta)
     y = rho * np.sin(theta)
@@ -884,6 +1830,8 @@ def _convert_to_array(obj, may_be_2d=False, xvalues=None, always_flatten=False):
     except TypeError:
         raise TypeError("expected a sequence, but got '{}'".format(type(obj)))
     if always_flatten:
+        # Only contiguous arrays can be flattened this way
+        a = np.ascontiguousarray(a)
         a.shape = np.prod(a.shape)
     # Ensure a shape of (n,) or (n, 2) if may_be_2d is True
     dimension = sum(i != 1 for i in a.shape)
