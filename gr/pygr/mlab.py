@@ -10,6 +10,7 @@ from __future__ import unicode_literals
 
 
 import collections
+import functools
 import warnings
 import numpy as np
 import gr
@@ -22,6 +23,27 @@ except NameError:
     basestring = str
 
 
+def _close_gks_on_error(func):
+    """
+    Wraps API function to make sure GKS is closed on error.
+
+    Not closing GKS after an error occurred during plotting could lead to
+    an unexpected GKS state, e.g. printing of more than one output page.
+
+    :param func: the mlab API function to wrap
+    :return: the wrapped API function
+    """
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            func(*args, **kwargs)
+        except Exception:
+            gr.emergencyclosegks()
+            raise
+    return wrapper
+
+
+@_close_gks_on_error
 def plot(*args, **kwargs):
     """
     Draws one or more line plots.
@@ -55,6 +77,7 @@ def plot(*args, **kwargs):
     _plot_data(kind='line')
 
 
+@_close_gks_on_error
 def oplot(*args, **kwargs):
     """
     Draws one or more line plots over another plot.
@@ -83,6 +106,7 @@ def oplot(*args, **kwargs):
     _plot_data(kind='line')
 
 
+@_close_gks_on_error
 def scatter(*args, **kwargs):
     """
     Draws one or more scatter plots.
@@ -124,6 +148,7 @@ def scatter(*args, **kwargs):
     _plot_data(kind='scatter')
 
 
+@_close_gks_on_error
 def polar(*args, **kwargs):
     """
     Draws one or more polar plots.
@@ -151,6 +176,7 @@ def polar(*args, **kwargs):
     _plot_data(kind='polar')
 
 
+@_close_gks_on_error
 def trisurf(*args, **kwargs):
     """
     Draws a triangular surface plot.
@@ -180,6 +206,7 @@ def trisurf(*args, **kwargs):
     _plot_data(kind='trisurf')
 
 
+@_close_gks_on_error
 def tricont(x, y, z, *args, **kwargs):
     """
     Draws a triangular contour plot.
@@ -210,6 +237,7 @@ def tricont(x, y, z, *args, **kwargs):
     _plot_data(kind='tricont')
 
 
+@_close_gks_on_error
 def stem(*args, **kwargs):
     """
     Draws a stem plot.
@@ -253,6 +281,7 @@ def _hist(x, nbins=0):
     return counts, edges
 
 
+@_close_gks_on_error
 def histogram(x, num_bins=None, **kwargs):
     """
     Draws a histogram.
@@ -281,6 +310,7 @@ def histogram(x, num_bins=None, **kwargs):
     _plot_data(kind='hist')
 
 
+@_close_gks_on_error
 def contour(*args, **kwargs):
     """
     Draws a contour plot.
@@ -322,6 +352,7 @@ def contour(*args, **kwargs):
     _plot_data(kind='contour')
 
 
+@_close_gks_on_error
 def contourf(*args, **kwargs):
     """
     Draws a filled contour plot.
@@ -363,6 +394,7 @@ def contourf(*args, **kwargs):
     _plot_data(kind='contourf')
 
 
+@_close_gks_on_error
 def hexbin(*args, **kwargs):
     """
     Draws a hexagon binning plot.
@@ -390,6 +422,7 @@ def hexbin(*args, **kwargs):
     _plot_data(kind='hexbin')
 
 
+@_close_gks_on_error
 def heatmap(data, **kwargs):
     """
     Draws a heatmap.
@@ -425,6 +458,7 @@ def heatmap(data, **kwargs):
     _plot_data(kind='heatmap')
 
 
+@_close_gks_on_error
 def wireframe(*args, **kwargs):
     """
     Draws a three-dimensional wireframe plot.
@@ -466,6 +500,7 @@ def wireframe(*args, **kwargs):
     _plot_data(kind='wireframe')
 
 
+@_close_gks_on_error
 def surface(*args, **kwargs):
     """
     Draws a three-dimensional surface plot.
@@ -507,6 +542,7 @@ def surface(*args, **kwargs):
     _plot_data(kind='surface')
 
 
+@_close_gks_on_error
 def plot3(*args, **kwargs):
     """
     Draws one or more three-dimensional line plots.
@@ -530,6 +566,7 @@ def plot3(*args, **kwargs):
     _plot_data(kind='plot3')
 
 
+@_close_gks_on_error
 def scatter3(x, y, z, c=None, *args, **kwargs):
     """
     Draws one or more three-dimensional scatter plots.
@@ -563,6 +600,7 @@ def scatter3(x, y, z, c=None, *args, **kwargs):
     _plot_data(kind='scatter3')
 
 
+@_close_gks_on_error
 def isosurface(v, **kwargs):
     """
     Draws an isosurface.
@@ -591,6 +629,7 @@ def isosurface(v, **kwargs):
     _plot_data(kind='isosurface')
 
 
+@_close_gks_on_error
 def imshow(image, **kwargs):
     """
     Draws an image.
@@ -617,6 +656,7 @@ def imshow(image, **kwargs):
     _plot_data(kind='imshow')
 
 
+@_close_gks_on_error
 def title(title=""):
     """
     Sets the plot title.
@@ -638,6 +678,7 @@ def title(title=""):
     _plot_data(title=title)
 
 
+@_close_gks_on_error
 def xlabel(x_label=""):
     """
     Sets the x-axis label.
@@ -659,6 +700,7 @@ def xlabel(x_label=""):
     _plot_data(xlabel=x_label)
 
 
+@_close_gks_on_error
 def ylabel(y_label=""):
     """
     Sets the y-axis label.
@@ -680,6 +722,7 @@ def ylabel(y_label=""):
     _plot_data(ylabel=y_label)
 
 
+@_close_gks_on_error
 def zlabel(z_label=""):
     """
     Sets the z-axis label.
@@ -701,6 +744,7 @@ def zlabel(z_label=""):
     _plot_data(zlabel=z_label)
 
 
+@_close_gks_on_error
 def xlim(x_min=None, x_max=None):
     """
     Sets the limits for the x-axis.
@@ -740,6 +784,7 @@ def xlim(x_min=None, x_max=None):
     _plot_data(xlim=(x_min, x_max))
 
 
+@_close_gks_on_error
 def ylim(y_min=None, y_max=None):
     """
     Sets the limits for the y-axis and updates the current plot.
@@ -779,6 +824,7 @@ def ylim(y_min=None, y_max=None):
     _plot_data(ylim=(y_min, y_max))
 
 
+@_close_gks_on_error
 def zlim(z_min=None, z_max=None):
     """
     Sets the limits for the z-axis and updates the current plot.
@@ -818,6 +864,7 @@ def zlim(z_min=None, z_max=None):
     _plot_data(zlim=(z_min, z_max))
 
 
+@_close_gks_on_error
 def xlog(xlog=True):
     """
     Enables or disables a logarithmic scale for the x-axis.
@@ -834,6 +881,7 @@ def xlog(xlog=True):
     _plot_data(xlog=xlog)
 
 
+@_close_gks_on_error
 def ylog(ylog=True):
     """
     Enables or disables a logarithmic scale for the y-axis.
@@ -850,6 +898,7 @@ def ylog(ylog=True):
     _plot_data(ylog=ylog)
 
 
+@_close_gks_on_error
 def zlog(zlog=True):
     """
     Enables or disables a logarithmic scale for the z-axis.
@@ -866,6 +915,7 @@ def zlog(zlog=True):
     _plot_data(zlog=zlog)
 
 
+@_close_gks_on_error
 def xflip(xflip=True):
     """
     Enables or disables x-axis flipping/reversal.
@@ -882,6 +932,7 @@ def xflip(xflip=True):
     _plot_data(xflip=xflip)
 
 
+@_close_gks_on_error
 def yflip(yflip=True):
     """
     Enables or disables y-axis flipping/reversal.
@@ -898,6 +949,7 @@ def yflip(yflip=True):
     _plot_data(yflip=yflip)
 
 
+@_close_gks_on_error
 def zflip(zflip=True):
     """
     Enables or disables z-axis flipping/reversal.
@@ -914,6 +966,7 @@ def zflip(zflip=True):
     _plot_data(zflip=zflip)
 
 
+@_close_gks_on_error
 def colormap(colormap):
     """
     Sets the colormap for the current plot or enables manual colormap control.
@@ -939,6 +992,7 @@ def colormap(colormap):
     _plot_data(colormap=colormap)
 
 
+@_close_gks_on_error
 def tilt(tilt):
     """
     Sets the 3d axis tilt of the current plot.
@@ -961,6 +1015,7 @@ def tilt(tilt):
     _plot_data(tilt=tilt)
 
 
+@_close_gks_on_error
 def rotation(rotation):
     """
     Sets the 3d axis rotation of the current plot.
@@ -983,6 +1038,7 @@ def rotation(rotation):
     _plot_data(rotation=rotation)
 
 
+@_close_gks_on_error
 def legend(*labels, **kwargs):
     """
     Sets the labels and location for the legend of the current plot.
@@ -1009,6 +1065,7 @@ def legend(*labels, **kwargs):
     _plot_data(labels=labels, **kwargs)
 
 
+@_close_gks_on_error
 def savefig(filename):
     """
     Saves the current figure to a file.
@@ -1032,6 +1089,7 @@ def savefig(filename):
     gr.endprint()
 
 
+@_close_gks_on_error
 def figure(**kwargs):
     """
     Creates a new figure with the given settings.
@@ -1054,6 +1112,7 @@ def figure(**kwargs):
     return _plt
 
 
+@_close_gks_on_error
 def hold(flag):
     """
     Sets the hold flag for combining multiple plots.
@@ -1082,6 +1141,7 @@ def hold(flag):
     _plt.kwargs['clear'] = not flag
 
 
+@_close_gks_on_error
 def subplot(num_rows, num_columns, subplot_indices):
     """
     Sets current subplot index.
@@ -1136,6 +1196,8 @@ class _Figure(object):
             'clear': True,
             'update': True
         }
+
+
 _plt = _Figure()
 
 
