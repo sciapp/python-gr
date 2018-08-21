@@ -1211,6 +1211,30 @@ def _colormap():
     return rgba
 
 
+def _set_colormap():
+    global _plt
+    if 'cmap' in _plt.kwargs:
+        warnings.warn('The parameter "cmap" has been replaced by "colormap". The value of "cmap" will be ignored.', stacklevel=3)
+    colormap = _plt.kwargs.get('colormap', gr.COLORMAP_VIRIDIS)
+    if colormap is None:
+        return
+    if isinstance(colormap, int):
+        gr.setcolormap(colormap)
+        return
+    if hasattr(colormap, 'upper'):
+        colormap_name = 'COLORMAP_' + colormap.upper()
+        colormap = getattr(gr, colormap_name)
+        gr.setcolormap(colormap)
+        return
+    reds, greens, blues = list(zip(*colormap))[:3]
+    if len(colormap) != 256:
+        reds = np.interp(np.arange(256), np.linspace(0, 255, len(colormap)), reds)
+        greens = np.interp(np.arange(256), np.linspace(0, 255, len(colormap)), greens)
+        blues = np.interp(np.arange(256), np.linspace(0, 255, len(colormap)), blues)
+    for i in range(256):
+        gr.setcolorrep(1000+i, reds[i], greens[i], blues[i])
+
+
 def _set_viewport(kind, subplot):
     global _plt
     metric_width, metric_height, pixel_width, pixel_height = gr.inqdspsize()
@@ -1577,14 +1601,7 @@ def _plot_data(**kwargs):
         else:
             _draw_axes(kind)
 
-    if 'cmap' in _plt.kwargs:
-        warnings.warn('The parameter "cmap" has been replaced by "colormap". The value of "cmap" will be ignored.', stacklevel=3)
-    colormap = _plt.kwargs.get('colormap', gr.COLORMAP_VIRIDIS)
-    if colormap is not None:
-        if not isinstance(colormap, int):
-            colormap_name = 'COLORMAP_' + colormap.upper()
-            colormap = getattr(gr, colormap_name)
-        gr.setcolormap(colormap)
+    _set_colormap()
     gr.uselinespec(" ")
     for x, y, z, c, spec in _plt.args:
         gr.savestate()
@@ -1782,14 +1799,7 @@ def _plot_img(I):
         y_min = max(0.5 * (viewport[3] + viewport[2] - h), viewport[2])
         y_max = min(0.5 * (viewport[3] + viewport[2] + h), viewport[3])
 
-    if 'cmap' in _plt.kwargs:
-        warnings.warn('The parameter "cmap" has been replaced by "colormap". The value of "cmap" will be ignored.', stacklevel=3)
-    colormap = _plt.kwargs.get('colormap', gr.COLORMAP_VIRIDIS)
-    if colormap is not None:
-        if not isinstance(colormap, int):
-            colormap_name = 'COLORMAP_' + colormap.upper()
-            colormap = getattr(gr, colormap_name)
-        gr.setcolormap(colormap)
+    _set_colormap()
     gr.selntran(0)
     if isinstance(I, basestring):
         gr.drawimage(x_min, x_max, y_min, y_max, width, height, data)
