@@ -974,6 +974,7 @@ def colormap(colormap):
     :param colormap:
         - The name of a gr colormap
         - One of the gr colormap constants (**gr.COLORMAP_...**)
+        - A list of red-green-blue tuples as colormap
         - **None**, if the colormap should use the current colors set by
           :py:func:`gr.setcolorrep`
 
@@ -983,7 +984,9 @@ def colormap(colormap):
     >>> mlab.colormap('viridis')
     >>> # Use one of the built-in colormap constants
     >>> mlab.colormap(gr.COLORMAP_BWR)
-    >>> # Use a custom colormap
+    >>> # Use a list of red-green-blue tuples as colormap
+    >>> mlab.colormap([(0, 0, 1), (1, 1, 1), (1, 0, 0)])
+    >>> # Use a custom colormap using gr.setcolorrep directly
     >>> for i in range(256):
     ...     gr.setcolorrep(1.0-i/255.0, 1.0, i/255.0)
     ...
@@ -1209,6 +1212,30 @@ def _colormap():
         rgba[color_index, 1] = ((color >> 8)  % 256) / 255.0
         rgba[color_index, 2] = ((color >> 16) % 256) / 255.0
     return rgba
+
+
+def _set_colormap():
+    global _plt
+    if 'cmap' in _plt.kwargs:
+        warnings.warn('The parameter "cmap" has been replaced by "colormap". The value of "cmap" will be ignored.', stacklevel=3)
+    colormap = _plt.kwargs.get('colormap', gr.COLORMAP_VIRIDIS)
+    if colormap is None:
+        return
+    if isinstance(colormap, int):
+        gr.setcolormap(colormap)
+        return
+    if hasattr(colormap, 'upper'):
+        colormap_name = 'COLORMAP_' + colormap.upper()
+        colormap = getattr(gr, colormap_name)
+        gr.setcolormap(colormap)
+        return
+    reds, greens, blues = list(zip(*colormap))[:3]
+    if len(colormap) != 256:
+        reds = np.interp(np.arange(256), np.linspace(0, 255, len(colormap)), reds)
+        greens = np.interp(np.arange(256), np.linspace(0, 255, len(colormap)), greens)
+        blues = np.interp(np.arange(256), np.linspace(0, 255, len(colormap)), blues)
+    for i in range(256):
+        gr.setcolorrep(1000+i, reds[i], greens[i], blues[i])
 
 
 def _set_viewport(kind, subplot):
@@ -1577,14 +1604,7 @@ def _plot_data(**kwargs):
         else:
             _draw_axes(kind)
 
-    if 'cmap' in _plt.kwargs:
-        warnings.warn('The parameter "cmap" has been replaced by "colormap". The value of "cmap" will be ignored.', stacklevel=3)
-    colormap = _plt.kwargs.get('colormap', gr.COLORMAP_VIRIDIS)
-    if colormap is not None:
-        if not isinstance(colormap, int):
-            colormap_name = 'COLORMAP_' + colormap.upper()
-            colormap = getattr(gr, colormap_name)
-        gr.setcolormap(colormap)
+    _set_colormap()
     gr.uselinespec(" ")
     for x, y, z, c, spec in _plt.args:
         gr.savestate()
@@ -1782,14 +1802,7 @@ def _plot_img(I):
         y_min = max(0.5 * (viewport[3] + viewport[2] - h), viewport[2])
         y_max = min(0.5 * (viewport[3] + viewport[2] + h), viewport[3])
 
-    if 'cmap' in _plt.kwargs:
-        warnings.warn('The parameter "cmap" has been replaced by "colormap". The value of "cmap" will be ignored.', stacklevel=3)
-    colormap = _plt.kwargs.get('colormap', gr.COLORMAP_VIRIDIS)
-    if colormap is not None:
-        if not isinstance(colormap, int):
-            colormap_name = 'COLORMAP_' + colormap.upper()
-            colormap = getattr(gr, colormap_name)
-        gr.setcolormap(colormap)
+    _set_colormap()
     gr.selntran(0)
     if isinstance(I, basestring):
         gr.drawimage(x_min, x_max, y_min, y_max, width, height, data)
