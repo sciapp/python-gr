@@ -974,6 +974,7 @@ def colormap(colormap):
     :param colormap:
         - The name of a gr colormap
         - One of the gr colormap constants (**gr.COLORMAP_...**)
+        - A list of red-green-blue tuples as colormap
         - **None**, if the colormap should use the current colors set by
           :py:func:`gr.setcolorrep`
 
@@ -983,7 +984,9 @@ def colormap(colormap):
     >>> mlab.colormap('viridis')
     >>> # Use one of the built-in colormap constants
     >>> mlab.colormap(gr.COLORMAP_BWR)
-    >>> # Use a custom colormap
+    >>> # Use a list of red-green-blue tuples as colormap
+    >>> mlab.colormap([(0, 0, 1), (1, 1, 1), (1, 0, 0)])
+    >>> # Use a custom colormap using gr.setcolorrep directly
     >>> for i in range(256):
     ...     gr.setcolorrep(1.0-i/255.0, 1.0, i/255.0)
     ...
