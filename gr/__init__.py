@@ -2320,6 +2320,8 @@ def show():
             data = open('gks.svg', 'rb').read()
         except IOError:
             return None
+        if not data:
+            return None
         content = SVG(data=data)
         display(content)
     elif _mime_type == 'png':
@@ -2327,12 +2329,16 @@ def show():
             data = open('gks.png', 'rb').read()
         except IOError:
             return None
+        if not data:
+            return None
         content = Image(data=data, width=465, height=465)
         display(content)
     elif _mime_type == 'mov':
         try:
             data = open('gks.mov', 'rb').read()
         except IOError:
+            return None
+        if not data:
             return None
         content = HTML(data='<video controls autoplay type="video/mp4" src="data:video/mp4;base64,{0}">'.format(b64encode(data).decode('ascii')))
         return content
