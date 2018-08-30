@@ -1204,6 +1204,21 @@ class _Figure(object):
 _plt = _Figure()
 
 
+_gr3_available = None
+
+
+def _gr3_is_available():
+    global _gr3_available
+    if _gr3_available is None:
+        try:
+            gr3.init()
+        except gr3.GR3_Exception:
+            _gr3_available = False
+        else:
+            _gr3_available = True
+    return _gr3_available
+
+
 def _colormap():
     rgba = np.ones((256, 4), np.float32)
     for color_index in range(256):
@@ -1721,7 +1736,7 @@ def _plot_data(**kwargs):
             else:
                 z = np.ascontiguousarray(z)
             z.shape = np.prod(z.shape)
-            if _plt.kwargs.get('accelerate', True):
+            if _plt.kwargs.get('accelerate', True) and _gr3_is_available():
                 gr3.clear()
                 gr3.surface(x, y, z, gr.OPTION_COLORED_MESH)
             else:
@@ -1819,6 +1834,8 @@ def _plot_img(I):
 
 def _plot_iso(v):
     global _plt
+    if not _gr3_is_available():
+        raise RuntimeError("Unable to initialize GR3, please ensure that your system supports OpenGL")
     viewport = _plt.kwargs['viewport']
     if viewport[3] - viewport[2] < viewport[1] - viewport[0]:
         width = viewport[3] - viewport[2]
