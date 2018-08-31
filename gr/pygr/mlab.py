@@ -60,11 +60,11 @@ def plot(*args, **kwargs):
 
     >>> # Create example data
     >>> x = np.linspace(-2, 2, 40)
-    >>> y = 0.2*x+0.4
+    >>> y = 2*x+4
     >>> # Plot x and y
     >>> mlab.plot(x, y)
     >>> # Plot x and a callable
-    >>> mlab.plot(x, lambda x: 0.2*x + 0.4)
+    >>> mlab.plot(x, lambda x: x: x**3 + x**2 + x)
     >>> # Plot y, using its indices for the x values
     >>> mlab.plot(y)
     """
@@ -94,11 +94,11 @@ def oplot(*args, **kwargs):
 
     >>> # Create example data
     >>> x = np.linspace(-2, 2, 40)
-    >>> y = 0.2*x+0.4
+    >>> y = 2*x+4
     >>> # Draw the first plot
     >>> mlab.plot(x, y)
     >>> # Plot graph over it
-    >>> mlab.oplot(x, lambda x: 0.1*x**2 + 0.4*x)
+    >>> mlab.oplot(x, lambda x: x**3 + x**2 + x)
     """
     global _plt
     _plt.kwargs.update(kwargs)
@@ -258,7 +258,7 @@ def stem(*args, **kwargs):
     >>> # Plot x and y
     >>> mlab.stem(x, y)
     >>> # Plot x and a callable
-    >>> mlab.stem(x, lambda x: 0.2*x + 0.4)
+    >>> mlab.stem(x, lambda x: x**3 + x**2 + x + 6)
     >>> # Plot y, using its indices for the x values
     >>> mlab.stem(y)
     """
@@ -554,9 +554,9 @@ def plot3(*args, **kwargs):
     **Usage examples:**
 
     >>> # Create example data
-    >>> x = np.random.uniform(-1, 1, 100)
-    >>> y = np.random.uniform(-1, 1, 100)
-    >>> z = np.random.uniform(-1, 1, 100)
+    >>> x = np.linspace(0, 30, 1000)
+    >>> y = np.cos(x) * x
+    >>> z = np.sin(x) * x
     >>> # Plot the points
     >>> mlab.plot3(x, y, z)
     """
@@ -1506,13 +1506,15 @@ def _draw_polar_axes():
         if i % 2 == 0:
             gr.setlinecolorind(88)
             if i > 0:
-                gr.drawarc(-r, r, -r, r, 0, 359)
+                gr.drawarc(-r, r, -r, r, 0, 180)
+                gr.drawarc(-r, r, -r, r, 180, 360)
             gr.settextalign(gr.TEXT_HALIGN_LEFT, gr.TEXT_VALIGN_HALF)
             x, y = gr.wctondc(0.05, r)
             gr.text(x, y, "%g" % (r_min + i * tick))
         else:
             gr.setlinecolorind(90)
-            gr.drawarc(-r, r, -r, r, 0, 359)
+            gr.drawarc(-r, r, -r, r, 0, 180)
+            gr.drawarc(-r, r, -r, r, 180, 360)
     for alpha in range(0, 360, 45):
         sinf = np.sin(np.radians(alpha+90))
         cosf = np.cos(np.radians(alpha+90))
