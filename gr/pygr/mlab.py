@@ -60,11 +60,11 @@ def plot(*args, **kwargs):
 
     >>> # Create example data
     >>> x = np.linspace(-2, 2, 40)
-    >>> y = 0.2*x+0.4
+    >>> y = 2*x+4
     >>> # Plot x and y
     >>> mlab.plot(x, y)
     >>> # Plot x and a callable
-    >>> mlab.plot(x, lambda x: 0.2*x + 0.4)
+    >>> mlab.plot(x, lambda x: x: x**3 + x**2 + x)
     >>> # Plot y, using its indices for the x values
     >>> mlab.plot(y)
     """
@@ -94,11 +94,11 @@ def oplot(*args, **kwargs):
 
     >>> # Create example data
     >>> x = np.linspace(-2, 2, 40)
-    >>> y = 0.2*x+0.4
+    >>> y = 2*x+4
     >>> # Draw the first plot
     >>> mlab.plot(x, y)
     >>> # Plot graph over it
-    >>> mlab.oplot(x, lambda x: 0.1*x**2 + 0.4*x)
+    >>> mlab.oplot(x, lambda x: x**3 + x**2 + x)
     """
     global _plt
     _plt.kwargs.update(kwargs)
@@ -258,7 +258,7 @@ def stem(*args, **kwargs):
     >>> # Plot x and y
     >>> mlab.stem(x, y)
     >>> # Plot x and a callable
-    >>> mlab.stem(x, lambda x: 0.2*x + 0.4)
+    >>> mlab.stem(x, lambda x: x**3 + x**2 + x + 6)
     >>> # Plot y, using its indices for the x values
     >>> mlab.stem(y)
     """
@@ -554,9 +554,9 @@ def plot3(*args, **kwargs):
     **Usage examples:**
 
     >>> # Create example data
-    >>> x = np.random.uniform(-1, 1, 100)
-    >>> y = np.random.uniform(-1, 1, 100)
-    >>> z = np.random.uniform(-1, 1, 100)
+    >>> x = np.linspace(0, 30, 1000)
+    >>> y = np.cos(x) * x
+    >>> z = np.sin(x) * x
     >>> # Plot the points
     >>> mlab.plot3(x, y, z)
     """
@@ -1204,6 +1204,21 @@ class _Figure(object):
 _plt = _Figure()
 
 
+_gr3_available = None
+
+
+def _gr3_is_available():
+    global _gr3_available
+    if _gr3_available is None:
+        try:
+            gr3.init()
+        except gr3.GR3_Exception:
+            _gr3_available = False
+        else:
+            _gr3_available = True
+    return _gr3_available
+
+
 def _colormap():
     rgba = np.ones((256, 4), np.float32)
     for color_index in range(256):
@@ -1491,13 +1506,15 @@ def _draw_polar_axes():
         if i % 2 == 0:
             gr.setlinecolorind(88)
             if i > 0:
-                gr.drawarc(-r, r, -r, r, 0, 359)
+                gr.drawarc(-r, r, -r, r, 0, 180)
+                gr.drawarc(-r, r, -r, r, 180, 360)
             gr.settextalign(gr.TEXT_HALIGN_LEFT, gr.TEXT_VALIGN_HALF)
             x, y = gr.wctondc(0.05, r)
             gr.text(x, y, "%g" % (r_min + i * tick))
         else:
             gr.setlinecolorind(90)
-            gr.drawarc(-r, r, -r, r, 0, 359)
+            gr.drawarc(-r, r, -r, r, 0, 180)
+            gr.drawarc(-r, r, -r, r, 180, 360)
     for alpha in range(0, 360, 45):
         sinf = np.sin(np.radians(alpha+90))
         cosf = np.cos(np.radians(alpha+90))
@@ -1721,7 +1738,7 @@ def _plot_data(**kwargs):
             else:
                 z = np.ascontiguousarray(z)
             z.shape = np.prod(z.shape)
-            if _plt.kwargs.get('accelerate', True):
+            if _plt.kwargs.get('accelerate', True) and _gr3_is_available():
                 gr3.clear()
                 gr3.surface(x, y, z, gr.OPTION_COLORED_MESH)
             else:
@@ -1819,6 +1836,8 @@ def _plot_img(I):
 
 def _plot_iso(v):
     global _plt
+    if not _gr3_is_available():
+        raise RuntimeError("Unable to initialize GR3, please ensure that your system supports OpenGL")
     viewport = _plt.kwargs['viewport']
     if viewport[3] - viewport[2] < viewport[1] - viewport[0]:
         width = viewport[3] - viewport[2]
