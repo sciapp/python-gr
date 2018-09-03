@@ -149,6 +149,34 @@ def scatter(*args, **kwargs):
 
 
 @_close_gks_on_error
+def quiver(x, y, u, v, **kwargs):
+    """
+    Draws a quiver plot.
+
+    This function draws arrows to visualize a vector for each point of a grid.
+
+    :param x: the X coordinates of the grid
+    :param y: the Y coordinates of the grid
+    :param u: the U component for each point on the grid
+    :param v: the V component for each point on the grid
+
+    **Usage examples:**
+
+    >>> # Create example data
+    >>> x = np.linspace(-1, 1, 30)
+    >>> y = np.linspace(-1, 1, 20)
+    >>> u = np.repeat(x[np.newaxis, :], len(y), axis=0)
+    >>> v = np.repeat(y[:, np.newaxis], len(x), axis=1)
+    >>> # Draw arrows on grid
+    >>> mlab.quiver(x, y, u, b)
+    """
+    global _plt
+    _plt.kwargs.update(kwargs)
+    _plt.args = _plot_args((x, y, u, v), fmt='xyuv')
+    _plot_data(kind='quiver')
+
+
+@_close_gks_on_error
 def polar(*args, **kwargs):
     """
     Draws one or more polar plots.
@@ -1293,7 +1321,7 @@ def _set_viewport(kind, subplot):
         viewport[2] += (1 - (subplot[3] - subplot[2])**2) * 0.02
     if kind in ('wireframe', 'surface', 'plot3', 'scatter3', 'trisurf'):
         viewport[1] -= 0.0525
-    if kind in ('contour', 'contourf', 'surface', 'trisurf', 'heatmap', 'hexbin'):
+    if kind in ('contour', 'contourf', 'surface', 'trisurf', 'heatmap', 'hexbin', 'quiver'):
         viewport[1] -= 0.1
     gr.setviewport(*viewport)
     _plt.kwargs['viewport'] = viewport
@@ -1322,10 +1350,22 @@ def _set_viewport(kind, subplot):
         gr.setviewport(x_center - r, x_center + r, y_center - r, y_center + r)
 
 
-def _minmax():
+def _fix_minmax(v_min, v_max):
+    if v_min == v_max:
+        if v_min == 0:
+            v_min -= 0.1
+            v_max += 0.1
+        else:
+            v_min -= 0.1*v_min
+            v_max += 0.1*v_max
+    return v_min, v_max
+
+
+def _minmax(kind=None):
     global _plt
     x_min = y_min = z_min = float('infinity')
     x_max = y_max = z_max = float('-infinity')
+    x_step = y_step = float('-infinity')
 
     for x, y, z, c, spec in _plt.args:
         x_min = min(x.min(), x_min)
@@ -1335,6 +1375,27 @@ def _minmax():
         if z is not None:
             z_min = min(z.min(), z_min)
             z_max = max(z.max(), z_max)
+        if kind in ('quiver',):
+            if len(x) > 1:
+                x_step = max(np.abs(x[1:] - x[:-1]).max(), x_step)
+            if len(y) > 1:
+                y_step = max(np.abs(y[1:] - y[:-1]).max(), y_step)
+
+    if kind in ('quiver',):
+        if x_step is not None and x_step > 0:
+            x_min -= x_step
+            x_max += x_step
+        if y_step is not None and y_step > 0:
+            y_min -= y_step
+            y_max += y_step
+        # Use vector length for colormap
+        x, y, u, v, spec = _plt.args[0]
+        lengths_squared = u**2 + v**2
+        z_min = np.sqrt(np.min(lengths_squared))
+        z_max = np.sqrt(np.max(lengths_squared))
+    x_min, x_max = _fix_minmax(x_min, x_max)
+    y_min, y_max = _fix_minmax(y_min, y_max)
+    z_min, z_max = _fix_minmax(z_min, z_max)
     x_range = _plt.kwargs.get('xlim', (x_min, x_max))
     y_range = _plt.kwargs.get('ylim', (y_min, y_max))
     z_range = _plt.kwargs.get('zlim', (z_min, z_max))
@@ -1369,7 +1430,7 @@ def _set_window(kind):
         scale |= gr.OPTION_FLIP_Y if _plt.kwargs.get('yflip', False) else 0
         scale |= gr.OPTION_FLIP_Z if _plt.kwargs.get('zflip', False) else 0
 
-    _minmax()
+    _minmax(kind)
     if kind in ('wireframe', 'surface', 'plot3', 'scatter3', 'polar', 'trisurf'):
         major_count = 2
     else:
@@ -1648,6 +1709,11 @@ def _plot_data(**kwargs):
                     gr.polymarker([x[i]], [y[i]])
             else:
                 gr.polymarker(x, y)
+        elif kind == 'quiver':
+            u = z
+            v = c
+            gr.quiver(len(x), len(y), x, y, u, v, True)
+            _colorbar(0.05)
         elif kind == 'stem':
             gr.setlinecolorind(1)
             gr.polyline(_plt.kwargs['window'][:2], [0, 0])
@@ -1966,6 +2032,21 @@ def _plot_args(args, fmt='xys'):
     while args:
         # Try to read x, y, z and c
         x = y = z = c = None
+        if fmt == 'xyuv':
+            if len(args) == 4:
+                x, y, u, v = args
+                x = _convert_to_array(x)
+                y = _convert_to_array(y)
+                u = _convert_to_array(u, always_flatten=True)
+                v = _convert_to_array(v, always_flatten=True)
+                if u.shape != (len(x) * len(y),):
+                    raise TypeError('expected an array of len(y) * len(x) u values')
+                if v.shape != (len(x) * len(y),):
+                    raise TypeError('expected an array of len(y) * len(x) v values')
+                parsed_args.append((x, y, u.reshape(len(y), len(x)), v.reshape(len(y), len(x)), ""))
+                break
+            else:
+                raise TypeError('expected x, y, u and v')
         if fmt == 'xyzc' and len(args) == 1:
             try:
                 a = np.array(args[0])

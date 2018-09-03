@@ -277,6 +277,37 @@ def polyline(x, y):
     __gr.gr_polyline(c_int(n), _x.data, _y.data)
 
 
+def quiver(nx, ny, x, y, u, v, color):
+    """
+    Draw a quiver plot on a grid of nx*ny points.
+
+    **Parameters:**
+
+    `nx` :
+        The number of points along the x-axis of the grid
+    `nx` :
+        The number of points along the y-axis of the grid
+    `x` :
+        A list containing the X coordinates
+    `y` :
+        A list containing the Y coordinates
+    `u` :
+        A list containing the U component for each point on the grid
+    `v` :
+        A list containing the V component for each point on the grid
+    `color` :
+        A bool to indicate whether or not the arrows should be colored using
+        the current colormap
+
+    The values for `x` and `y` are in world coordinates.
+    """
+    _x = floatarray(nx, x)
+    _y = floatarray(ny, y)
+    _u = floatarray(nx * ny, u)
+    _v = floatarray(nx * ny, v)
+    __gr.gr_quiver(c_int(nx), c_int(ny), _x.data, _y.data, _u.data, _v.data, c_int(1 if color else 0))
+
+
 def polymarker(x, y):
     """
     Draw marker symbols centered at the given data points.
@@ -2673,6 +2704,7 @@ __gr.gr_tricontour.argtypes = [
     c_int, POINTER(c_double)]
 __gr.gr_version.argtypes = []
 __gr.gr_version.restype = c_char_p
+__gr.gr_quiver.argtypes = [c_int, c_int, POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double), c_int]
 
 precision = __gr.gr_precision()
 
