@@ -50,9 +50,9 @@ install-ubuntu1604-python3:
     paths:
     - gks.png
 
-install-ubuntu1710-python2:
+install-ubuntu1804-python2:
   stage: install
-  image: ubuntu:17.10
+  image: ubuntu:18.04
   variables:
     GIT_STRATEGY: none
   script:
@@ -67,9 +67,9 @@ install-ubuntu1710-python2:
     paths:
     - gks.png
 
-install-ubuntu1710-python3:
+install-ubuntu1804-python3:
   stage: install
-  image: ubuntu:17.10
+  image: ubuntu:18.04
   variables:
     GIT_STRATEGY: none
   script:
