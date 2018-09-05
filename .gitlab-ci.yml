@@ -16,6 +16,20 @@ build:
     paths:
     - dist/
 
+check-codestyle:
+  stage: build
+  image: ubuntu:18.04
+  script:
+  - apt-get update
+  - apt-get install -y virtualenv python-pip git
+  - virtualenv env
+  - env/bin/pip install --upgrade pip
+  - env/bin/pip install flake8-docstrings
+  # Check against PEP8 and PEP257
+  # Ignore line length check (E501)
+  # Ignore single-line docstring check (D200)
+  - env/bin/python -m flake8 --ignore E501,D200 gr/pygr/mlab.py
+
 install-ubuntu1604-python2:
   stage: install
   image: ubuntu:16.04
@@ -50,9 +64,9 @@ install-ubuntu1604-python3:
     paths:
     - gks.png
 
-install-ubuntu1710-python2:
+install-ubuntu1804-python2:
   stage: install
-  image: ubuntu:17.10
+  image: ubuntu:18.04
   variables:
     GIT_STRATEGY: none
   script:
@@ -67,9 +81,9 @@ install-ubuntu1710-python2:
     paths:
     - gks.png
 
-install-ubuntu1710-python3:
+install-ubuntu1804-python3:
   stage: install
-  image: ubuntu:17.10
+  image: ubuntu:18.04
   variables:
     GIT_STRATEGY: none
   script:
@@ -167,7 +181,22 @@ install-fedora26-python3:
 
 install-opensuse42.3-python2:
   stage: install
-  image: opensuse:42.3
+  image: opensuse/leap:42.3
+  variables:
+    GIT_STRATEGY: none
+  script:
+  - zypper install -y libXt6 libXrender1 libXext6 python3-pip Mesa-libGL1
+  - python3 -m pip install --upgrade pip
+  - python3 -m pip install dist/gr-*.tar.gz
+  - GKS_WSTYPE=png python3 -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
+  - python3 -c 'import gr3'
+  artifacts:
+    paths:
+    - gks.png
+
+install-opensuse15-python2:
+  stage: install
+  image: opensuse/leap:15
   variables:
     GIT_STRATEGY: none
   script:

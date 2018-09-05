@@ -9,7 +9,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 
-import collections
+import functools
 import warnings
 import numpy as np
 import gr
@@ -22,9 +22,30 @@ except NameError:
     basestring = str
 
 
+def _close_gks_on_error(func):
+    """
+    Wrap an API function to make sure GKS is closed on error.
+
+    Not closing GKS after an error occurred during plotting could lead to
+    an unexpected GKS state, e.g. printing of more than one output page.
+
+    :param func: the mlab API function to wrap
+    :return: the wrapped API function
+    """
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            func(*args, **kwargs)
+        except Exception:
+            gr.emergencyclosegks()
+            raise
+    return wrapper
+
+
+@_close_gks_on_error
 def plot(*args, **kwargs):
     """
-    Draws one or more line plots.
+    Draw one or more line plots.
 
     This function can receive one or more of the following:
 
@@ -38,11 +59,11 @@ def plot(*args, **kwargs):
 
     >>> # Create example data
     >>> x = np.linspace(-2, 2, 40)
-    >>> y = 0.2*x+0.4
+    >>> y = 2*x+4
     >>> # Plot x and y
     >>> mlab.plot(x, y)
     >>> # Plot x and a callable
-    >>> mlab.plot(x, lambda x: 0.2*x + 0.4)
+    >>> mlab.plot(x, lambda x: x: x**3 + x**2 + x)
     >>> # Plot y, using its indices for the x values
     >>> mlab.plot(y)
     """
@@ -55,9 +76,10 @@ def plot(*args, **kwargs):
     _plot_data(kind='line')
 
 
+@_close_gks_on_error
 def oplot(*args, **kwargs):
     """
-    Draws one or more line plots over another plot.
+    Draw one or more line plots over another plot.
 
     This function can receive one or more of the following:
 
@@ -71,11 +93,11 @@ def oplot(*args, **kwargs):
 
     >>> # Create example data
     >>> x = np.linspace(-2, 2, 40)
-    >>> y = 0.2*x+0.4
+    >>> y = 2*x+4
     >>> # Draw the first plot
     >>> mlab.plot(x, y)
     >>> # Plot graph over it
-    >>> mlab.oplot(x, lambda x: 0.1*x**2 + 0.4*x)
+    >>> mlab.oplot(x, lambda x: x**3 + x**2 + x)
     """
     global _plt
     _plt.kwargs.update(kwargs)
@@ -83,9 +105,10 @@ def oplot(*args, **kwargs):
     _plot_data(kind='line')
 
 
+@_close_gks_on_error
 def scatter(*args, **kwargs):
     """
-    Draws one or more scatter plots.
+    Draw one or more scatter plots.
 
     This function can receive one or more of the following:
 
@@ -124,9 +147,38 @@ def scatter(*args, **kwargs):
     _plot_data(kind='scatter')
 
 
+@_close_gks_on_error
+def quiver(x, y, u, v, **kwargs):
+    """
+    Draw a quiver plot.
+
+    This function draws arrows to visualize a vector for each point of a grid.
+
+    :param x: the X coordinates of the grid
+    :param y: the Y coordinates of the grid
+    :param u: the U component for each point on the grid
+    :param v: the V component for each point on the grid
+
+    **Usage examples:**
+
+    >>> # Create example data
+    >>> x = np.linspace(-1, 1, 30)
+    >>> y = np.linspace(-1, 1, 20)
+    >>> u = np.repeat(x[np.newaxis, :], len(y), axis=0)
+    >>> v = np.repeat(y[:, np.newaxis], len(x), axis=1)
+    >>> # Draw arrows on grid
+    >>> mlab.quiver(x, y, u, b)
+    """
+    global _plt
+    _plt.kwargs.update(kwargs)
+    _plt.args = _plot_args((x, y, u, v), fmt='xyuv')
+    _plot_data(kind='quiver')
+
+
+@_close_gks_on_error
 def polar(*args, **kwargs):
     """
-    Draws one or more polar plots.
+    Draw one or more polar plots.
 
     This function can receive one or more of the following:
 
@@ -151,9 +203,10 @@ def polar(*args, **kwargs):
     _plot_data(kind='polar')
 
 
+@_close_gks_on_error
 def trisurf(*args, **kwargs):
     """
-    Draws a triangular surface plot.
+    Draw a triangular surface plot.
 
     This function uses the current colormap to display a series of points
     as a triangular surface plot. It will use a Delaunay triangulation to
@@ -180,9 +233,10 @@ def trisurf(*args, **kwargs):
     _plot_data(kind='trisurf')
 
 
+@_close_gks_on_error
 def tricont(x, y, z, *args, **kwargs):
     """
-    Draws a triangular contour plot.
+    Draw a triangular contour plot.
 
     This function uses the current colormap to display a series of points
     as a triangular contour plot. It will use a Delaunay triangulation to
@@ -210,9 +264,10 @@ def tricont(x, y, z, *args, **kwargs):
     _plot_data(kind='tricont')
 
 
+@_close_gks_on_error
 def stem(*args, **kwargs):
     """
-    Draws a stem plot.
+    Draw a stem plot.
 
     This function can receive one or more of the following:
 
@@ -230,7 +285,7 @@ def stem(*args, **kwargs):
     >>> # Plot x and y
     >>> mlab.stem(x, y)
     >>> # Plot x and a callable
-    >>> mlab.stem(x, lambda x: 0.2*x + 0.4)
+    >>> mlab.stem(x, lambda x: x**3 + x**2 + x + 6)
     >>> # Plot y, using its indices for the x values
     >>> mlab.stem(y)
     """
@@ -245,20 +300,21 @@ def _hist(x, nbins=0):
     x_min = x.min()
     x_max = x.max()
     if nbins <= 1:
-        nbins = int(np.round(3.3*np.log10(len(x))))+1
+        nbins = int(np.round(3.3 * np.log10(len(x)))) + 1
     binned_x = np.array(np.floor((x - x_min) / (x_max - x_min) * nbins), dtype=int)
-    binned_x[binned_x == nbins] = nbins-1
+    binned_x[binned_x == nbins] = nbins - 1
     counts = np.bincount(binned_x)
     edges = np.linspace(x_min, x_max, nbins + 1)
     return counts, edges
 
 
+@_close_gks_on_error
 def histogram(x, num_bins=None, **kwargs):
-    """
-    Draws a histogram.
+    r"""
+    Draw a histogram.
 
     If **num_bins** is **None** or 0, this function computes the number of
-    bins as :math:`\\text{round}(3.3\cdot\log_{10}(n))+1` with n as the number
+    bins as :math:`\text{round}(3.3\cdot\log_{10}(n))+1` with n as the number
     of elements in x, otherwise the given number of bins is used for the
     histogram.
 
@@ -281,9 +337,10 @@ def histogram(x, num_bins=None, **kwargs):
     _plot_data(kind='hist')
 
 
+@_close_gks_on_error
 def contour(*args, **kwargs):
     """
-    Draws a contour plot.
+    Draw a contour plot.
 
     This function uses the current colormap to display a either a series of
     points or a two-dimensional array as a contour plot. It can receive one
@@ -322,9 +379,10 @@ def contour(*args, **kwargs):
     _plot_data(kind='contour')
 
 
+@_close_gks_on_error
 def contourf(*args, **kwargs):
     """
-    Draws a filled contour plot.
+    Draw a filled contour plot.
 
     This function uses the current colormap to display a either a series of
     points or a two-dimensional array as a filled contour plot. It can
@@ -363,9 +421,10 @@ def contourf(*args, **kwargs):
     _plot_data(kind='contourf')
 
 
+@_close_gks_on_error
 def hexbin(*args, **kwargs):
     """
-    Draws a hexagon binning plot.
+    Draw a hexagon binning plot.
 
     This function uses hexagonal binning and the the current colormap to
     display a series of points. It  can receive one or more of the following:
@@ -390,9 +449,10 @@ def hexbin(*args, **kwargs):
     _plot_data(kind='hexbin')
 
 
+@_close_gks_on_error
 def heatmap(data, **kwargs):
     """
-    Draws a heatmap.
+    Draw a heatmap.
 
     This function uses the current colormap to display a two-dimensional
     array as a heatmap. The array is drawn with its first value in the upper
@@ -425,9 +485,10 @@ def heatmap(data, **kwargs):
     _plot_data(kind='heatmap')
 
 
+@_close_gks_on_error
 def wireframe(*args, **kwargs):
     """
-    Draws a three-dimensional wireframe plot.
+    Draw a three-dimensional wireframe plot.
 
     This function uses the current colormap to display a either a series of
     points or a two-dimensional array as a wireframe plot. It can receive one
@@ -466,9 +527,10 @@ def wireframe(*args, **kwargs):
     _plot_data(kind='wireframe')
 
 
+@_close_gks_on_error
 def surface(*args, **kwargs):
     """
-    Draws a three-dimensional surface plot.
+    Draw a three-dimensional surface plot.
 
     This function uses the current colormap to display a either a series of
     points or a two-dimensional array as a surface plot. It can receive one or
@@ -507,9 +569,10 @@ def surface(*args, **kwargs):
     _plot_data(kind='surface')
 
 
+@_close_gks_on_error
 def plot3(*args, **kwargs):
     """
-    Draws one or more three-dimensional line plots.
+    Draw one or more three-dimensional line plots.
 
     :param x: the x coordinates to plot
     :param y: the y coordinates to plot
@@ -518,9 +581,9 @@ def plot3(*args, **kwargs):
     **Usage examples:**
 
     >>> # Create example data
-    >>> x = np.random.uniform(-1, 1, 100)
-    >>> y = np.random.uniform(-1, 1, 100)
-    >>> z = np.random.uniform(-1, 1, 100)
+    >>> x = np.linspace(0, 30, 1000)
+    >>> y = np.cos(x) * x
+    >>> z = np.sin(x) * x
     >>> # Plot the points
     >>> mlab.plot3(x, y, z)
     """
@@ -530,9 +593,10 @@ def plot3(*args, **kwargs):
     _plot_data(kind='plot3')
 
 
+@_close_gks_on_error
 def scatter3(x, y, z, c=None, *args, **kwargs):
     """
-    Draws one or more three-dimensional scatter plots.
+    Draw one or more three-dimensional scatter plots.
 
     Additional to x, y and z values, you can provide values for the markers'
     color. Color values will be used in combination with the current colormap.
@@ -563,9 +627,10 @@ def scatter3(x, y, z, c=None, *args, **kwargs):
     _plot_data(kind='scatter3')
 
 
+@_close_gks_on_error
 def isosurface(v, **kwargs):
     """
-    Draws an isosurface.
+    Draw an isosurface.
 
     This function can draw an image either from reading a file or using a
     two-dimensional array and the current colormap. Values greater than the
@@ -591,9 +656,10 @@ def isosurface(v, **kwargs):
     _plot_data(kind='isosurface')
 
 
+@_close_gks_on_error
 def imshow(image, **kwargs):
     """
-    Draws an image.
+    Draw an image.
 
     This function can draw an image either from reading a file or using a
     two-dimensional array and the current colormap.
@@ -617,9 +683,10 @@ def imshow(image, **kwargs):
     _plot_data(kind='imshow')
 
 
+@_close_gks_on_error
 def title(title=""):
     """
-    Sets the plot title.
+    Set the plot title.
 
     The plot title is drawn using the extended text function
     :py:func:`gr.textext`. You can use a subset of LaTeX math syntax, but will
@@ -638,9 +705,10 @@ def title(title=""):
     _plot_data(title=title)
 
 
+@_close_gks_on_error
 def xlabel(x_label=""):
     """
-    Sets the x-axis label.
+    Set the x-axis label.
 
     The axis labels are drawn using the extended text function
     :py:func:`gr.textext`. You can use a subset of LaTeX math syntax, but will
@@ -659,9 +727,10 @@ def xlabel(x_label=""):
     _plot_data(xlabel=x_label)
 
 
+@_close_gks_on_error
 def ylabel(y_label=""):
-    """
-    Sets the y-axis label.
+    r"""
+    Set the y-axis label.
 
     The axis labels are drawn using the extended text function
     :py:func:`gr.textext`. You can use a subset of LaTeX math syntax, but will
@@ -680,9 +749,10 @@ def ylabel(y_label=""):
     _plot_data(ylabel=y_label)
 
 
+@_close_gks_on_error
 def zlabel(z_label=""):
-    """
-    Sets the z-axis label.
+    r"""
+    Set the z-axis label.
 
     The axis labels are drawn using the extended text function
     :py:func:`gr.textext`. You can use a subset of LaTeX math syntax, but will
@@ -701,9 +771,10 @@ def zlabel(z_label=""):
     _plot_data(zlabel=z_label)
 
 
+@_close_gks_on_error
 def xlim(x_min=None, x_max=None):
     """
-    Sets the limits for the x-axis.
+    Set the limits for the x-axis.
 
     The x-axis limits can either be passed as individual arguments or as a
     tuple of (**x_min**, **x_max**). Setting either limit to **None** will
@@ -740,9 +811,10 @@ def xlim(x_min=None, x_max=None):
     _plot_data(xlim=(x_min, x_max))
 
 
+@_close_gks_on_error
 def ylim(y_min=None, y_max=None):
     """
-    Sets the limits for the y-axis and updates the current plot.
+    Set the limits for the y-axis.
 
     The y-axis limits can either be passed as individual arguments or as a
     tuple of (**y_min**, **y_max**). Setting either limit to **None** will
@@ -779,9 +851,10 @@ def ylim(y_min=None, y_max=None):
     _plot_data(ylim=(y_min, y_max))
 
 
+@_close_gks_on_error
 def zlim(z_min=None, z_max=None):
     """
-    Sets the limits for the z-axis and updates the current plot.
+    Set the limits for the z-axis.
 
     The z-axis limits can either be passed as individual arguments or as a
     tuple of (**z_min**, **z_max**). Setting either limit to **None** will
@@ -818,9 +891,10 @@ def zlim(z_min=None, z_max=None):
     _plot_data(zlim=(z_min, z_max))
 
 
+@_close_gks_on_error
 def xlog(xlog=True):
     """
-    Enables or disables a logarithmic scale for the x-axis.
+    Enable or disable a logarithmic scale for the x-axis.
 
     :param xlog: whether or not the x-axis should be logarithmic
 
@@ -834,9 +908,10 @@ def xlog(xlog=True):
     _plot_data(xlog=xlog)
 
 
+@_close_gks_on_error
 def ylog(ylog=True):
     """
-    Enables or disables a logarithmic scale for the y-axis.
+    Enable or disable a logarithmic scale for the y-axis.
 
     :param ylog: whether or not the y-axis should be logarithmic
 
@@ -850,9 +925,10 @@ def ylog(ylog=True):
     _plot_data(ylog=ylog)
 
 
+@_close_gks_on_error
 def zlog(zlog=True):
     """
-    Enables or disables a logarithmic scale for the z-axis.
+    Enable or disable a logarithmic scale for the z-axis.
 
     :param zlog: whether or not the z-axis should be logarithmic
 
@@ -866,9 +942,10 @@ def zlog(zlog=True):
     _plot_data(zlog=zlog)
 
 
+@_close_gks_on_error
 def xflip(xflip=True):
     """
-    Enables or disables x-axis flipping/reversal.
+    Enable or disable x-axis flipping/reversal.
 
     :param xflip: whether or not the x-axis should be flipped
 
@@ -882,9 +959,10 @@ def xflip(xflip=True):
     _plot_data(xflip=xflip)
 
 
+@_close_gks_on_error
 def yflip(yflip=True):
     """
-    Enables or disables y-axis flipping/reversal.
+    Enable or disable y-axis flipping/reversal.
 
     :param yflip: whether or not the y-axis should be flipped
 
@@ -898,9 +976,10 @@ def yflip(yflip=True):
     _plot_data(yflip=yflip)
 
 
+@_close_gks_on_error
 def zflip(zflip=True):
     """
-    Enables or disables z-axis flipping/reversal.
+    Enable or disable z-axis flipping/reversal.
 
     :param zflip: whether or not the z-axis should be flipped
 
@@ -914,13 +993,15 @@ def zflip(zflip=True):
     _plot_data(zflip=zflip)
 
 
+@_close_gks_on_error
 def colormap(colormap):
     """
-    Sets the colormap for the current plot or enables manual colormap control.
+    Set the colormap for the current plot or enable manual colormap control.
 
     :param colormap:
         - The name of a gr colormap
         - One of the gr colormap constants (**gr.COLORMAP_...**)
+        - A list of red-green-blue tuples as colormap
         - **None**, if the colormap should use the current colors set by
           :py:func:`gr.setcolorrep`
 
@@ -930,7 +1011,9 @@ def colormap(colormap):
     >>> mlab.colormap('viridis')
     >>> # Use one of the built-in colormap constants
     >>> mlab.colormap(gr.COLORMAP_BWR)
-    >>> # Use a custom colormap
+    >>> # Use a list of red-green-blue tuples as colormap
+    >>> mlab.colormap([(0, 0, 1), (1, 1, 1), (1, 0, 0)])
+    >>> # Use a custom colormap using gr.setcolorrep directly
     >>> for i in range(256):
     ...     gr.setcolorrep(1.0-i/255.0, 1.0, i/255.0)
     ...
@@ -939,9 +1022,10 @@ def colormap(colormap):
     _plot_data(colormap=colormap)
 
 
+@_close_gks_on_error
 def tilt(tilt):
     """
-    Sets the 3d axis tilt of the current plot.
+    Set the 3d axis tilt of the current plot.
 
     The tilt can be any value between 0 and 90, and controls the angle
     between the viewer and the X-Y-plane.
@@ -961,9 +1045,10 @@ def tilt(tilt):
     _plot_data(tilt=tilt)
 
 
+@_close_gks_on_error
 def rotation(rotation):
     """
-    Sets the 3d axis rotation of the current plot.
+    Set the 3d axis rotation of the current plot.
 
     The rotation can be any value between 0 and 90, and controls the angle
     between the viewer projected onto the X-Y-plane and the x-axis.
@@ -983,9 +1068,10 @@ def rotation(rotation):
     _plot_data(rotation=rotation)
 
 
+@_close_gks_on_error
 def legend(*labels, **kwargs):
-    """
-    Sets the labels and location for the legend of the current plot.
+    r"""
+    Set the labels and location for the legend of the current plot.
 
     The labels for the legend are drawn using the extended text function
     :py:func:`gr.textext`. You can use a subset of LaTeX math syntax, but will
@@ -1009,9 +1095,10 @@ def legend(*labels, **kwargs):
     _plot_data(labels=labels, **kwargs)
 
 
+@_close_gks_on_error
 def savefig(filename):
     """
-    Saves the current figure to a file.
+    Save the current figure to a file.
 
     This function draw the current figure using one of GR's workstation types
     to create a file of the given name. Which file types are supported depends
@@ -1032,9 +1119,10 @@ def savefig(filename):
     gr.endprint()
 
 
+@_close_gks_on_error
 def figure(**kwargs):
     """
-    Creates a new figure with the given settings.
+    Create a new figure with the given settings.
 
     Settings like the current colormap, title or axis limits as stored in the
     current figure. This function creates a new figure, restores the default
@@ -1054,9 +1142,10 @@ def figure(**kwargs):
     return _plt
 
 
+@_close_gks_on_error
 def hold(flag):
     """
-    Sets the hold flag for combining multiple plots.
+    Set the hold flag for combining multiple plots.
 
     The hold flag prevents drawing of axes and clearing of previous plots, so
     that the next plot will be drawn on top of the previous one.
@@ -1082,9 +1171,10 @@ def hold(flag):
     _plt.kwargs['clear'] = not flag
 
 
+@_close_gks_on_error
 def subplot(num_rows, num_columns, subplot_indices):
     """
-    Sets current subplot index.
+    Set current subplot index.
 
     By default, the current plot will cover the whole window. To display more
     than one plot, the window can be split into a number of rows and columns,
@@ -1115,12 +1205,12 @@ def subplot(num_rows, num_columns, subplot_indices):
     if isinstance(subplot_indices, int):
         subplot_indices = (subplot_indices,)
     for subplot_index in subplot_indices:
-        row = num_rows - (subplot_index-1.0) // num_columns
-        column = (subplot_index-1.0) % num_columns + 1
-        x_min = min(x_min, (column-1)/num_columns)
-        x_max = max(x_max, column/num_columns)
-        y_min = min(y_min, (row-1)/num_rows)
-        y_max = max(y_max, row/num_rows)
+        row = num_rows - (subplot_index - 1.0) // num_columns
+        column = (subplot_index - 1.0) % num_columns + 1
+        x_min = min(x_min, (column - 1) / num_columns)
+        x_max = max(x_max, column / num_columns)
+        y_min = min(y_min, (row - 1) / num_rows)
+        y_max = max(y_max, row / num_rows)
     _plt.kwargs['subplot'] = [x_min, x_max, y_min, y_max]
     _plt.kwargs['clear'] = (subplot_indices[0] == 1)
     _plt.kwargs['update'] = (subplot_indices[-1] == num_rows * num_columns)
@@ -1132,21 +1222,62 @@ class _Figure(object):
         self.kwargs = {
             'size': (width, height),
             'ax': False,
-            'subplot': [0, 1 , 0, 1],
+            'subplot': [0, 1, 0, 1],
             'clear': True,
             'update': True
         }
+
+
 _plt = _Figure()
+
+
+_gr3_available = None
+
+
+def _gr3_is_available():
+    global _gr3_available
+    if _gr3_available is None:
+        try:
+            gr3.init()
+        except gr3.GR3_Exception:
+            _gr3_available = False
+        else:
+            _gr3_available = True
+    return _gr3_available
 
 
 def _colormap():
     rgba = np.ones((256, 4), np.float32)
     for color_index in range(256):
-        color = gr.inqcolor(1000+color_index)
-        rgba[color_index, 0] = ( color        % 256) / 255.0
-        rgba[color_index, 1] = ((color >> 8)  % 256) / 255.0
+        color = gr.inqcolor(1000 + color_index)
+        rgba[color_index, 0] = (color % 256) / 255.0
+        rgba[color_index, 1] = ((color >> 8) % 256) / 255.0
         rgba[color_index, 2] = ((color >> 16) % 256) / 255.0
     return rgba
+
+
+def _set_colormap():
+    global _plt
+    if 'cmap' in _plt.kwargs:
+        warnings.warn('The parameter "cmap" has been replaced by "colormap". The value of "cmap" will be ignored.', stacklevel=3)
+    colormap = _plt.kwargs.get('colormap', gr.COLORMAP_VIRIDIS)
+    if colormap is None:
+        return
+    if isinstance(colormap, int):
+        gr.setcolormap(colormap)
+        return
+    if hasattr(colormap, 'upper'):
+        colormap_name = 'COLORMAP_' + colormap.upper()
+        colormap = getattr(gr, colormap_name)
+        gr.setcolormap(colormap)
+        return
+    reds, greens, blues = list(zip(*colormap))[:3]
+    if len(colormap) != 256:
+        reds = np.interp(np.arange(256), np.linspace(0, 255, len(colormap)), reds)
+        greens = np.interp(np.arange(256), np.linspace(0, 255, len(colormap)), greens)
+        blues = np.interp(np.arange(256), np.linspace(0, 255, len(colormap)), blues)
+    for i in range(256):
+        gr.setcolorrep(1000 + i, reds[i], greens[i], blues[i])
 
 
 def _set_viewport(kind, subplot):
@@ -1167,29 +1298,29 @@ def _set_viewport(kind, subplot):
     viewport = [0, 0, 0, 0]
     vp = subplot[:]
     if width > height:
-        aspect_ratio = height/width
+        aspect_ratio = height / width
         metric_size = metric_width * width / pixel_width
-        gr.setwsviewport(0, metric_size, 0, metric_size*aspect_ratio)
+        gr.setwsviewport(0, metric_size, 0, metric_size * aspect_ratio)
         gr.setwswindow(0, 1, 0, aspect_ratio)
         vp[2] *= aspect_ratio
         vp[3] *= aspect_ratio
     else:
-        aspect_ratio = width/ height
+        aspect_ratio = width / height
         metric_size = metric_height * height / pixel_height
         gr.setwsviewport(0, metric_size * aspect_ratio, 0, metric_size)
         gr.setwswindow(0, aspect_ratio, 0, 1)
         vp[0] *= aspect_ratio
         vp[1] *= aspect_ratio
-    viewport[0] = vp[0] + 0.125 * (vp[1]-vp[0])
-    viewport[1] = vp[0] + 0.925 * (vp[1]-vp[0])
-    viewport[2] = vp[2] + 0.125 * (vp[3]-vp[2])
-    viewport[3] = vp[2] + 0.925 * (vp[3]-vp[2])
+    viewport[0] = vp[0] + 0.125 * (vp[1] - vp[0])
+    viewport[1] = vp[0] + 0.925 * (vp[1] - vp[0])
+    viewport[2] = vp[2] + 0.125 * (vp[3] - vp[2])
+    viewport[3] = vp[2] + 0.925 * (vp[3] - vp[2])
 
     if width > height:
         viewport[2] += (1 - (subplot[3] - subplot[2])**2) * 0.02
     if kind in ('wireframe', 'surface', 'plot3', 'scatter3', 'trisurf'):
         viewport[1] -= 0.0525
-    if kind in ('contour', 'contourf', 'surface', 'trisurf', 'heatmap', 'hexbin'):
+    if kind in ('contour', 'contourf', 'surface', 'trisurf', 'heatmap', 'hexbin', 'quiver'):
         viewport[1] -= 0.1
     gr.setviewport(*viewport)
     _plt.kwargs['viewport'] = viewport
@@ -1218,10 +1349,22 @@ def _set_viewport(kind, subplot):
         gr.setviewport(x_center - r, x_center + r, y_center - r, y_center + r)
 
 
-def _minmax():
+def _fix_minmax(v_min, v_max):
+    if v_min == v_max:
+        if v_min == 0:
+            v_min -= 0.1
+            v_max += 0.1
+        else:
+            v_min -= 0.1 * v_min
+            v_max += 0.1 * v_max
+    return v_min, v_max
+
+
+def _minmax(kind=None):
     global _plt
     x_min = y_min = z_min = float('infinity')
     x_max = y_max = z_max = float('-infinity')
+    x_step = y_step = float('-infinity')
 
     for x, y, z, c, spec in _plt.args:
         x_min = min(x.min(), x_min)
@@ -1231,6 +1374,27 @@ def _minmax():
         if z is not None:
             z_min = min(z.min(), z_min)
             z_max = max(z.max(), z_max)
+        if kind in ('quiver',):
+            if len(x) > 1:
+                x_step = max(np.abs(x[1:] - x[:-1]).max(), x_step)
+            if len(y) > 1:
+                y_step = max(np.abs(y[1:] - y[:-1]).max(), y_step)
+
+    if kind in ('quiver',):
+        if x_step is not None and x_step > 0:
+            x_min -= x_step
+            x_max += x_step
+        if y_step is not None and y_step > 0:
+            y_min -= y_step
+            y_max += y_step
+        # Use vector length for colormap
+        x, y, u, v, spec = _plt.args[0]
+        lengths_squared = u**2 + v**2
+        z_min = np.sqrt(np.min(lengths_squared))
+        z_max = np.sqrt(np.max(lengths_squared))
+    x_min, x_max = _fix_minmax(x_min, x_max)
+    y_min, y_max = _fix_minmax(y_min, y_max)
+    z_min, z_max = _fix_minmax(z_min, z_max)
     x_range = _plt.kwargs.get('xlim', (x_min, x_max))
     y_range = _plt.kwargs.get('ylim', (y_min, y_max))
     z_range = _plt.kwargs.get('zlim', (z_min, z_max))
@@ -1243,11 +1407,11 @@ def _minmax():
     if y_range[0] is None:
         y_range = (y_min, y_range[1])
     if y_range[1] is None:
-        y_range = (y_range[0], y_may)
+        y_range = (y_range[0], y_max)
     if z_range[0] is None:
         z_range = (z_min, z_range[1])
     if z_range[1] is None:
-        z_range = (z_range[0], z_maz)
+        z_range = (z_range[0], z_max)
 
     _plt.kwargs['xrange'] = x_range
     _plt.kwargs['yrange'] = y_range
@@ -1265,7 +1429,7 @@ def _set_window(kind):
         scale |= gr.OPTION_FLIP_Y if _plt.kwargs.get('yflip', False) else 0
         scale |= gr.OPTION_FLIP_Z if _plt.kwargs.get('zflip', False) else 0
 
-    _minmax()
+    _minmax(kind)
     if kind in ('wireframe', 'surface', 'plot3', 'scatter3', 'polar', 'trisurf'):
         major_count = 2
     else:
@@ -1336,7 +1500,7 @@ def _draw_axes(kind, pass_=1):
 
     gr.setlinecolorind(1)
     gr.setlinewidth(1)
-    diag = ((viewport[1]-viewport[0])**2 + (viewport[3]-viewport[2])**2)**0.5
+    diag = ((viewport[1] - viewport[0])**2 + (viewport[3] - viewport[2])**2)**0.5
     charheight = max(0.018 * diag, 0.012)
     gr.setcharheight(charheight)
     ticksize = 0.0075 * diag
@@ -1359,7 +1523,7 @@ def _draw_axes(kind, pass_=1):
     if 'title' in _plt.kwargs:
         gr.savestate()
         gr.settextalign(gr.TEXT_HALIGN_CENTER, gr.TEXT_VALIGN_TOP)
-        gr.textext(0.5*(viewport[0] + viewport[1]), vp[3], _plt.kwargs['title'])
+        gr.textext(0.5 * (viewport[0] + viewport[1]), vp[3], _plt.kwargs['title'])
         gr.restorestate()
 
     if kind in ('wireframe', 'surface', 'plot3', 'scatter3', 'trisurf'):
@@ -1384,9 +1548,8 @@ def _draw_axes(kind, pass_=1):
 def _draw_polar_axes():
     global _plt
     viewport = _plt.kwargs['viewport']
-    diag = ((viewport[1]-viewport[0])**2 + (viewport[3]-viewport[2])**2)**0.5
+    diag = ((viewport[1] - viewport[0])**2 + (viewport[3] - viewport[2])**2)**0.5
     charheight = max(0.018 * diag, 0.012)
-
 
     window = _plt.kwargs['window']
     r_min, r_max = window[2], window[3]
@@ -1397,21 +1560,23 @@ def _draw_polar_axes():
 
     tick = 0.5 * gr.tick(r_min, r_max)
     n = int(round((r_max - r_min) / tick + 0.5))
-    for i in range(n+1):
+    for i in range(n + 1):
         r = i / n
         if i % 2 == 0:
             gr.setlinecolorind(88)
             if i > 0:
-                gr.drawarc(-r, r, -r, r, 0, 359)
+                gr.drawarc(-r, r, -r, r, 0, 180)
+                gr.drawarc(-r, r, -r, r, 180, 360)
             gr.settextalign(gr.TEXT_HALIGN_LEFT, gr.TEXT_VALIGN_HALF)
             x, y = gr.wctondc(0.05, r)
             gr.text(x, y, "%g" % (r_min + i * tick))
         else:
             gr.setlinecolorind(90)
-            gr.drawarc(-r, r, -r, r, 0, 359)
+            gr.drawarc(-r, r, -r, r, 0, 180)
+            gr.drawarc(-r, r, -r, r, 180, 360)
     for alpha in range(0, 360, 45):
-        sinf = np.sin(np.radians(alpha+90))
-        cosf = np.cos(np.radians(alpha+90))
+        sinf = np.sin(np.radians(alpha + 90))
+        cosf = np.cos(np.radians(alpha + 90))
         gr.polyline([sinf, 0], [cosf, 0])
         gr.settextalign(gr.TEXT_HALIGN_CENTER, gr.TEXT_VALIGN_HALF)
         x, y = gr.wctondc(1.1 * sinf, 1.1 * cosf)
@@ -1482,9 +1647,9 @@ def _colorbar(off=0.0, colors=256):
     gr.setviewport(viewport[1] + 0.02 + off, viewport[1] + 0.05 + off,
                    viewport[2], viewport[3])
 
-    l = [1000+int(255*i/(colors-1)) for i in range(colors)]
+    data = [1000 + int(255 * i / (colors - 1)) for i in range(colors)]
 
-    gr.cellarray(0, 1, zmax, zmin, 1, colors, l)
+    gr.cellarray(0, 1, zmax, zmin, 1, colors, data)
     diag = ((viewport[1] - viewport[0])**2 + (viewport[3] - viewport[2])**2)**0.5
     charheight = max(0.016 * diag, 0.012)
     gr.setcharheight(charheight)
@@ -1515,14 +1680,7 @@ def _plot_data(**kwargs):
         else:
             _draw_axes(kind)
 
-    if 'cmap' in _plt.kwargs:
-        warnings.warn('The parameter "cmap" has been replaced by "colormap". The value of "cmap" will be ignored.', stacklevel=3)
-    colormap = _plt.kwargs.get('colormap', gr.COLORMAP_VIRIDIS)
-    if colormap is not None:
-        if not isinstance(colormap, int):
-            colormap_name = 'COLORMAP_' + colormap.upper()
-            colormap = getattr(gr, colormap_name)
-        gr.setcolormap(colormap)
+    _set_colormap()
     gr.uselinespec(" ")
     for x, y, z, c, spec in _plt.args:
         gr.savestate()
@@ -1544,11 +1702,16 @@ def _plot_data(**kwargs):
                     if z is not None:
                         gr.setmarkersize(z[i] / 100.0)
                     if c is not None:
-                        c_index = 1000 + int(255 * (c[i]-c_min)/c_ptp)
+                        c_index = 1000 + int(255 * (c[i] - c_min) / c_ptp)
                         gr.setmarkercolorind(c_index)
                     gr.polymarker([x[i]], [y[i]])
             else:
                 gr.polymarker(x, y)
+        elif kind == 'quiver':
+            u = z
+            v = c
+            gr.quiver(len(x), len(y), x, y, u, v, True)
+            _colorbar(0.05)
         elif kind == 'stem':
             gr.setlinecolorind(1)
             gr.polyline(_plt.kwargs['window'][:2], [0, 0])
@@ -1559,17 +1722,17 @@ def _plot_data(**kwargs):
             gr.polymarker(x, y)
         elif kind == 'hist':
             y_min = _plt.kwargs['window'][2]
-            for i in range(1, len(y)+1):
+            for i in range(1, len(y) + 1):
                 gr.setfillcolorind(989)
                 gr.setfillintstyle(gr.INTSTYLE_SOLID)
-                gr.fillrect(x[i-1], x[i], y_min, y[i-1])
+                gr.fillrect(x[i - 1], x[i], y_min, y[i - 1])
                 gr.setfillcolorind(1)
                 gr.setfillintstyle(gr.INTSTYLE_HOLLOW)
-                gr.fillrect(x[i-1], x[i], y_min, y[i-1])
+                gr.fillrect(x[i - 1], x[i], y_min, y[i - 1])
         elif kind == 'contour':
             z_min, z_max = _plt.kwargs['zrange']
             gr.setspace(z_min, z_max, 0, 90)
-            h = [z_min + i/19*(z_max-z_min) for i in range(20)]
+            h = [z_min + i / 19 * (z_max - z_min) for i in range(20)]
             if x.shape == y.shape == z.shape:
                 x, y, z = gr.gridit(x, y, z, 200, 200)
                 z = np.array(z)
@@ -1591,7 +1754,7 @@ def _plot_data(**kwargs):
             z.shape = np.prod(z.shape)
             gr.surface(x, y, z, gr.OPTION_CELL_ARRAY)
             _colorbar()
-            h = [z_min + i/19*(z_max-z_min) for i in range(20)]
+            h = [z_min + i / 19 * (z_max - z_min) for i in range(20)]
             for i in range(1000, 1256):
                 gr.setcolorrep(i, 0, 0, 0)
             gr.contour(x, y, h, z, 1000)
@@ -1608,7 +1771,7 @@ def _plot_data(**kwargs):
             icmap = np.zeros(256, np.uint32)
             for i in range(256):
                 r, g, b, a = cmap[i]
-                icmap[i] = (int(r*255) << 0) + (int(g*255) << 8) + (int(b*255) << 16) + (int(a*255) << 24)
+                icmap[i] = (int(r * 255) << 0) + (int(g * 255) << 8) + (int(b * 255) << 16) + (int(a * 255) << 24)
             z_min, z_max = _plt.kwargs.get('zlim', (np.min(z), np.max(z)))
             if z_max < z_min:
                 z_max, z_min = z_min, z_max
@@ -1639,7 +1802,7 @@ def _plot_data(**kwargs):
             else:
                 z = np.ascontiguousarray(z)
             z.shape = np.prod(z.shape)
-            if _plt.kwargs.get('accelerate', True):
+            if _plt.kwargs.get('accelerate', True) and _gr3_is_available():
                 gr3.clear()
                 gr3.surface(x, y, z, gr.OPTION_COLORED_MESH)
             else:
@@ -1655,7 +1818,7 @@ def _plot_data(**kwargs):
                 c_min = c.min()
                 c_ptp = c.ptp()
                 for i in range(len(x)):
-                    c_index = 1000 + int(255 * (c[i]-c_min)/c_ptp)
+                    c_index = 1000 + int(255 * (c[i] - c_min) / c_ptp)
                     gr.setmarkercolorind(c_index)
                     gr.polymarker3d([x[i]], [y[i]], [z[i]])
             else:
@@ -1686,17 +1849,17 @@ def _plot_data(**kwargs):
             return gr.show()
 
 
-def _plot_img(I):
+def _plot_img(image):
     global _plt
 
-    if isinstance(I, basestring):
-        width, height, data = gr.readimage(I)
+    if isinstance(image, basestring):
+        width, height, data = gr.readimage(image)
         if width == 0 or height == 0:
             return
     else:
-        I = np.array(I)
-        height, width = I.shape
-        data = np.array(1000+(1.0*I - I.min()) / I.ptp() * 255, np.int32)
+        image = np.array(image)
+        height, width = image.shape
+        data = np.array(1000 + (1.0 * image - image.min()) / image.ptp() * 255, np.int32)
 
     if _plt.kwargs['clear']:
         gr.clearws()
@@ -1720,16 +1883,9 @@ def _plot_img(I):
         y_min = max(0.5 * (viewport[3] + viewport[2] - h), viewport[2])
         y_max = min(0.5 * (viewport[3] + viewport[2] + h), viewport[3])
 
-    if 'cmap' in _plt.kwargs:
-        warnings.warn('The parameter "cmap" has been replaced by "colormap". The value of "cmap" will be ignored.', stacklevel=3)
-    colormap = _plt.kwargs.get('colormap', gr.COLORMAP_VIRIDIS)
-    if colormap is not None:
-        if not isinstance(colormap, int):
-            colormap_name = 'COLORMAP_' + colormap.upper()
-            colormap = getattr(gr, colormap_name)
-        gr.setcolormap(colormap)
+    _set_colormap()
     gr.selntran(0)
-    if isinstance(I, basestring):
+    if isinstance(image, basestring):
         gr.drawimage(x_min, x_max, y_min, y_max, width, height, data)
     else:
         gr.cellarray(x_min, x_max, y_min, y_max, width, height, data)
@@ -1744,6 +1900,8 @@ def _plot_img(I):
 
 def _plot_iso(v):
     global _plt
+    if not _gr3_is_available():
+        raise RuntimeError("Unable to initialize GR3, please ensure that your system supports OpenGL")
     viewport = _plt.kwargs['viewport']
     if viewport[3] - viewport[2] < viewport[1] - viewport[0]:
         width = viewport[3] - viewport[2]
@@ -1780,7 +1938,7 @@ def _plot_iso(v):
     rotation = np.radians(_plt.kwargs.get('rotation', 40))
     tilt = np.radians(_plt.kwargs.get('tilt', 70))
     gr3.clear()
-    mesh = gr3.createisosurfacemesh(values, (2/(nx-1), 2/(ny-1), 2/(nz-1)),
+    mesh = gr3.createisosurfacemesh(values, (2 / (nx - 1), 2 / (ny - 1), 2 / (nz - 1)),
                                     (-1., -1., -1.), isovalue)
     color = _plt.kwargs.get('color', (0.0, 0.5, 0.8))
     gr3.setbackgroundcolor(1, 1, 1, 0)
@@ -1790,7 +1948,11 @@ def _plot_iso(v):
         up = (0, 1, 0)
     else:
         up = (0, 0, 1)
-    gr3.cameralookat(r*np.sin(tilt)*np.sin(rotation), r*np.cos(tilt), r*np.sin(tilt)*np.cos(rotation), 0, 0, 0, up[0], up[1], up[2])
+    gr3.cameralookat(
+        r * np.sin(tilt) * np.sin(rotation), r * np.cos(tilt), r * np.sin(tilt) * np.cos(rotation),
+        0, 0, 0,
+        up[0], up[1], up[2]
+    )
     gr3.drawimage(x_min, x_max, y_min, y_max, 500, 500, gr3.GR3_Drawable.GR3_DRAWABLE_GKS)
     gr3.deletemesh(mesh)
     gr.selntran(1)
@@ -1872,6 +2034,21 @@ def _plot_args(args, fmt='xys'):
     while args:
         # Try to read x, y, z and c
         x = y = z = c = None
+        if fmt == 'xyuv':
+            if len(args) == 4:
+                x, y, u, v = args
+                x = _convert_to_array(x)
+                y = _convert_to_array(y)
+                u = _convert_to_array(u, always_flatten=True)
+                v = _convert_to_array(v, always_flatten=True)
+                if u.shape != (len(x) * len(y),):
+                    raise TypeError('expected an array of len(y) * len(x) u values')
+                if v.shape != (len(x) * len(y),):
+                    raise TypeError('expected an array of len(y) * len(x) v values')
+                parsed_args.append((x, y, u.reshape(len(y), len(x)), v.reshape(len(y), len(x)), ""))
+                break
+            else:
+                raise TypeError('expected x, y, u and v')
         if fmt == 'xyzc' and len(args) == 1:
             try:
                 a = np.array(args[0])
@@ -1883,8 +2060,8 @@ def _plot_args(args, fmt='xys'):
                     a.shape = [len(a), 1]
                 if a.dtype == complex:
                     raise TypeError()
-                x = np.arange(1, a.shape[0]+1)
-                y = np.arange(1, a.shape[1]+1)
+                x = np.arange(1, a.shape[0] + 1)
+                y = np.arange(1, a.shape[1] + 1)
                 z = a.astype(np.float64)
                 args.pop(0)
             except TypeError:
@@ -1903,7 +2080,7 @@ def _plot_args(args, fmt='xys'):
                         args.pop(0)
                     except (TypeError, IndexError):
                         y = a
-                        x = np.arange(1, len(a)+1)
+                        x = np.arange(1, len(a) + 1)
                 elif fmt == 'xyac' or fmt == 'xyzc':
                     try:
                         x = a
