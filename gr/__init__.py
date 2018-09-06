@@ -7,6 +7,7 @@ import gr
 """
 
 import os
+import sys
 from numpy import array, ndarray, float64, int32, empty, prod
 from ctypes import c_int, c_double, c_char_p, c_void_p, c_uint8
 from ctypes import byref, POINTER, addressof, CDLL, CFUNCTYPE
@@ -2987,3 +2988,7 @@ INTERP2_NEAREST = 0
 INTERP2_LINEAR = 1
 INTERP2_CUBIC = 3
 INTERP2_SPLINE = 2
+
+# automatically switch to inline graphics in Jupyter Notebooks
+if 'ipykernel' in sys.modules:
+    inline()
