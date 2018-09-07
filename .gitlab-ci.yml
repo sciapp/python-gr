@@ -37,7 +37,7 @@ install-ubuntu1604-python2:
     GIT_STRATEGY: none
   script:
   - apt-get update
-  - apt-get install -y virtualenv python-pip git libxt6 libxrender1 libgl1-mesa-glx
+  - apt-get install -y virtualenv python-pip
   - virtualenv env
   - env/bin/pip install --upgrade pip
   - env/bin/pip install dist/gr-*.tar.gz
@@ -54,7 +54,7 @@ install-ubuntu1604-python3:
     GIT_STRATEGY: none
   script:
   - apt-get update
-  - apt-get install -y python3-venv python3-pip git libxt6 libxrender1 libgl1-mesa-glx
+  - apt-get install -y python3-venv python3-pip
   - python3 -m venv env
   - env/bin/pip install --upgrade pip
   - env/bin/pip install dist/gr-*.tar.gz
@@ -71,7 +71,7 @@ install-ubuntu1804-python2:
     GIT_STRATEGY: none
   script:
   - apt-get update
-  - apt-get install -y virtualenv python-pip git libxt6 libxrender1 libgl1-mesa-glx
+  - apt-get install -y virtualenv python-pip
   - virtualenv env
   - env/bin/pip install --upgrade pip
   - env/bin/pip install dist/gr-*.tar.gz
@@ -88,7 +88,7 @@ install-ubuntu1804-python3:
     GIT_STRATEGY: none
   script:
   - apt-get update
-  - apt-get install -y python3-venv python3-pip git libxt6 libxrender1 libgl1-mesa-glx
+  - apt-get install -y python3-venv python3-pip
   - python3 -m venv env
   - env/bin/pip install --upgrade pip
   - env/bin/pip install dist/gr-*.tar.gz
@@ -105,7 +105,7 @@ install-debian9-python2:
     GIT_STRATEGY: none
   script:
   - apt-get update
-  - apt-get install -y virtualenv python-pip git libxt6 libxrender1 libgl1-mesa-glx
+  - apt-get install -y virtualenv python-pip
   - virtualenv env
   - env/bin/pip install --upgrade pip
   - env/bin/pip install dist/gr-*.tar.gz
@@ -122,7 +122,7 @@ install-debian9-python3:
     GIT_STRATEGY: none
   script:
   - apt-get update
-  - apt-get install -y python3-venv python3-pip git libxt6 libxrender1 libgl1-mesa-glx
+  - apt-get install -y python3-venv python3-pip
   - python3 -m venv env
   - env/bin/pip install --upgrade pip
   - env/bin/pip install dist/gr-*.tar.gz
@@ -138,7 +138,7 @@ install-centos7-python2:
   variables:
     GIT_STRATEGY: none
   script:
-  - yum install -y libXt libXrender libXext python mesa-libGL
+  - yum install -y python
   - curl -LO https://bootstrap.pypa.io/get-pip.py
   - python get-pip.py
   - pip install --upgrade pip
@@ -155,7 +155,7 @@ install-fedora26-python2:
   variables:
     GIT_STRATEGY: none
   script:
-  - dnf install -y libXt libXrender libXext python-pip mesa-libGL
+  - dnf install -y python-pip
   - pip install --upgrade pip
   - pip install dist/gr-*.tar.gz
   - GKS_WSTYPE=png python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
@@ -170,7 +170,7 @@ install-fedora26-python3:
   variables:
     GIT_STRATEGY: none
   script:
-  - dnf install -y libXt libXrender libXext python3-pip mesa-libGL
+  - dnf install -y python3-pip
   - python3 -m pip install --upgrade pip
   - python3 -m pip install dist/gr-*.tar.gz
   - GKS_WSTYPE=png python3 -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
@@ -179,28 +179,13 @@ install-fedora26-python3:
     paths:
     - gks.png
 
-install-opensuse42.3-python2:
-  stage: install
-  image: opensuse/leap:42.3
-  variables:
-    GIT_STRATEGY: none
-  script:
-  - zypper install -y libXt6 libXrender1 libXext6 python3-pip Mesa-libGL1
-  - python3 -m pip install --upgrade pip
-  - python3 -m pip install dist/gr-*.tar.gz
-  - GKS_WSTYPE=png python3 -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
-  - python3 -c 'import gr3'
-  artifacts:
-    paths:
-    - gks.png
-
-install-opensuse15-python2:
+install-opensuse15-python3:
   stage: install
   image: opensuse/leap:15
   variables:
     GIT_STRATEGY: none
   script:
-  - zypper install -y libXt6 libXrender1 libXext6 python3-pip Mesa-libGL1
+  - zypper install -y python3-pip
   - python3 -m pip install --upgrade pip
   - python3 -m pip install dist/gr-*.tar.gz
   - GKS_WSTYPE=png python3 -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
