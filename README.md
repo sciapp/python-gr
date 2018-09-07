@@ -2,7 +2,7 @@ GR - a universal framework for visualization applications
 =========================================================
 
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md)
-[![GitHub tag](https://img.shields.io/github/tag/jheinen/gr.svg)](https://github.com/jheinen/gr/releases)
+[![GitHub tag](https://img.shields.io/github/tag/sciapp/python-gr.svg)](https://github.com/sciapp/python-gr/releases)
 [![PyPI version](https://img.shields.io/pypi/v/gr.svg)](https://pypi.python.org/pypi/gr)
 
 [![Screenshots](https://gr-framework.org/_images/screenshots.png)](https://gr-framework.org)
