@@ -1311,6 +1311,18 @@ def _set_viewport(kind, subplot):
         gr.setwswindow(0, aspect_ratio, 0, 1)
         vp[0] *= aspect_ratio
         vp[1] *= aspect_ratio
+
+    if kind in ('wireframe', 'surface', 'plot3', 'scatter3', 'trisurf'):
+        if kind in ('surface', 'trisurf'):
+            extent = min(vp[1] - vp[0] - 0.1, vp[3] - vp[2])
+        else:
+            extent = min(vp[1] - vp[0], vp[3] - vp[2])
+        vp0 = 0.5 * (vp[0] + vp[1] - extent)
+        vp1 = 0.5 * (vp[0] + vp[1] + extent)
+        vp2 = 0.5 * (vp[2] + vp[3] - extent)
+        vp3 = 0.5 * (vp[2] + vp[3] + extent)
+        vp = (vp0, vp1, vp2, vp3)
+
     viewport[0] = vp[0] + 0.125 * (vp[1] - vp[0])
     viewport[1] = vp[0] + 0.925 * (vp[1] - vp[0])
     viewport[2] = vp[2] + 0.125 * (vp[3] - vp[2])
@@ -1318,9 +1330,7 @@ def _set_viewport(kind, subplot):
 
     if width > height:
         viewport[2] += (1 - (subplot[3] - subplot[2])**2) * 0.02
-    if kind in ('wireframe', 'surface', 'plot3', 'scatter3', 'trisurf'):
-        viewport[1] -= 0.0525
-    if kind in ('contour', 'contourf', 'surface', 'trisurf', 'heatmap', 'hexbin', 'quiver'):
+    if kind in ('contour', 'contourf', 'heatmap', 'hexbin', 'quiver'):
         viewport[1] -= 0.1
     gr.setviewport(*viewport)
     _plt.kwargs['viewport'] = viewport
