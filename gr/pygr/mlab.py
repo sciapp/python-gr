@@ -772,7 +772,7 @@ def zlabel(z_label=""):
 
 
 @_close_gks_on_error
-def xlim(x_min=None, x_max=None):
+def xlim(x_min=None, x_max=None, adjust=True):
     """
     Set the limits for the x-axis.
 
@@ -789,6 +789,7 @@ def xlim(x_min=None, x_max=None):
         - the x-axis upper limit, or
         - **None** to use an automatic upper limit, or
         - **None** if both x-axis limits were passed as first argument
+    :param adjust: whether or not the limits may be adjusted
 
     **Usage examples:**
 
@@ -808,11 +809,11 @@ def xlim(x_min=None, x_max=None):
             x_min, x_max = x_min
         except TypeError:
             pass
-    _plot_data(xlim=(x_min, x_max))
+    _plot_data(xlim=(x_min, x_max), adjust_xlim=adjust)
 
 
 @_close_gks_on_error
-def ylim(y_min=None, y_max=None):
+def ylim(y_min=None, y_max=None, adjust=True):
     """
     Set the limits for the y-axis.
 
@@ -829,6 +830,7 @@ def ylim(y_min=None, y_max=None):
         - the y-axis upper limit, or
         - **None** to use an automatic upper limit, or
         - **None** if both y-axis limits were passed as first argument
+    :param adjust: whether or not the limits may be adjusted
 
     **Usage examples:**
 
@@ -848,11 +850,11 @@ def ylim(y_min=None, y_max=None):
             y_min, y_max = y_min
         except TypeError:
             pass
-    _plot_data(ylim=(y_min, y_max))
+    _plot_data(ylim=(y_min, y_max), adjust_ylim=adjust)
 
 
 @_close_gks_on_error
-def zlim(z_min=None, z_max=None):
+def zlim(z_min=None, z_max=None, adjust=True):
     """
     Set the limits for the z-axis.
 
@@ -869,6 +871,7 @@ def zlim(z_min=None, z_max=None):
         - the z-axis upper limit, or
         - **None** to use an automatic upper limit, or
         - **None** if both z-axis limits were passed as first argument
+    :param adjust: whether or not the limits may be adjusted
 
     **Usage examples:**
 
@@ -888,7 +891,7 @@ def zlim(z_min=None, z_max=None):
             z_min, z_max = z_min
         except TypeError:
             pass
-    _plot_data(zlim=(z_min, z_max))
+    _plot_data(zlim=(z_min, z_max), adjust_zlim=adjust)
 
 
 @_close_gks_on_error
@@ -1447,7 +1450,8 @@ def _set_window(kind):
 
     x_min, x_max = _plt.kwargs['xrange']
     if not scale & gr.OPTION_X_LOG:
-        x_min, x_max = gr.adjustlimits(x_min, x_max)
+        if _plt.kwargs.get('adjust_xlim', True):
+            x_min, x_max = gr.adjustlimits(x_min, x_max)
         x_major_count = major_count
         x_tick = gr.tick(x_min, x_max) / x_major_count
     else:
@@ -1462,7 +1466,8 @@ def _set_window(kind):
     if kind in ('hist', 'stem') and 'ylim' not in _plt.kwargs:
         y_min = 0
     if not scale & gr.OPTION_Y_LOG:
-        y_min, y_max = gr.adjustlimits(y_min, y_max)
+        if _plt.kwargs.get('adjust_ylim', True):
+            y_min, y_max = gr.adjustlimits(y_min, y_max)
         y_major_count = major_count
         y_tick = gr.tick(y_min, y_max) / y_major_count
     else:
@@ -1482,7 +1487,8 @@ def _set_window(kind):
     if kind in ('wireframe', 'surface', 'plot3', 'scatter3', 'trisurf'):
         z_min, z_max = _plt.kwargs['zrange']
         if not scale & gr.OPTION_Z_LOG:
-            z_min, z_max = gr.adjustlimits(z_min, z_max)
+            if _plt.kwargs.get('adjust_zlim', True):
+                z_min, z_max = gr.adjustlimits(z_min, z_max)
             z_major_count = major_count
             z_tick = gr.tick(z_min, z_max) / z_major_count
         else:
