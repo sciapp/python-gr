@@ -106,6 +106,49 @@ def oplot(*args, **kwargs):
 
 
 @_close_gks_on_error
+def step(*args, **kwargs):
+    """
+    Draw one or more step or staircase plots.
+
+    This function can receive one or more of the following:
+
+    - x values and y values, or
+    - x values and a callable to determine y values, or
+    - y values only, with their indices as x values
+
+    :param args: the data to plot
+    :param where: pre, mid or post, to decide where the step between to y values should be placed
+
+    **Usage examples:**
+
+    >>> # Create example data
+    >>> x = np.linspace(-2, 2, 40)
+    >>> y = 2*x+4
+    >>> # Plot x and y
+    >>> mlab.step(x, y)
+    >>> # Plot x and a callable
+    >>> mlab.step(x, lambda x: x: x**3 + x**2 + x)
+    >>> # Plot y, using its indices for the x values
+    >>> mlab.step(y)
+    >>> # Use next y step directly after x each position
+    >>> mlab.step(y, where='pre')
+    >>> # Use next y step between two x positions
+    >>> mlab.step(y, where='pre')
+    >>> # Use next y step immediately before next x position
+    >>> mlab.step(y, where='post')
+    """
+    global _plt
+    if 'where' in kwargs:
+        _plt.kwargs['step_where'] = kwargs.pop('where')
+    _plt.kwargs.update(kwargs)
+    if _plt.kwargs['ax']:
+        _plt.args += _plot_args(args)
+    else:
+        _plt.args = _plot_args(args)
+    _plot_data(kind='step')
+
+
+@_close_gks_on_error
 def scatter(*args, **kwargs):
     """
     Draw one or more scatter plots.
@@ -1702,6 +1745,43 @@ def _plot_data(**kwargs):
                 gr.polyline(x, y)
             if mask & 2:
                 gr.polymarker(x, y)
+        if kind == 'step':
+            mask = gr.uselinespec(spec)
+            if mask in (0, 1, 3, 4, 5):
+                where = _plt.kwargs.get('step_where', 'mid')
+                if where == 'pre':
+                    n = len(x)
+                    x_step_boundaries = np.zeros(2 * n - 1)
+                    y_step_values = np.zeros(2 * n - 1)
+                    x_step_boundaries[0] = x[0]
+                    x_step_boundaries[1::2] = x[:-1]
+                    x_step_boundaries[2::2] = x[1:]
+                    y_step_values[0] = y[0]
+                    y_step_values[1::2] = y[1:]
+                    y_step_values[2::2] = y[1:]
+                elif where == 'post':
+                    n = len(x)
+                    x_step_boundaries = np.zeros(2 * n - 1)
+                    y_step_values = np.zeros(2 * n - 1)
+                    x_step_boundaries[0::2] = x
+                    x_step_boundaries[1::2] = x[1:]
+                    x_step_boundaries[-1] = x[-1]
+                    y_step_values[0::2] = y
+                    y_step_values[1::2] = y[:-1]
+                    y_step_values[-1] = y[-1]
+                else:
+                    n = len(x)
+                    x_step_boundaries = np.zeros(2 * n)
+                    x_step_boundaries[0] = x[0]
+                    x_step_boundaries[1:-1][0::2] = (x[1:] + x[:-1]) / 2
+                    x_step_boundaries[1:-1][1::2] = (x[1:] + x[:-1]) / 2
+                    x_step_boundaries[-1] = x[-1]
+                    y_step_values = np.zeros(2 * n)
+                    y_step_values[0::2] = y
+                    y_step_values[1::2] = y
+                gr.polyline(x_step_boundaries, y_step_values)
+            if mask & 2:
+                gr.polymarker(x, y)
         elif kind == 'scatter':
             gr.setmarkertype(gr.MARKERTYPE_SOLID_CIRCLE)
             if z is not None or c is not None:
@@ -1850,7 +1930,7 @@ def _plot_data(**kwargs):
             levels = np.linspace(zmin, zmax, 20)
             gr.tricontour(x, y, z, levels)
         gr.restorestate()
-    if kind in ('line', 'scatter', 'stem') and 'labels' in _plt.kwargs:
+    if kind in ('line', 'step', 'scatter', 'stem') and 'labels' in _plt.kwargs:
         _draw_legend()
 
     if _plt.kwargs['update']:
