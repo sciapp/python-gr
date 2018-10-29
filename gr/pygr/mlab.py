@@ -352,11 +352,11 @@ def _hist(x, nbins=0):
 
 
 @_close_gks_on_error
-def histogram(x, num_bins=None, **kwargs):
+def histogram(x, num_bins=0, **kwargs):
     r"""
     Draw a histogram.
 
-    If **num_bins** is **None** or 0, this function computes the number of
+    If **num_bins** is 0, this function computes the number of
     bins as :math:`\text{round}(3.3\cdot\log_{10}(n))+1` with n as the number
     of elements in x, otherwise the given number of bins is used for the
     histogram.
