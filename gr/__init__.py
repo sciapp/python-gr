@@ -99,6 +99,34 @@ class nothing:
         self.data = None
 
 
+try:
+    from IPython.core.display import display, HTML
+    from ipykernel.comm import Comm
+
+
+    class JSTermWidget():
+        """
+        JSTermWidget handles the communication between a Jupyter Notebook's kernel and the JSTerm frontend extension.
+
+        After creating a widget it can be displayed by calling the `display()` method in a jupyter code cell.
+        To create a plot after displaying the Widget a JSON-description of the plot has to be sent to JSTerm using the `send(json_string)` method.
+        """
+        _jsterm_id = 0
+
+        def __init__(self):
+            self.widget_id = JSTermWidget._jsterm_id
+            JSTermWidget._jsterm_id += 1
+
+        def display(self):
+            display(HTML('<canvas id="jsterm-' + str(self.widget_id) + '" width="500" height="500"></canvas>'))
+
+        def send(self, json_string):
+            Comm(target_name='jsterm_comm').send(data={"json": json_string, "canvasid": self.widget_id})
+
+
+except ImportError:
+    pass
+
 def char(string):
     if version_info[0] == 2 and not isinstance(string, unicode):
         try:
