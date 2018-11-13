@@ -66,6 +66,7 @@ def load_runtime(search_dirs=(), silent=False):
                     break
                 else:
                     raise
+            library.directory = directory
             library.gr_version.argtypes = []
             library.gr_version.restype = ctypes.c_char_p
             library_version_string = library.gr_version()

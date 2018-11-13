@@ -121,7 +121,12 @@ try:
             display(HTML('<canvas id="jsterm-' + str(self.widget_id) + '" width="500" height="500"></canvas>'))
 
         def send(self, json_string):
-            Comm(target_name='jsterm_comm').send(data={"json": json_string, "canvasid": self.widget_id})
+            def _recv(msg):
+                print(msg)
+            try:
+                Comm(target_name='jsterm_comm').send(data={"json": json_string, "canvasid": self.widget_id})
+            except Exception:
+                print('error')
 
 
 except ImportError:
@@ -3019,4 +3024,115 @@ INTERP2_SPLINE = 2
 
 # automatically switch to inline graphics in Jupyter Notebooks
 if 'ipykernel' in sys.modules:
+    try:
+        from IPython.core.display import display, HTML
+
+        _js_fallback = "https://gr-framework.org/downloads/gr-latest.js"
+        if __gr.directory and os.path.isfile(os.path.join(__gr.directory, "gr.js")):
+            try:
+                with open(os.path.join(__gr.directory, "gr.js"), 'r') as f:
+                    _gr_js = f.read() + "let ready = true;"
+            except IOError:
+              _gr_js = None
+        else:
+            _gr_js = None
+
+        if _gr_js is None:
+            _gr_js = """
+                let ready = false;
+                function saveLoad(url, callback, maxtime) {
+                    let script = document.createElement('script');
+                    script.onload = function () {
+                        callback();
+                    }
+                    script.onerror = function() {
+                        console.error(url + ' can not be loaded.');
+                    }
+                    script.src = url;
+                    document.head.appendChild(script);
+                    setTimeout(function() {
+                        if (!ready) {
+                            console.error(url + ' can not be loaded.');
+                        }
+                    }, maxtime);
+                }
+
+                function jsLoaded() {
+                    ready = true;
+                    for (let i = 0; i < onready.length; i++) {
+                        onready[i]();
+                    }
+                    onready = [];
+                }
+                saveLoad('""" + _js_fallback + """', jsLoaded, 10000);
+            """
+        display(HTML("""
+            <script type="text/javascript">
+            (function() {
+                if (typeof grJSTermRunning === 'undefined') {
+                    let onready = [];
+                    let gr = [];
+                    let args = [];
+                    """ + _gr_js + """
+                    function draw(msg) {
+                        if (!ready) {
+                            onready.push(function() { return draw(msg); });
+                        } else if (!GR.is_ready) {
+                            GR.ready(function() { return draw(msg); });
+                        } else {
+                            if (typeof gr['jsterm-' + msg.content.data.canvasid] === 'undefined') {
+                                gr['jsterm-' + msg.content.data.canvasid] = new GR('jsterm-' + msg.content.data.canvasid);
+                            }
+                            gr['jsterm-' + msg.content.data.canvasid].select_canvas();
+                            if (!args.hasOwnProperty('jsterm-' + msg.content.data.canvasid) || typeof args['jsterm-' + msg.content.data.canvasid] === 'undefined') {
+                                args['jsterm-' + msg.content.data.canvasid] = gr['jsterm-' + msg.content.data.canvasid].newmeta();
+                            }
+                            gr['jsterm-' + msg.content.data.canvasid].readmeta(args['jsterm-' + msg.content.data.canvasid], msg.content.data.json);
+                            gr['jsterm-' + msg.content.data.canvasid].clearws();
+                            gr['jsterm-' + msg.content.data.canvasid].plotmeta(args['jsterm-' + msg.content.data.canvasid]);
+                        }
+                    }
+
+                    function onLoad() {
+                        Jupyter.notebook.events.on('execution_request.Kernel', function() {
+                            for (var key in gr) {
+                                if (args.hasOwnProperty(key)) {
+                                    gr[key].deletemeta(args[key])
+                                }
+                            }
+                            gr = [];
+                            args = [];
+                        });
+                        let kernel = Jupyter.notebook.kernel;
+                        Jupyter.notebook.events.on('kernel_ready.Kernel', function() {
+                            kernel = IPython.notebook.kernel;
+                            kernel.comm_manager.register_target('jsterm_comm', function(comm) {
+                                comm.on_msg(function(msg) {
+                                    draw(msg);
+                                });
+                                comm.on_close(function() {
+                                });
+                            });
+                        });
+                        if (typeof kernel === 'undefined' || kernel == null) {
+                            console.error('JSTerm: No kernel detected');
+                            return;
+                        }
+                        kernel.comm_manager.register_target('jsterm_comm', function(comm) {
+                            comm.on_msg(function(msg) {
+                                draw(msg);
+                            });
+                            comm.on_close(function() {
+                            });
+                        });
+                    }
+                    onLoad();
+                }
+            })();
+            var grJSTermRunning = true;
+        </script>
+        """))
+    except ImportError:
+        pass
+
     inline()
