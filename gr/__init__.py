@@ -8,6 +8,7 @@ import gr
 
 import os
 import sys
+import numpy as np
 from numpy import array, ndarray, float64, int32, empty, prod
 from ctypes import c_int, c_double, c_char_p, c_void_p, c_uint8
 from ctypes import byref, POINTER, addressof, CDLL, CFUNCTYPE
@@ -1727,6 +1728,63 @@ def contour(px, py, h, pz, major_h):
         raise AttributeError("Sequences have incorrect length or dimension.")
 
 
+def contourf(px, py, h, pz, major_h=0):
+    """
+    Draw filled contours of a three-dimensional data set whose values are specified over a
+    rectangular mesh.
+
+    **Parameters:**
+
+    `x` :
+        A list containing the X coordinates
+    `y` :
+        A list containing the Y coordinates
+    `h` :
+        A list containing the Z coordinate for the height values or the number
+        of contour lines which will be evenly distributed between minimum and
+        maximum Z value
+    `z` :
+        A list of length `len(x)` * `len(y)` or an appropriately dimensioned
+        array containing the Z coordinates
+
+    """
+    nx = len(px)
+    ny = len(py)
+    nz = len(pz)
+    if isinstance(h, int):
+        nh = h
+        h = None
+    else:
+        nh = len(h)
+    if isinstance(pz, ndarray):
+        if len(pz.shape) == 1:
+            out_of_bounds = nz != nx * ny
+        elif len(pz.shape) == 2:
+            out_of_bounds = pz.shape[0] != nx or pz.shape[1] != ny
+        else:
+            out_of_bounds = True
+    else:
+        out_of_bounds = nz != nx * ny
+    if not out_of_bounds:
+        _px = floatarray(nx, px)
+        _py = floatarray(ny, py)
+        _pz = floatarray(nz, pz)
+        if major_h:
+            z_min, z_max, rotation, tilt = inqspace()
+            setspace(np.min(pz), np.max(pz), 0, 90)
+        if h:
+            _h = floatarray(nh, h)
+            __gr.gr_contourf(c_int(nx), c_int(ny), c_int(nh),
+                             _px.data, _py.data, _h.data, _pz.data, c_int(major_h))
+        else:
+            __gr.gr_contourf(c_int(nx), c_int(ny), c_int(nh),
+                             _px.data, _py.data, None, _pz.data, c_int(major_h))
+        if major_h:
+            setspace(z_min, z_max, rotation, tilt)
+    else:
+        raise AttributeError("Sequences have incorrect length or dimension.")
+
+
 def hexbin(x, y, nbins):
     n = _assertEqualLength(x, y)
     _x = floatarray(n, x)
@@ -2513,6 +2571,94 @@ def interp2(x, y, z, xq, yq, method, extrapval, flatten=True):
         zq.shape = prod(zq.shape)
     return zq
 
+
+def shadepoints(x, y, dims=(1200, 1200), xform=1):
+    """
+    Display a point set as an aggregated and rasterized image.
+
+    **Parameters:**
+
+    `n` :
+        The number of points
+    `x` :
+        A pointer to the X coordinates
+    `y` :
+        A pointer to the Y coordinates
+    `dims` :
+        The size of the grid used for rasterization
+    `xform` :
+        The transformation type used for color mapping
+
+    The values for `x` and `y` are in world coordinates.
+
+    The available transformation types are:
+
+    +----------------+---+--------------------+
+    |XFORM_BOOLEAN   |  0|boolean             |
+    +----------------+---+--------------------+
+    |XFORM_LINEAR    |  1|linear              |
+    +----------------+---+--------------------+
+    |XFORM_LOG       |  2|logarithmic         |
+    +----------------+---+--------------------+
+    |XFORM_LOGLOG    |  3|double logarithmic  |
+    +----------------+---+--------------------+
+    |XFORM_CUBIC     |  4|cubic               |
+    +----------------+---+--------------------+
+    |XFORM_EQUALIZED |  5|histogram equalized |
+    +----------------+---+--------------------+
+    """
+    assert len(x) == len(y)
+    n = len(x)
+    w, h = dims
+    _x = floatarray(n, x)
+    _y = floatarray(n, y)
+    __gr.gr_shadepoints(c_int(n), _x.data, _y.data, xform, w, h)
+
+
+def shadelines(x, y, dims=(1200, 1200), xform=1):
+    """
+    Display a line set as an aggregated and rasterized image.
+
+    **Parameters:**
+
+    `n` :
+        The number of points
+    `x` :
+        A pointer to the X coordinates
+    `y` :
+        A pointer to the Y coordinates
+    `dims` :
+        The size of the grid used for rasterization
+    `xform` :
+        The transformation type used for color mapping
+
+    The values for `x` and `y` are in world coordinates.
+    NaN values can be used to separate the point set into line segments.
+
+    The available transformation types are:
+
+    +----------------+---+--------------------+
+    |XFORM_BOOLEAN   |  0|boolean             |
+    +----------------+---+--------------------+
+    |XFORM_LINEAR    |  1|linear              |
+    +----------------+---+--------------------+
+    |XFORM_LOG       |  2|logarithmic         |
+    +----------------+---+--------------------+
+    |XFORM_LOGLOG    |  3|double logarithmic  |
+    +----------------+---+--------------------+
+    |XFORM_CUBIC     |  4|cubic               |
+    +----------------+---+--------------------+
+    |XFORM_EQUALIZED |  5|histogram equalized |
+    +----------------+---+--------------------+
+    """
+    assert len(x) == len(y)
+    n = len(x)
+    w, h = dims
+    _x = floatarray(n, x)
+    _y = floatarray(n, y)
+    __gr.gr_shadelines(c_int(n), _x.data, _y.data, xform, w, h)
+
+
 def wrapper_version():
     """
     Returns the version string of the Python package gr.
@@ -2637,6 +2783,9 @@ __gr.gr_surface.argtypes = [c_int, c_int, POINTER(c_double), POINTER(c_double),
 __gr.gr_contour.argtypes = [
     c_int, c_int, c_int, POINTER(c_double), POINTER(c_double), POINTER(c_double),
     POINTER(c_double), c_int]
+__gr.gr_contourf.argtypes = [
+    c_int, c_int, c_int, POINTER(c_double), POINTER(c_double), POINTER(c_double),
+    POINTER(c_double), c_int]
 __gr.gr_hexbin.argtypes = [c_int, POINTER(c_double), POINTER(c_double), c_int]
 __gr.gr_hexbin.restype = c_int
 __gr.gr_setcolormap.argtypes = [c_int]
@@ -2706,6 +2855,9 @@ __gr.gr_tricontour.argtypes = [
 __gr.gr_version.argtypes = []
 __gr.gr_version.restype = c_char_p
 __gr.gr_quiver.argtypes = [c_int, c_int, POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double), c_int]
+__gr.gr_shadepoints.argtypes = [c_int, POINTER(c_double), POINTER(c_double), c_int, c_int, c_int]
+__gr.gr_shadelines.argtypes = [c_int, POINTER(c_double), POINTER(c_double), c_int, c_int, c_int]
+
 
 precision = __gr.gr_precision()
 

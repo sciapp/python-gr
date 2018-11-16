@@ -35,7 +35,7 @@ def _close_gks_on_error(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         try:
-            func(*args, **kwargs)
+            return func(*args, **kwargs)
         except Exception:
             gr.emergencyclosegks()
             raise
@@ -352,11 +352,11 @@ def _hist(x, nbins=0):
 
 
 @_close_gks_on_error
-def histogram(x, num_bins=None, **kwargs):
+def histogram(x, num_bins=0, **kwargs):
     r"""
     Draw a histogram.
 
-    If **num_bins** is **None** or 0, this function computes the number of
+    If **num_bins** is 0, this function computes the number of
     bins as :math:`\text{round}(3.3\cdot\log_{10}(n))+1` with n as the number
     of elements in x, otherwise the given number of bins is used for the
     histogram.
@@ -398,6 +398,7 @@ def contour(*args, **kwargs):
     provided points, a value of 0 will be used.
 
     :param args: the data to plot
+    :param levels: Number of contour lines
 
     **Usage examples:**
 
@@ -412,7 +413,7 @@ def contour(*args, **kwargs):
     >>> y = np.linspace(0, np.pi, 20)
     >>> z = np.sin(x[:, np.newaxis]) + np.cos(y[np.newaxis, :])
     >>> # Draw the contour plot
-    >>> mlab.contour(x, y, z)
+    >>> mlab.contour(x, y, z, levels=10)
     >>> # Draw the contour plot using a callable
     >>> mlab.contour(x, y, lambda x, y: np.sin(x) + np.cos(y))
     """
@@ -440,6 +441,7 @@ def contourf(*args, **kwargs):
     provided points, a value of 0 will be used.
 
     :param args: the data to plot
+    :param levels: Number of contour lines
 
     **Usage examples:**
 
@@ -454,7 +456,7 @@ def contourf(*args, **kwargs):
     >>> y = np.linspace(0, np.pi, 20)
     >>> z = np.sin(x[:, np.newaxis]) + np.cos(y[np.newaxis, :])
     >>> # Draw the filled contour plot
-    >>> mlab.contourf(x, y, z)
+    >>> mlab.contourf(x, y, z, levels=10)
     >>> # Draw the filled contour plot using a callable
     >>> mlab.contourf(x, y, lambda x, y: np.sin(x) + np.cos(y))
     """
@@ -526,6 +528,50 @@ def heatmap(data, **kwargs):
     _plt.kwargs.update(kwargs)
     _plt.args = [(np.arange(width), np.arange(height), data, None, "")]
     _plot_data(kind='heatmap')
+
+
+@_close_gks_on_error
+def shade(*args, **kwargs):
+    """
+    Draw a point or line based heatmap.
+
+    This function uses the current colormap to display a series of points or
+    polylines. For line data, NaN values can be used as separator.
+
+    :param args: the data to plot
+    :param xform: the transformation type used for color mapping
+
+    The available transformation types are:
+
+    +----------------+---+--------------------+
+    |XFORM_BOOLEAN   |  0|boolean             |
+    +----------------+---+--------------------+
+    |XFORM_LINEAR    |  1|linear              |
+    +----------------+---+--------------------+
+    |XFORM_LOG       |  2|logarithmic         |
+    +----------------+---+--------------------+
+    |XFORM_LOGLOG    |  3|double logarithmic  |
+    +----------------+---+--------------------+
+    |XFORM_CUBIC     |  4|cubic               |
+    +----------------+---+--------------------+
+    |XFORM_EQUALIZED |  5|histogram equalized |
+    +----------------+---+--------------------+
+
+    **Usage examples:**
+
+    >>> # Create point data
+    >>> x = np.random.normal(size=100000)
+    >>> y = np.random.normal(size=100000)
+    >>> mlab.shade(x, y)
+    >>> # Create line data with NaN as polyline separator
+    >>> x = np.concatenate((np.random.normal(size=10000), [np.nan], np.random.normal(loc=5, size=10000)))
+    >>> y = np.concatenate((np.random.normal(size=10000), [np.nan], np.random.normal(loc=5, size=10000)))
+    >>> mlab.shade(x, y)
+    """
+    global _plt
+    _plt.kwargs.update(kwargs)
+    _plt.args = _plot_args(args, fmt='xys')
+    _plot_data(kind='shade')
 
 
 @_close_gks_on_error
@@ -1040,9 +1086,9 @@ def zflip(zflip=True):
 
 
 @_close_gks_on_error
-def colormap(colormap):
+def colormap(colormap=''):
     """
-    Set the colormap for the current plot or enable manual colormap control.
+    Get or set the colormap for the current plot or enable manual colormap control.
 
     :param colormap:
         - The name of a gr colormap
@@ -1050,6 +1096,8 @@ def colormap(colormap):
         - A list of red-green-blue tuples as colormap
         - **None**, if the colormap should use the current colors set by
           :py:func:`gr.setcolorrep`
+        - No parameter or an empty string (default) to get the colormap as a
+          list of red-green-blue tuples
 
     **Usage examples:**
 
@@ -1064,7 +1112,12 @@ def colormap(colormap):
     ...     gr.setcolorrep(1.0-i/255.0, 1.0, i/255.0)
     ...
     >>> mlab.colormap(None)
+    >>> # Get the current colormap as list of red-green-blue tuples
+    >>> colormap = mlab.colormap()
     """
+    if colormap == '':
+        _set_colormap()
+        return [(c[0], c[1], c[2]) for c in _colormap()]
     _plot_data(colormap=colormap)
 
 
@@ -1423,13 +1476,13 @@ def _minmax(kind=None):
     x_step = y_step = float('-infinity')
 
     for x, y, z, c, spec in _plt.args:
-        x_min = min(x.min(), x_min)
-        x_max = max(x.max(), x_max)
-        y_min = min(y.min(), y_min)
-        y_max = max(y.max(), y_max)
+        x_min = min(np.nanmin(x), x_min)
+        x_max = max(np.nanmax(x), x_max)
+        y_min = min(np.nanmin(y), y_min)
+        y_max = max(np.nanmax(y), y_max)
         if z is not None:
-            z_min = min(z.min(), z_min)
-            z_max = max(z.max(), z_max)
+            z_min = min(np.nanmin(z), z_min)
+            z_max = max(np.nanmax(z), z_max)
         if kind in ('quiver',):
             if len(x) > 1:
                 x_step = max(np.abs(x[1:] - x[:-1]).max(), x_step)
@@ -1572,7 +1625,7 @@ def _draw_axes(kind, pass_=1):
             gr.axes3d(x_tick, 0, z_tick, x_org[0], y_org[0], z_org[0], x_major_count, 0, z_major_count, -ticksize)
             gr.axes3d(0, y_tick, 0, x_org[1], y_org[0], z_org[0], 0, y_major_count, 0, ticksize)
     else:
-        if kind == 'heatmap':
+        if kind in ('heatmap', 'shade'):
             ticksize = -ticksize
         else:
             gr.grid(x_tick, y_tick, 0, 0, x_major_count, y_major_count)
@@ -1706,7 +1759,10 @@ def _colorbar(off=0.0, colors=256):
     gr.setviewport(viewport[1] + 0.02 + off, viewport[1] + 0.05 + off,
                    viewport[2], viewport[3])
 
-    data = [1000 + int(255 * i / (colors - 1)) for i in range(colors)]
+    if colors == 1:
+        data = [1000]
+    else:
+        data = [1000 + int(255 * i / (colors - 1)) for i in range(colors)]
 
     gr.cellarray(0, 1, zmax, zmin, 1, colors, data)
     diag = ((viewport[1] - viewport[0])**2 + (viewport[3] - viewport[2])**2)**0.5
@@ -1828,7 +1884,8 @@ def _plot_data(**kwargs):
         elif kind == 'contour':
             z_min, z_max = _plt.kwargs['zrange']
             gr.setspace(z_min, z_max, 0, 90)
-            h = [z_min + i / 19 * (z_max - z_min) for i in range(20)]
+            num_levels = _plt.kwargs.get('levels', 20)
+            h = [z_min + i / num_levels * (z_max - z_min) for i in range(num_levels)]
             if x.shape == y.shape == z.shape:
                 x, y, z = gr.gridit(x, y, z, 200, 200)
                 z = np.array(z)
@@ -1836,11 +1893,13 @@ def _plot_data(**kwargs):
                 z = np.ascontiguousarray(z)
             z.shape = np.prod(z.shape)
             gr.contour(x, y, h, z, 1000)
-            _colorbar(0, 20)
+            _colorbar(colors=num_levels)
         elif kind == 'contourf':
             z_min, z_max = _plt.kwargs['zrange']
             gr.setspace(z_min, z_max, 0, 90)
             scale = _plt.kwargs['scale']
+            num_levels = _plt.kwargs.get('levels', 20)
+            h = [z_min + i / num_levels * (z_max - z_min) for i in range(num_levels)]
             gr.setscale(scale)
             if x.shape == y.shape == z.shape:
                 x, y, z = gr.gridit(x, y, z, 200, 200)
@@ -1848,12 +1907,9 @@ def _plot_data(**kwargs):
             else:
                 z = np.ascontiguousarray(z)
             z.shape = np.prod(z.shape)
-            gr.surface(x, y, z, gr.OPTION_CELL_ARRAY)
-            _colorbar()
-            h = [z_min + i / 19 * (z_max - z_min) for i in range(20)]
-            for i in range(1000, 1256):
-                gr.setcolorrep(i, 0, 0, 0)
-            gr.contour(x, y, h, z, 1000)
+            _colorbar(colors=num_levels)
+            gr.setlinecolorind(1)
+            gr.contourf(x, y, h, z, 0)
         elif kind == 'hexbin':
             nbins = _plt.kwargs.get('nbins', 40)
             cntmax = gr.hexbin(x, y, nbins)
@@ -1935,6 +1991,12 @@ def _plot_data(**kwargs):
             zmin, zmax = _plt.kwargs['zrange']
             levels = np.linspace(zmin, zmax, 20)
             gr.tricontour(x, y, z, levels)
+        elif kind == 'shade':
+            xform = _plt.kwargs.get('xform', 5)
+            if np.any(np.isnan(x)):
+                gr.shadelines(x, y, xform=xform)
+            else:
+                gr.shadepoints(x, y, xform=xform)
         gr.restorestate()
     if kind in ('line', 'step', 'scatter', 'stem') and 'labels' in _plt.kwargs:
         _draw_legend()
