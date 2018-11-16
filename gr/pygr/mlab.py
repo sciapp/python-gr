@@ -398,6 +398,7 @@ def contour(*args, **kwargs):
     provided points, a value of 0 will be used.
 
     :param args: the data to plot
+    :param levels: Number of contour lines
 
     **Usage examples:**
 
@@ -412,7 +413,7 @@ def contour(*args, **kwargs):
     >>> y = np.linspace(0, np.pi, 20)
     >>> z = np.sin(x[:, np.newaxis]) + np.cos(y[np.newaxis, :])
     >>> # Draw the contour plot
-    >>> mlab.contour(x, y, z)
+    >>> mlab.contour(x, y, z, levels=10)
     >>> # Draw the contour plot using a callable
     >>> mlab.contour(x, y, lambda x, y: np.sin(x) + np.cos(y))
     """
@@ -440,6 +441,7 @@ def contourf(*args, **kwargs):
     provided points, a value of 0 will be used.
 
     :param args: the data to plot
+    :param levels: Number of contour lines
 
     **Usage examples:**
 
@@ -454,7 +456,7 @@ def contourf(*args, **kwargs):
     >>> y = np.linspace(0, np.pi, 20)
     >>> z = np.sin(x[:, np.newaxis]) + np.cos(y[np.newaxis, :])
     >>> # Draw the filled contour plot
-    >>> mlab.contourf(x, y, z)
+    >>> mlab.contourf(x, y, z, levels=10)
     >>> # Draw the filled contour plot using a callable
     >>> mlab.contourf(x, y, lambda x, y: np.sin(x) + np.cos(y))
     """
@@ -1757,7 +1759,10 @@ def _colorbar(off=0.0, colors=256):
     gr.setviewport(viewport[1] + 0.02 + off, viewport[1] + 0.05 + off,
                    viewport[2], viewport[3])
 
-    data = [1000 + int(255 * i / (colors - 1)) for i in range(colors)]
+    if colors == 1:
+        data = [1000]
+    else:
+        data = [1000 + int(255 * i / (colors - 1)) for i in range(colors)]
 
     gr.cellarray(0, 1, zmax, zmin, 1, colors, data)
     diag = ((viewport[1] - viewport[0])**2 + (viewport[3] - viewport[2])**2)**0.5
@@ -1879,7 +1884,8 @@ def _plot_data(**kwargs):
         elif kind == 'contour':
             z_min, z_max = _plt.kwargs['zrange']
             gr.setspace(z_min, z_max, 0, 90)
-            h = [z_min + i / 19 * (z_max - z_min) for i in range(20)]
+            num_levels = _plt.kwargs.get('levels', 20)
+            h = [z_min + i / num_levels * (z_max - z_min) for i in range(num_levels)]
             if x.shape == y.shape == z.shape:
                 x, y, z = gr.gridit(x, y, z, 200, 200)
                 z = np.array(z)
@@ -1887,11 +1893,13 @@ def _plot_data(**kwargs):
                 z = np.ascontiguousarray(z)
             z.shape = np.prod(z.shape)
             gr.contour(x, y, h, z, 1000)
-            _colorbar(0, 20)
+            _colorbar(colors=num_levels)
         elif kind == 'contourf':
             z_min, z_max = _plt.kwargs['zrange']
             gr.setspace(z_min, z_max, 0, 90)
             scale = _plt.kwargs['scale']
+            num_levels = _plt.kwargs.get('levels', 20)
+            h = [z_min + i / num_levels * (z_max - z_min) for i in range(num_levels)]
             gr.setscale(scale)
             if x.shape == y.shape == z.shape:
                 x, y, z = gr.gridit(x, y, z, 200, 200)
@@ -1899,12 +1907,9 @@ def _plot_data(**kwargs):
             else:
                 z = np.ascontiguousarray(z)
             z.shape = np.prod(z.shape)
-            gr.surface(x, y, z, gr.OPTION_CELL_ARRAY)
-            _colorbar()
-            h = [z_min + i / 19 * (z_max - z_min) for i in range(20)]
-            for i in range(1000, 1256):
-                gr.setcolorrep(i, 0, 0, 0)
-            gr.contour(x, y, h, z, 1000)
+            _colorbar(colors=num_levels)
+            gr.setlinecolorind(1)
+            gr.contourf(x, y, h, z, 0)
         elif kind == 'hexbin':
             nbins = _plt.kwargs.get('nbins', 40)
             cntmax = gr.hexbin(x, y, nbins)
