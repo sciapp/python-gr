@@ -2513,6 +2513,94 @@ def interp2(x, y, z, xq, yq, method, extrapval, flatten=True):
         zq.shape = prod(zq.shape)
     return zq
 
+
+def shadepoints(x, y, dims=(1200, 1200), xform=1):
+    """
+    Display a point set as an aggregated and rasterized image.
+
+    **Parameters:**
+
+    `n` :
+        The number of points
+    `x` :
+        A pointer to the X coordinates
+    `y` :
+        A pointer to the Y coordinates
+    `dims` :
+        The size of the grid used for rasterization
+    `xform` :
+        The transformation type used for color mapping
+
+    The values for `x` and `y` are in world coordinates.
+
+    The available transformation types are:
+
+    +----------------+---+--------------------+
+    |XFORM_BOOLEAN   |  0|boolean             |
+    +----------------+---+--------------------+
+    |XFORM_LINEAR    |  1|linear              |
+    +----------------+---+--------------------+
+    |XFORM_LOG       |  2|logarithmic         |
+    +----------------+---+--------------------+
+    |XFORM_LOGLOG    |  3|double logarithmic  |
+    +----------------+---+--------------------+
+    |XFORM_CUBIC     |  4|cubic               |
+    +----------------+---+--------------------+
+    |XFORM_EQUALIZED |  5|histogram equalized |
+    +----------------+---+--------------------+
+    """
+    assert len(x) == len(y)
+    n = len(x)
+    w, h = dims
+    _x = floatarray(n, x)
+    _y = floatarray(n, y)
+    __gr.gr_shadepoints(c_int(n), _x.data, _y.data, xform, w, h)
+
+
+def shadelines(x, y, dims=(1200, 1200), xform=1):
+    """
+    Display a line set as an aggregated and rasterized image.
+
+    **Parameters:**
+
+    `n` :
+        The number of points
+    `x` :
+        A pointer to the X coordinates
+    `y` :
+        A pointer to the Y coordinates
+    `dims` :
+        The size of the grid used for rasterization
+    `xform` :
+        The transformation type used for color mapping
+
+    The values for `x` and `y` are in world coordinates.
+    NaN values can be used to separate the point set into line segments.
+
+    The available transformation types are:
+
+    +----------------+---+--------------------+
+    |XFORM_BOOLEAN   |  0|boolean             |
+    +----------------+---+--------------------+
+    |XFORM_LINEAR    |  1|linear              |
+    +----------------+---+--------------------+
+    |XFORM_LOG       |  2|logarithmic         |
+    +----------------+---+--------------------+
+    |XFORM_LOGLOG    |  3|double logarithmic  |
+    +----------------+---+--------------------+
+    |XFORM_CUBIC     |  4|cubic               |
+    +----------------+---+--------------------+
+    |XFORM_EQUALIZED |  5|histogram equalized |
+    +----------------+---+--------------------+
+    """
+    assert len(x) == len(y)
+    n = len(x)
+    w, h = dims
+    _x = floatarray(n, x)
+    _y = floatarray(n, y)
+    __gr.gr_shadelines(c_int(n), _x.data, _y.data, xform, w, h)
+
+
 def wrapper_version():
     """
     Returns the version string of the Python package gr.
@@ -2706,6 +2794,9 @@ __gr.gr_tricontour.argtypes = [
 __gr.gr_version.argtypes = []
 __gr.gr_version.restype = c_char_p
 __gr.gr_quiver.argtypes = [c_int, c_int, POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double), c_int]
+__gr.gr_shadepoints.argtypes = [c_int, POINTER(c_double), POINTER(c_double), c_int, c_int, c_int]
+__gr.gr_shadelines.argtypes = [c_int, POINTER(c_double), POINTER(c_double), c_int, c_int, c_int]
+
 
 precision = __gr.gr_precision()
 
