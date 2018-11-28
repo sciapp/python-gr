@@ -1464,8 +1464,8 @@ def _fix_minmax(v_min, v_max):
             v_min -= 0.1
             v_max += 0.1
         else:
-            v_min -= 0.1 * v_min
-            v_max += 0.1 * v_max
+            v_min -= 0.1 * np.abs(v_min)
+            v_max += 0.1 * np.abs(v_max)
     return v_min, v_max
 
 
@@ -1885,12 +1885,13 @@ def _plot_data(**kwargs):
             z_min, z_max = _plt.kwargs['zrange']
             gr.setspace(z_min, z_max, 0, 90)
             num_levels = _plt.kwargs.get('levels', 20)
-            h = [z_min + i / num_levels * (z_max - z_min) for i in range(num_levels)]
             if x.shape == y.shape == z.shape:
                 x, y, z = gr.gridit(x, y, z, 200, 200)
                 z = np.array(z)
+                z_min, z_max = _plt.kwargs.get('zlim', (np.min(z), np.max(z)))
             else:
                 z = np.ascontiguousarray(z)
+            h = [z_min + i / num_levels * (z_max - z_min) for i in range(num_levels)]
             z.shape = np.prod(z.shape)
             gr.contour(x, y, h, z, 1000)
             _colorbar(colors=num_levels)
@@ -1899,13 +1900,14 @@ def _plot_data(**kwargs):
             gr.setspace(z_min, z_max, 0, 90)
             scale = _plt.kwargs['scale']
             num_levels = _plt.kwargs.get('levels', 20)
-            h = [z_min + i / num_levels * (z_max - z_min) for i in range(num_levels)]
             gr.setscale(scale)
             if x.shape == y.shape == z.shape:
                 x, y, z = gr.gridit(x, y, z, 200, 200)
                 z = np.array(z)
+                z_min, z_max = _plt.kwargs.get('zlim', (np.min(z), np.max(z)))
             else:
                 z = np.ascontiguousarray(z)
+            h = [z_min + i / num_levels * (z_max - z_min) for i in range(num_levels)]
             z.shape = np.prod(z.shape)
             _colorbar(colors=num_levels)
             gr.setlinecolorind(1)
