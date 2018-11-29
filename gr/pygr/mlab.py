@@ -117,7 +117,7 @@ def step(*args, **kwargs):
     - y values only, with their indices as x values
 
     :param args: the data to plot
-    :param where: pre, mid or post, to decide where the step between to y values should be placed
+    :param where: pre, mid or post, to decide where the step between two y values should be placed
 
     **Usage examples:**
 
@@ -127,13 +127,13 @@ def step(*args, **kwargs):
     >>> # Plot x and y
     >>> mlab.step(x, y)
     >>> # Plot x and a callable
-    >>> mlab.step(x, lambda x: x: x**3 + x**2 + x)
+    >>> mlab.step(x, lambda x: x**3 + x**2 + x)
     >>> # Plot y, using its indices for the x values
     >>> mlab.step(y)
     >>> # Use next y step directly after x each position
     >>> mlab.step(y, where='pre')
     >>> # Use next y step between two x positions
-    >>> mlab.step(y, where='pre')
+    >>> mlab.step(y, where='mid')
     >>> # Use next y step immediately before next x position
     >>> mlab.step(y, where='post')
     """
