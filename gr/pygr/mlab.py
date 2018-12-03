@@ -117,7 +117,7 @@ def step(*args, **kwargs):
     - y values only, with their indices as x values
 
     :param args: the data to plot
-    :param where: pre, mid or post, to decide where the step between to y values should be placed
+    :param where: pre, mid or post, to decide where the step between two y values should be placed
 
     **Usage examples:**
 
@@ -127,13 +127,13 @@ def step(*args, **kwargs):
     >>> # Plot x and y
     >>> mlab.step(x, y)
     >>> # Plot x and a callable
-    >>> mlab.step(x, lambda x: x: x**3 + x**2 + x)
+    >>> mlab.step(x, lambda x: x**3 + x**2 + x)
     >>> # Plot y, using its indices for the x values
     >>> mlab.step(y)
     >>> # Use next y step directly after x each position
     >>> mlab.step(y, where='pre')
     >>> # Use next y step between two x positions
-    >>> mlab.step(y, where='pre')
+    >>> mlab.step(y, where='mid')
     >>> # Use next y step immediately before next x position
     >>> mlab.step(y, where='post')
     """
@@ -1464,8 +1464,8 @@ def _fix_minmax(v_min, v_max):
             v_min -= 0.1
             v_max += 0.1
         else:
-            v_min -= 0.1 * v_min
-            v_max += 0.1 * v_max
+            v_min -= 0.1 * np.abs(v_min)
+            v_max += 0.1 * np.abs(v_max)
     return v_min, v_max
 
 
@@ -1764,14 +1764,22 @@ def _colorbar(off=0.0, colors=256):
     else:
         data = [1000 + int(255 * i / (colors - 1)) for i in range(colors)]
 
-    gr.cellarray(0, 1, zmax, zmin, 1, colors, data)
+    if _plt.kwargs['scale'] & gr.OPTION_FLIP_Z:
+        gr.cellarray(0, 1, zmin, zmax, 1, colors, data)
+    else:
+        gr.cellarray(0, 1, zmax, zmin, 1, colors, data)
     diag = ((viewport[1] - viewport[0])**2 + (viewport[3] - viewport[2])**2)**0.5
     charheight = max(0.016 * diag, 0.012)
     gr.setcharheight(charheight)
     if _plt.kwargs['scale'] & gr.OPTION_Z_LOG:
-        gr.setscale(gr.OPTION_Y_LOG)
+        if _plt.kwargs['scale'] & gr.OPTION_FLIP_Z:
+            gr.setscale(gr.OPTION_Y_LOG | gr.OPTION_FLIP_Y)
+        else:
+            gr.setscale(gr.OPTION_Y_LOG)
         gr.axes(0, 2, 1, zmin, 0, 1, 0.005)
     else:
+        if _plt.kwargs['scale'] & gr.OPTION_FLIP_Z:
+            gr.setscale(gr.OPTION_FLIP_Y)
         ztick = 0.5 * gr.tick(zmin, zmax)
         gr.axes(0, ztick, 1, zmin, 0, 1, 0.005)
     gr.restorestate()
@@ -1885,12 +1893,16 @@ def _plot_data(**kwargs):
             z_min, z_max = _plt.kwargs['zrange']
             gr.setspace(z_min, z_max, 0, 90)
             num_levels = _plt.kwargs.get('levels', 20)
-            h = [z_min + i / num_levels * (z_max - z_min) for i in range(num_levels)]
             if x.shape == y.shape == z.shape:
                 x, y, z = gr.gridit(x, y, z, 200, 200)
                 z = np.array(z)
+                z_min, z_max = _plt.kwargs.get('zlim', (np.min(z), np.max(z)))
             else:
                 z = np.ascontiguousarray(z)
+            if _plt.kwargs['scale'] & gr.OPTION_Z_LOG:
+                h = [np.exp(np.log(z_min) + i / num_levels * (np.log(z_max) - np.log(z_min))) for i in range(num_levels)]
+            else:
+                h = [z_min + i / num_levels * (z_max - z_min) for i in range(num_levels)]
             z.shape = np.prod(z.shape)
             gr.contour(x, y, h, z, 1000)
             _colorbar(colors=num_levels)
@@ -1899,13 +1911,17 @@ def _plot_data(**kwargs):
             gr.setspace(z_min, z_max, 0, 90)
             scale = _plt.kwargs['scale']
             num_levels = _plt.kwargs.get('levels', 20)
-            h = [z_min + i / num_levels * (z_max - z_min) for i in range(num_levels)]
             gr.setscale(scale)
             if x.shape == y.shape == z.shape:
                 x, y, z = gr.gridit(x, y, z, 200, 200)
                 z = np.array(z)
+                z_min, z_max = _plt.kwargs.get('zlim', (np.min(z), np.max(z)))
             else:
                 z = np.ascontiguousarray(z)
+            if _plt.kwargs['scale'] & gr.OPTION_Z_LOG:
+                h = [np.exp(np.log(z_min) + i / num_levels * (np.log(z_max) - np.log(z_min))) for i in range(num_levels)]
+            else:
+                h = [z_min + i / num_levels * (z_max - z_min) for i in range(num_levels)]
             z.shape = np.prod(z.shape)
             _colorbar(colors=num_levels)
             gr.setlinecolorind(1)
