@@ -102,7 +102,7 @@ class DownloadBinaryDistribution(build_py):
                                   os.path.isfile(release_file_name) and os.access(release_file_name, os.R_OK)]
             release_info = '\n'.join([open(release_file_name).read() for release_file_name in release_file_names])
             if '/etc/os-release' in release_file_names:
-                if 'ID=ubuntu' in release_info:
+                if 'ID=ubuntu' in release_info or 'ID=linuxmint' in release_info:
                     return 'Ubuntu'
                 if 'ID=debian' in release_info:
                     return 'Debian'
