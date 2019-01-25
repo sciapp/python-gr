@@ -91,6 +91,25 @@ class DownloadHashes(sdist):
 
 class DownloadBinaryDistribution(build_py):
     @staticmethod
+    def get_file_from_mirrors(file_name, version, schema):
+        mirrors = [
+            # GitHub enforces HTTPS
+            'https://github.com/sciapp/gr/releases/download/{version}/'.format(version=version),
+            '{schema}://gr-framework.org/downloads/'.format(schema=schema)
+        ]
+        urls = []
+        for mirror in mirrors:
+            urls.append(mirror + file_name)
+        for url in urls:
+            try:
+                response = urlopen(url)
+            except Exception:
+                continue
+            if response.getcode() == 200:
+                return response.read()
+        raise URLError('Failed to download file from: ' + ', '.join(urls))
+
+    @staticmethod
     def detect_os():
         if sys.platform == 'darwin':
             return 'Darwin'
@@ -127,11 +146,7 @@ class DownloadBinaryDistribution(build_py):
             with open(local_hash_file_name, 'r') as hash_file:
                 hash_file_content = hash_file.read()
         except IOError:
-            hash_file_url = 'https://gr-framework.org/downloads/' + hash_file_name
-            response = urlopen(hash_file_url)
-            if response.getcode() != 200:
-                raise RuntimeError('Failed to download hashes from: ' + distribution_url)
-            hash_file_content = response.read().decode('utf-8')
+            hash_file_content = DownloadBinaryDistribution.get_file_from_mirrors(hash_file_name, version, 'https').decode('utf-8')
             # store hashes for later use
             with open(local_hash_file_name, 'w') as hash_file:
                 hash_file.write(hash_file_content)
@@ -167,12 +182,10 @@ class DownloadBinaryDistribution(build_py):
                     os=operating_system,
                     arch=arch
                 )
-                distribution_url = 'http://gr-framework.org/downloads/' + file_name
-                response = urlopen(distribution_url)
-                if response.getcode() != 200:
-                    raise URLError('GR runtime not found on: ' + distribution_url)
+
+                tar_gz_data = DownloadBinaryDistribution.get_file_from_mirrors(file_name, version, 'http')
                 # wrap response as file-like object
-                tar_gz_data = BytesIO(response.read())
+                tar_gz_data = BytesIO(tar_gz_data)
                 expected_hash = DownloadBinaryDistribution.get_expected_hash(version, file_name)
                 calculated_hash = hashlib.sha512(tar_gz_data.read()).hexdigest()
                 tar_gz_data.seek(0)
