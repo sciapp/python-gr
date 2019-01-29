@@ -1780,6 +1780,8 @@ def _colorbar(off=0.0, colors=256):
     else:
         if _plt.kwargs['scale'] & gr.OPTION_FLIP_Z:
             gr.setscale(gr.OPTION_FLIP_Y)
+        else:
+            gr.setscale(0)
         ztick = 0.5 * gr.tick(zmin, zmax)
         gr.axes(0, ztick, 1, zmin, 0, 1, 0.005)
     gr.restorestate()
@@ -1943,6 +1945,10 @@ def _plot_data(**kwargs):
             z_min, z_max = _plt.kwargs.get('zlim', (np.min(z), np.max(z)))
             if z_max < z_min:
                 z_max, z_min = z_min, z_max
+            if _plt.kwargs.get('zlog', False):
+                z = np.log(z)
+                z_min = np.log(z_min)
+                z_max = np.log(z_max)
             if z_max > z_min:
                 data = (z - z_min) / (z_max - z_min) * 255
             else:
