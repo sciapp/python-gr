@@ -1609,6 +1609,12 @@ def _draw_axes(kind, pass_=1):
     vp = _plt.kwargs['vp']
     x_tick, x_org, x_major_count = _plt.kwargs['xaxis']
     y_tick, y_org, y_major_count = _plt.kwargs['yaxis']
+    # enforce uniform axis labels for logarithmic labels
+    # otherwise the labels will switch between decimal and exponential notation
+    if _plt.kwargs['scale'] & gr.OPTION_X_LOG:
+        x_tick = 10
+    if _plt.kwargs['scale'] & gr.OPTION_Y_LOG:
+        y_tick = 10
 
     gr.setlinecolorind(1)
     gr.setlinewidth(1)
