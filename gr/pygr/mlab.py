@@ -1963,6 +1963,10 @@ def _plot_data(**kwargs):
             for x in range(width):
                 for y in range(height):
                     rgba[y, x] = icmap[int(data[y, x])]
+            if _plt.kwargs.get('xflip', False):
+                x_min, x_max = x_max, x_min
+            if _plt.kwargs.get('yflip', False):
+                y_min, y_max = y_max, y_min
             y_min, y_max = y_max, y_min
             gr.drawimage(x_min, x_max, y_min, y_max, width, height, rgba)
             _colorbar()
