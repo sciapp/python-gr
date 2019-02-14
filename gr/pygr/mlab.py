@@ -210,7 +210,7 @@ def quiver(x, y, u, v, **kwargs):
     >>> u = np.repeat(x[np.newaxis, :], len(y), axis=0)
     >>> v = np.repeat(y[:, np.newaxis], len(x), axis=1)
     >>> # Draw arrows on grid
-    >>> mlab.quiver(x, y, u, b)
+    >>> mlab.quiver(x, y, u, v)
     """
     global _plt
     _plt.kwargs.update(kwargs)
@@ -1756,7 +1756,7 @@ def _draw_legend():
     gr.restorestate()
 
 
-def _colorbar(off=0.0, colors=256):
+def _colorbar(off=0.0, colors=256, label_name='zlabel'):
     global _plt
     gr.savestate()
     viewport = _plt.kwargs['viewport']
@@ -1790,6 +1790,13 @@ def _colorbar(off=0.0, colors=256):
             gr.setscale(0)
         ztick = 0.5 * gr.tick(zmin, zmax)
         gr.axes(0, ztick, 1, zmin, 0, 1, 0.005)
+    label = _plt.kwargs.get(label_name, None)
+    if label:
+        diag = ((viewport[1] - viewport[0])**2 + (viewport[3] - viewport[2])**2)**0.5
+        charheight = max(0.018 * diag, 0.012)
+        gr.setcharheight(charheight)
+        gr.settextalign(gr.TEXT_HALIGN_CENTER, gr.TEXT_VALIGN_BASE)
+        gr.textext(viewport[1] + 0.035 + off, viewport[3] + 0.01, label)
     gr.restorestate()
 
 
@@ -2208,7 +2215,7 @@ def _convert_to_array(obj, may_be_2d=False, xvalues=None, always_flatten=False):
     if a.dtype == complex:
         if dimension != 1:
             raise TypeError("expected a sequence of complex values, but got shape {}".format(a.shape))
-        a = np.stack((np.real(a), np.imag(a)), axis=1)
+        a = np.hstack((np.real(a), np.imag(a)))
         dimension = 2
     elif a.dtype != np.float64:
         try:
