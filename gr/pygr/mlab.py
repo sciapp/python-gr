@@ -526,7 +526,7 @@ def heatmap(data, **kwargs):
         raise ValueError('expected 2-D array')
     height, width = data.shape
     _plt.kwargs.update(kwargs)
-    _plt.args = [(np.arange(width), np.arange(height), data, None, "")]
+    _plt.args = [(np.arange(width + 1), np.arange(height + 1), data, None, "")]
     _plot_data(kind='heatmap')
 
 
@@ -1963,6 +1963,11 @@ def _plot_data(**kwargs):
             for x in range(width):
                 for y in range(height):
                     rgba[y, x] = icmap[int(data[y, x])]
+            if _plt.kwargs.get('xflip', False):
+                x_min, x_max = x_max, x_min
+            if _plt.kwargs.get('yflip', False):
+                y_min, y_max = y_max, y_min
+            y_min, y_max = y_max, y_min
             gr.drawimage(x_min, x_max, y_min, y_max, width, height, rgba)
             _colorbar()
         elif kind == 'wireframe':
