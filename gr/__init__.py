@@ -2659,6 +2659,42 @@ def shadelines(x, y, dims=(1200, 1200), xform=1):
     __gr.gr_shadelines(c_int(n), _x.data, _y.data, xform, w, h)
 
 
+def volume(data, algorithm=0, dmin=-1, dmax=-1):
+    """
+    Draw volume data using the given algorithm and apply the current GR colormap.
+    Returns the minimum and maximum data value that were used when applying the colormap.
+
+    **Parameters:**
+
+    `data` :
+        3D numpy array containing the intensities for each point
+    `algorithm` :
+        The algorithm used to reduce the volume data
+    `dmin` :
+        The minimum data value when applying the colormap. If it is negative, the actual occurring minimum is used.
+    `dmax` :
+        The maximum data value when applying the colormap. If it is negative, the actual occurring maximum is used.
+
+    Available algorithms are:
+
+    +------------------+---+-----------------------------+
+    |VOLUME_EMISSION   |  0|emission model               |
+    +------------------+---+-----------------------------+
+    |VOLUME_ABSORPTION |  1|absorption model             |
+    +------------------+---+-----------------------------+
+    |VOLUME_MIP        |  2|maximum intensity projection |
+    +------------------+---+-----------------------------+
+    """
+    import gr3
+    data = np.array(data, copy=False, ndmin=3)
+    nz, ny, nx = data.shape
+    _data = floatarray(nx * ny * nz, data)
+    _dmin = c_double(dmin)
+    _dmax = c_double(dmax)
+    gr3._gr3.gr_volume(nx, ny, nz, _data.data, c_int(algorithm), byref(_dmin),  byref(_dmax))
+    return _dmin.value, _dmax.value
+
+
 def wrapper_version():
     """
     Returns the version string of the Python package gr.
@@ -3140,6 +3176,10 @@ INTERP2_NEAREST = 0
 INTERP2_LINEAR = 1
 INTERP2_CUBIC = 3
 INTERP2_SPLINE = 2
+
+VOLUME_EMISSION = 0
+VOLUME_ABSORPTION = 1
+VOLUME_MIP = 2
 
 # automatically switch to inline graphics in Jupyter Notebooks
 if 'ipykernel' in sys.modules:
