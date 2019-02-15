@@ -1671,6 +1671,9 @@ _gr3.gr3_drawzslicemesh.argtypes = [POINTER(c_ushort), c_uint,
 _gr3.gr3_drawtrianglesurface.restype = None
 _gr3.gr3_drawtrianglesurface.argtypes = [c_int, POINTER(c_float)]
 
+_gr3.gr_volume.restype = None
+_gr3.gr_volume.argtypes = [c_int, c_int, c_int, POINTER(c_double), c_int, POINTER(c_double), POINTER(c_double)]
+
 
 for symbol in dir(_gr3):
     if symbol.startswith('gr3_') and symbol != 'gr3_geterror':

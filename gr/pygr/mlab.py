@@ -721,10 +721,9 @@ def isosurface(v, **kwargs):
     """
     Draw an isosurface.
 
-    This function can draw an image either from reading a file or using a
-    two-dimensional array and the current colormap. Values greater than the
-    isovalue will be seen as outside the isosurface, while values less than
-    the isovalue will be seen as inside the isosurface.
+    This function can draw an isosurface from a three-dimensional numpy array.
+    Values greater than the isovalue will be seen as outside the isosurface,
+    while values less than the isovalue will be seen as inside the isosurface.
 
     :param v: the volume data
     :param isovalue: the isovalue
@@ -736,13 +735,48 @@ def isosurface(v, **kwargs):
     >>> y = np.linspace(-1, 1, 40)[np.newaxis, :, np.newaxis]
     >>> z = np.linspace(-1, 1, 40)[np.newaxis, np.newaxis, :]
     >>> v = 1-(x**2 + y**2 + z**2)**0.5
-    >>> # Draw an image from a 2d array
+    >>> # Draw the isosurace.
     >>> mlab.isosurface(v, isovalue=0.2)
     """
     global _plt
     _plt.kwargs.update(kwargs)
     _plt.args = [(None, None, v, None, '')]
     _plot_data(kind='isosurface')
+
+
+@_close_gks_on_error
+def volume(v, **kwargs):
+    """
+    Draw a volume.
+
+    This function can draw a three-dimensional numpy array using volume rendering.
+    The volume data is reduced to a two-dimensional image using an emission or
+    absorption model or by a maximum intensity projection. After the projection
+    the current colormap is applied to the result.
+
+    :param v: the volume data
+    :param algorithm: the algorithm used to reduce the volume data.
+                      Available algorithms are "maximum", "emission" and "absorption".
+    :param dmin: the minimum data value when applying the colormap
+    :param dmax: the maximum data value when applying the colormap
+
+    **Usage examples:**
+
+    >>> # Create example data
+    >>> x = np.linspace(-1, 1, 40)[:, np.newaxis, np.newaxis]
+    >>> y = np.linspace(-1, 1, 40)[np.newaxis, :, np.newaxis]
+    >>> z = np.linspace(-1, 1, 40)[np.newaxis, np.newaxis, :]
+    >>> v = 1 - (x**2 + y**2 + z**2)**0.5 - np.random.uniform(0, 0.25, (40, 40, 40))
+    >>> # Draw the 3d volume data
+    >>> mlab.volume(v)
+    >>> # Draw the 3d volume data using an emission model
+    >>> mlab.volume(v, algorithm='emission', dmin=0.1, dmax=0.4)
+    """
+    global _plt
+    _plt.kwargs.update(kwargs)
+    nz, ny, nx = v.shape
+    _plt.args = [(np.arange(nx + 1), np.arange(nz + 1), np.arange(ny + 1), v, '')]
+    _plot_data(kind='volume')
 
 
 @_close_gks_on_error
@@ -858,6 +892,28 @@ def zlabel(z_label=""):
     >>> mlab.zlabel()
     """
     _plot_data(zlabel=z_label)
+
+
+@_close_gks_on_error
+def dlabel(d_label=""):
+    r"""
+    Set the volume intensity label.
+
+    This label is drawn using the extended text function
+    :py:func:`gr.textext`. You can use a subset of LaTeX math syntax, but will
+    need to escape certain characters, e.g. parentheses. For more information
+    see the documentation of :py:func:`gr.textext`.
+
+    :param d_label: the volume intensity label
+
+    **Usage examples:**
+
+    >>> # Set the volume intensity label to "Intensity"
+    >>> mlab.dlabel("Intensity")
+    >>> # Clear the volume intensity label
+    >>> mlab.dlabel()
+    """
+    _plot_data(dlabel=d_label)
 
 
 @_close_gks_on_error
@@ -1411,8 +1467,8 @@ def _set_viewport(kind, subplot):
         vp[0] *= aspect_ratio
         vp[1] *= aspect_ratio
 
-    if kind in ('wireframe', 'surface', 'plot3', 'scatter3', 'trisurf'):
-        if kind in ('surface', 'trisurf'):
+    if kind in ('wireframe', 'surface', 'plot3', 'scatter3', 'trisurf', 'volume'):
+        if kind in ('surface', 'trisurf', 'volume'):
             extent = min(vp[1] - vp[0] - 0.1, vp[3] - vp[2])
         else:
             extent = min(vp[1] - vp[0], vp[3] - vp[2])
@@ -1539,7 +1595,7 @@ def _set_window(kind):
         scale |= gr.OPTION_FLIP_Z if _plt.kwargs.get('zflip', False) else 0
 
     _minmax(kind)
-    if kind in ('wireframe', 'surface', 'plot3', 'scatter3', 'polar', 'trisurf'):
+    if kind in ('wireframe', 'surface', 'plot3', 'scatter3', 'polar', 'trisurf', 'volume'):
         major_count = 2
     else:
         major_count = 5
@@ -1580,7 +1636,7 @@ def _set_window(kind):
     else:
         gr.setwindow(x_min, x_max, y_min, y_max)
 
-    if kind in ('wireframe', 'surface', 'plot3', 'scatter3', 'trisurf'):
+    if kind in ('wireframe', 'surface', 'plot3', 'scatter3', 'trisurf', 'volume'):
         z_min, z_max = _plt.kwargs['zrange']
         if not scale & gr.OPTION_Z_LOG:
             if _plt.kwargs.get('adjust_zlim', True):
@@ -1622,7 +1678,7 @@ def _draw_axes(kind, pass_=1):
     charheight = max(0.018 * diag, 0.012)
     gr.setcharheight(charheight)
     ticksize = 0.0075 * diag
-    if kind in ('wireframe', 'surface', 'plot3', 'scatter3', 'trisurf'):
+    if kind in ('wireframe', 'surface', 'plot3', 'scatter3', 'trisurf', 'volume'):
         z_tick, z_org, z_major_count = _plt.kwargs['zaxis']
         if pass_ == 1:
             gr.grid3d(x_tick, 0, z_tick, x_org[0], y_org[1], z_org[0], 2, 0, 2)
@@ -1644,7 +1700,7 @@ def _draw_axes(kind, pass_=1):
         gr.textext(0.5 * (viewport[0] + viewport[1]), vp[3], _plt.kwargs['title'])
         gr.restorestate()
 
-    if kind in ('wireframe', 'surface', 'plot3', 'scatter3', 'trisurf'):
+    if kind in ('wireframe', 'surface', 'plot3', 'scatter3', 'trisurf', 'volume'):
         x_label = _plt.kwargs.get('xlabel', '')
         y_label = _plt.kwargs.get('ylabel', '')
         z_label = _plt.kwargs.get('zlabel', '')
@@ -2020,6 +2076,28 @@ def _plot_data(**kwargs):
             _plot_img(z)
         elif kind == 'isosurface':
             _plot_iso(z)
+        elif kind == 'volume':
+            algorithm = _plt.kwargs.get('algorithm', 'maximum').lower()
+            if algorithm == 'emission':
+                _algorithm = 0
+            elif algorithm == 'absorption':
+                _algorithm = 1
+            elif algorithm in ('mip', 'maximum'):
+                _algorithm = 2
+            else:
+                raise ValueError('Invalid volume algorithm. Use "emission", "absorption" or "maximum".')
+            dmin = _plt.kwargs.get('dmin', -1)
+            dmax = _plt.kwargs.get('dmax', -1)
+            if dmin is None:
+                dmin = -1
+            if dmax is None:
+                dmax = -1
+            dmin, dmax = gr.volume(c, algorithm=_algorithm, dmin=dmin, dmax=dmax)
+            prev_zrange = _plt.kwargs.get('zrange', None)
+            _plt.kwargs['zrange'] = (dmin, dmax)
+            _colorbar(0.05, label_name='dlabel')
+            _plt.kwargs['zrange'] = prev_zrange
+            _draw_axes(kind, 2)
         elif kind == 'polar':
             gr.uselinespec(spec)
             _plot_polar(x, y)
