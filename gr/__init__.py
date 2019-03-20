@@ -27,6 +27,9 @@ if os.path.isdir(os.path.join(os.path.dirname(__file__), "fonts")):
                                     os.path.realpath(os.path.dirname(__file__)))
     os.environ["GKS_FONTPATH"] = os.getenv("GKS_FONTPATH", os.environ["GRDIR"])
 
+# The Python wrapper only passes UTF-8 encoded strings to the GR runtime
+os.environ['GKS_ENCODING'] = 'utf-8'
+
 _impl = python_implementation()
 _mime_type = None
 
@@ -101,15 +104,24 @@ class nothing:
 
 
 def char(string):
-    if version_info[0] == 2 and not isinstance(string, unicode):
+    """
+    Create a C string from a Python string, bytes or unicode object.
+    """
+    if version_info[0] == 2:
+        string_is_binary = not isinstance(string, unicode)
+    else:
+        string_is_binary = isinstance(string, bytes)
+
+    # first ensure string is not binary...
+    if string_is_binary:
         try:
-            string = unicode(string, 'utf-8')
+            string = string.decode('utf-8')
         except:
-            string = unicode(string, 'latin-1')
-    string = string.replace(u'\u2212', '-')
-    chars = string.encode('latin-1', 'replace')
-    s = create_string_buffer(chars)
-    return cast(s, c_char_p)
+            string = string.decode('latin-1')
+    # ... then encode it as utf-8, moving any encoding issues from C to Python.
+    binary_string = string.encode('utf-8')
+    c_string = create_string_buffer(binary_string)
+    return cast(c_string, c_char_p)
 
 
 def opengks():
