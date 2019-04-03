@@ -2062,7 +2062,7 @@ def drawarc(xmin, xmax, ymin, ymax, a1, a2):
 
     """
     __gr.gr_drawarc(c_double(xmin), c_double(xmax), c_double(ymin), c_double(ymax),
-                    c_int(a1), c_int(a2))
+                    c_double(a1), c_double(a2))
 
 
 def fillarc(xmin, xmax, ymin, ymax, a1, a2):
@@ -2090,7 +2090,7 @@ def fillarc(xmin, xmax, ymin, ymax, a1, a2):
 
     """
     __gr.gr_fillarc(c_double(xmin), c_double(xmax), c_double(ymin), c_double(ymax),
-                    c_int(a1), c_int(a2))
+                    c_double(a1), c_double(a2))
 
 
 def drawpath(points, codes, fill):
@@ -2856,8 +2856,8 @@ __gr.gr_wctondc.argtypes = [POINTER(c_double), POINTER(c_double)]
 __gr.gr_wc3towc.argtypes = [POINTER(c_double), POINTER(c_double), POINTER(c_double)]
 __gr.gr_drawrect.argtypes = [c_double, c_double, c_double, c_double]
 __gr.gr_fillrect.argtypes = [c_double, c_double, c_double, c_double]
-__gr.gr_drawarc.argtypes = [c_double, c_double, c_double, c_double, c_int, c_int]
-__gr.gr_fillarc.argtypes = [c_double, c_double, c_double, c_double, c_int, c_int]
+__gr.gr_drawarc.argtypes = [c_double, c_double, c_double, c_double, c_double, c_double]
+__gr.gr_fillarc.argtypes = [c_double, c_double, c_double, c_double, c_double, c_double]
 __gr.gr_drawpath.argtypes = [c_int, POINTER(c_double), POINTER(c_uint8), c_int]
 __gr.gr_setarrowstyle.argtypes = [c_int]
 __gr.gr_setarrowsize.argtypes = [c_double]
