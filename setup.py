@@ -94,7 +94,7 @@ class DownloadBinaryDistribution(build_py):
     def get_file_from_mirrors(file_name, version, schema):
         mirrors = [
             # GitHub enforces HTTPS
-            'https://github.com/sciapp/gr/releases/download/{version}/'.format(version=version),
+            'https://github.com/sciapp/gr/releases/download/v{version}/'.format(version=version),
             '{schema}://gr-framework.org/downloads/'.format(schema=schema)
         ]
         urls = []
