@@ -1150,6 +1150,7 @@ def colormap(colormap=''):
         - The name of a gr colormap
         - One of the gr colormap constants (**gr.COLORMAP_...**)
         - A list of red-green-blue tuples as colormap
+        - A dict mapping a normalized position to the corresponding red-green-blue tuple
         - **None**, if the colormap should use the current colors set by
           :py:func:`gr.setcolorrep`
         - No parameter or an empty string (default) to get the colormap as a
@@ -1163,6 +1164,8 @@ def colormap(colormap=''):
     >>> mlab.colormap(gr.COLORMAP_BWR)
     >>> # Use a list of red-green-blue tuples as colormap
     >>> mlab.colormap([(0, 0, 1), (1, 1, 1), (1, 0, 0)])
+    >>> # Use a dict mapping a normalized position to the corresponding red-green-blue tuple as colormap
+    >>> mlab.colormap({0.0: (0, 0, 1), 0.25: (1, 1, 1), 1.0: (1, 0, 0)})
     >>> # Use a custom colormap using gr.setcolorrep directly
     >>> for i in range(256):
     ...     gr.setcolorrep(1.0-i/255.0, 1.0, i/255.0)
@@ -1426,13 +1429,12 @@ def _set_colormap():
         colormap = getattr(gr, colormap_name)
         gr.setcolormap(colormap)
         return
-    reds, greens, blues = list(zip(*colormap))[:3]
-    if len(colormap) != 256:
-        reds = np.interp(np.arange(256), np.linspace(0, 255, len(colormap)), reds)
-        greens = np.interp(np.arange(256), np.linspace(0, 255, len(colormap)), greens)
-        blues = np.interp(np.arange(256), np.linspace(0, 255, len(colormap)), blues)
-    for i in range(256):
-        gr.setcolorrep(1000 + i, reds[i], greens[i], blues[i])
+    if isinstance(colormap, dict):
+        positions, colors = zip(*sorted(list(colormap.items())))
+    else:
+        positions = None
+        colors = colormap
+    gr.setcolormapfromrgb(colors, positions)
 
 
 def _set_viewport(kind, subplot):

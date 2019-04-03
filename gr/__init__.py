@@ -1808,6 +1808,33 @@ def setcolormap(index):
     __gr.gr_setcolormap(c_int(index))
 
 
+def setcolormapfromrgb(colors, positions=None):
+    """
+    Define a linear interpolated colormap by a list of RGB colors.
+
+    **Parameters:**
+
+    `colors` :
+        A list of RGB tuples containing the normalized color intensities
+    `positions` :
+        An optional list of length `len(colors)` containing the normalized positions where the corresponding colors
+        are applied. The first element must be 0.0, the last element 1.0.
+
+    If no `positions` are given the `colors` are evenly distributed in the linear interpolated colormap.
+    Otherwise the values of `positions` define the particular position of the color in the colormap.
+    """
+    if positions:
+        n = _assertEqualLength(colors, positions)
+        _positions = floatarray(n, positions)
+    else:
+        n = len(colors)
+        _positions = None
+    _red = floatarray(n, [c[0] for c in colors])
+    _green = floatarray(n, [c[1] for c in colors])
+    _blue = floatarray(n, [c[2] for c in colors])
+    __gr.gr_setcolormapfromrgb(c_int(n), _red.data, _green.data, _blue.data, _positions.data if _positions else None)
+
+
 def colorbar():
     __gr.gr_colorbar()
 
@@ -2837,6 +2864,7 @@ __gr.gr_contourf.argtypes = [
 __gr.gr_hexbin.argtypes = [c_int, POINTER(c_double), POINTER(c_double), c_int]
 __gr.gr_hexbin.restype = c_int
 __gr.gr_setcolormap.argtypes = [c_int]
+__gr.gr_setcolormapfromrgb.argtypes = [c_int, POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double)]
 __gr.gr_colorbar.argtypes = []
 __gr.gr_inqcolor.argtypes = [c_int, POINTER(c_int)]
 __gr.gr_inqcolorfromrgb.argtypes = [c_double, c_double, c_double]
