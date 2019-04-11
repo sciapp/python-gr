@@ -1617,7 +1617,7 @@ def _set_window(kind):
     _plt.kwargs['xaxis'] = x_tick, xorg, x_major_count
 
     y_min, y_max = _plt.kwargs['yrange']
-    if kind in ('hist', 'stem') and 'ylim' not in _plt.kwargs:
+    if kind in ('hist', ) and 'ylim' not in _plt.kwargs:
         y_min = 0
     if not scale & gr.OPTION_Y_LOG:
         if _plt.kwargs.get('adjust_ylim', True):
