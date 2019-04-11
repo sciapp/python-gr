@@ -1618,7 +1618,10 @@ def _set_window(kind):
 
     y_min, y_max = _plt.kwargs['yrange']
     if kind in ('hist', ) and 'ylim' not in _plt.kwargs:
-        y_min = 0
+        if scale & gr.OPTION_Y_LOG:
+            y_min = 1
+        else:
+            y_min = 0
     if not scale & gr.OPTION_Y_LOG:
         if _plt.kwargs.get('adjust_ylim', True):
             y_min, y_max = gr.adjustlimits(y_min, y_max)
