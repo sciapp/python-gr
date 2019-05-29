@@ -16,7 +16,28 @@ from ctypes import create_string_buffer, cast
 from sys import version_info, platform
 from platform import python_implementation
 # local library
-from gr._version import __version__, __revision__
+try:
+    from gr._version import __version__, __revision__
+except ImportError:
+    try:
+        # If the _version module is not found, this might be a git clone and
+        # vcversioner might find the version. Alternatively it might be a
+        # source archive with no git information, in which case we do not want
+        # vcversioner to print an error and exit. Also, we do not want
+        # vcversioner to write out a version file, as this path might be read
+        # only.
+        import vcversioner
+        vcversioner._print = lambda *args, **kwargs: None
+        _version = vcversioner.find_version(version_file=None)
+        __version__ = _version.version
+        __revision__ = _version.sha
+    except ImportError:
+        __version__ = 'unknown'
+        __revision__ = None
+    except SystemExit:
+        __version__ = 'unknown'
+        __revision__ = None
+
 from gr.runtime_helper import load_runtime, register_gksterm
 
 # Detect whether this is a site-package installation
