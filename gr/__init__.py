@@ -422,6 +422,63 @@ def cellarray(xmin, xmax, ymin, ymax, dimx, dimy, color):
                       c_int(dimx), c_int(dimy), _color.data)
 
 
+def polarcellarray(x_org, y_org, phimin, phimax, rmin, rmax, dimphi, dimr, color):
+    """
+    Display a two dimensional color index array mapped to a disk using polar
+    coordinates.
+
+    **Parameters:**
+
+    `x_org`, `y_org` :
+        X and Y coordinate of the disk center in world coordinates
+    `phimin`, `phimax` :
+        start and end angle of the disk sector in degrees
+    `rmin`, `rmax` :
+        inner and outer radius of the (punctured) disk in world coordinates
+    `dimphi`, `dimr` :
+        Phi (X) and R (Y) dimension of the color index array
+    `color` color index array
+    
+    The two dimensional color index array is mapped to the resulting image by
+    interpreting the X-axis of the array as the angle and the Y-axis as the raidus.
+    The center point of the resulting disk is located at `x_org`, `y_org` and the
+    radius of the disk is `rmax`.
+    
+    To draw a contiguous array as a complete disk use:
+    
+        gr.polarcellarray(x_org, y_org, 0, 360, 0, rmax, dimphi, dimr, color)
+    
+    The additional parameters to the function can be used to further control the
+    mapping from polar to cartesian coordinates.
+    
+    If `rmin` is greater than 0 the input data is mapped to a punctured disk (or
+    annulus) with an inner radius of `rmin` and an outer radius `rmax`. If `rmin`
+    is greater than `rmax` the Y-axis of the array is reversed.
+    
+    The parameter `phimin` and `phimax` can be used to map the data to a sector
+    of the (punctured) disk starting at `phimin` and ending at `phimax`. If
+    `phimin` is greater than `phimax` the X-axis is reversed. The visible sector
+    is the one starting in mathematically positive direction (counterclockwise)
+    at the smaller angle and ending at the larger angle. An example of the four
+    possible options can be found below:
+    
+    +-----------+-----------+---------------------------------------------------+
+    |**phimin** |**phimax** |**Result**                                         |
+    +-----------+-----------+---------------------------------------------------+
+    |90         |270        |Left half visible, mapped counterclockwise         |
+    +-----------+-----------+---------------------------------------------------+
+    |270        |90         |Left half visible, mapped clockwise                |
+    +-----------+-----------+---------------------------------------------------+
+    |-90        |90         |Right half visible, mapped counterclockwise        |
+    +-----------+-----------+---------------------------------------------------+
+    |90         |-90        |Right half visible, mapped clockwise               |
+    +-----------+-----------+---------------------------------------------------+
+    """
+    _color = intarray(dimr * dimphi, color)
+    __gr.gr_polarcellarray(c_double(x_org), c_double(y_org), c_double(phimin), c_double(phimax),
+                           c_double(rmin), c_double(rmax), c_int(dimphi), c_int(dimr),
+                           c_int(1), c_int(1), c_int(dimphi), c_int(dimr), _color.data)
+
 def spline(px, py, m, method):
     """
     Generate a cubic spline-fit, starting from the first data point and
@@ -2782,6 +2839,9 @@ __gr.gr_fillarea.argtypes = [c_int, POINTER(c_double), POINTER(c_double)]
 __gr.gr_cellarray.argtypes = [
     c_double, c_double, c_double, c_double, c_int, c_int, c_int, c_int, c_int, c_int,
     POINTER(c_int)]
+__gr.gr_polarcellarray.argtypes = [
+    c_double, c_double, c_double, c_double, c_double, c_double, c_int, c_int, c_int,
+    c_int, c_int, c_int, POINTER(c_int)]
 __gr.gr_spline.argtypes = [c_int, POINTER(c_double), POINTER(c_double), c_int, c_int]
 __gr.gr_gridit.argtypes = [
     c_int, POINTER(c_double), POINTER(c_double), POINTER(c_double), c_int, c_int,
