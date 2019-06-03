@@ -7,7 +7,7 @@ import logging
 # local library
 import gr
 from gr.pygr.helper import ColorIndexGenerator
-from gr._version import __version__, __revision__
+from gr import __version__, __revision__
 
 __author__ = "Christian Felder <c.felder@fz-juelich.de>"
 __copyright__ = """Copyright (c) 2012-2015: Josef Heinen, Florian Rhiem, Christian Felder,
