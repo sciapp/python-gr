@@ -6,7 +6,7 @@ import logging
 from gr.pygr.base import GRViewPort
 from qtgr.backend import QtCore
 from qtgr.events.base import MouseLocationEventMeta
-from gr._version import __version__, __revision__
+from gr import __version__, __revision__
 
 __author__ = "Christian Felder <c.felder@fz-juelich.de>"
 __copyright__ = """Copyright (c) 2012-2015: Josef Heinen, Florian Rhiem,

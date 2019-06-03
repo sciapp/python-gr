@@ -9,7 +9,7 @@ from qtgr.backend import QtCore, backend, QT_PYQT5
 from qtgr.events.mouse import MouseEvent, WheelEvent, PickEvent, LegendEvent,\
     ROIEvent, MouseGestureEvent
 from qtgr.events.gestures import MouseGestureBase, PanGesture, SelectGesture
-from gr._version import __version__, __revision__
+from gr import __version__, __revision__
 
 __author__ = "Christian Felder <c.felder@fz-juelich.de>"
 __copyright__ = """Copyright (c) 2012-2015: Josef Heinen, Florian Rhiem, Christian Felder,

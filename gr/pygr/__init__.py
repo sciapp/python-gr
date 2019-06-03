@@ -22,7 +22,7 @@ from gr.pygr.mlab import contour, contourf, surface, wireframe, plot3, trisurf, 
 from gr.pygr.mlab import heatmap, hexbin
 from gr.pygr.mlab import legend, title, xlabel, ylabel, xlim, ylim
 from gr.pygr.mlab import figure, hold, subplot
-from gr._version import __version__, __revision__
+from gr import __version__, __revision__
 
 __author__ = """Christian Felder <c.felder@fz-juelich.de>,
 Josef Heinen <j.heinen@fz-juelich.de>,
