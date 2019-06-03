@@ -36,11 +36,12 @@ install-ubuntu1604-python2:
   variables:
     GIT_STRATEGY: none
   script:
+  - rm -rf install && mkdir install && cd install
   - apt-get update
   - apt-get install -y virtualenv python-pip
   - virtualenv env
   - env/bin/pip install --upgrade pip
-  - env/bin/pip install dist/gr-*.tar.gz
+  - env/bin/pip install ../dist/gr-*.tar.gz
   - GKS_WSTYPE=png env/bin/python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
   - env/bin/python -c 'import gr3'
   artifacts:
@@ -53,11 +54,12 @@ install-ubuntu1604-python3:
   variables:
     GIT_STRATEGY: none
   script:
+  - rm -rf install && mkdir install && cd install
   - apt-get update
   - apt-get install -y python3-venv python3-pip
   - python3 -m venv env
   - env/bin/pip install --upgrade pip
-  - env/bin/pip install dist/gr-*.tar.gz
+  - env/bin/pip install ../dist/gr-*.tar.gz
   - GKS_WSTYPE=png env/bin/python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
   - env/bin/python -c 'import gr3'
   artifacts:
@@ -70,11 +72,12 @@ install-ubuntu1804-python2:
   variables:
     GIT_STRATEGY: none
   script:
+  - rm -rf install && mkdir install && cd install
   - apt-get update
   - apt-get install -y virtualenv python-pip
   - virtualenv env
   - env/bin/pip install --upgrade pip
-  - env/bin/pip install dist/gr-*.tar.gz
+  - env/bin/pip install ../dist/gr-*.tar.gz
   - GKS_WSTYPE=png env/bin/python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
   - env/bin/python -c 'import gr3'
   artifacts:
@@ -87,11 +90,12 @@ install-ubuntu1804-python3:
   variables:
     GIT_STRATEGY: none
   script:
+  - rm -rf install && mkdir install && cd install
   - apt-get update
   - apt-get install -y python3-venv python3-pip
   - python3 -m venv env
   - env/bin/pip install --upgrade pip
-  - env/bin/pip install dist/gr-*.tar.gz
+  - env/bin/pip install ../dist/gr-*.tar.gz
   - GKS_WSTYPE=png env/bin/python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
   - env/bin/python -c 'import gr3'
   artifacts:
@@ -104,11 +108,12 @@ install-debian9-python2:
   variables:
     GIT_STRATEGY: none
   script:
+  - rm -rf install && mkdir install && cd install
   - apt-get update
   - apt-get install -y virtualenv python-pip
   - virtualenv env
   - env/bin/pip install --upgrade pip
-  - env/bin/pip install dist/gr-*.tar.gz
+  - env/bin/pip install ../dist/gr-*.tar.gz
   - GKS_WSTYPE=png env/bin/python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
   - env/bin/python -c 'import gr3'
   artifacts:
@@ -121,11 +126,12 @@ install-debian9-python3:
   variables:
     GIT_STRATEGY: none
   script:
+  - rm -rf install && mkdir install && cd install
   - apt-get update
   - apt-get install -y python3-venv python3-pip
   - python3 -m venv env
   - env/bin/pip install --upgrade pip
-  - env/bin/pip install dist/gr-*.tar.gz
+  - env/bin/pip install ../dist/gr-*.tar.gz
   - GKS_WSTYPE=png env/bin/python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
   - env/bin/python -c 'import gr3'
   artifacts:
@@ -138,11 +144,12 @@ install-centos7-python2:
   variables:
     GIT_STRATEGY: none
   script:
+  - rm -rf install && mkdir install && cd install
   - yum install -y python
   - curl -LO https://bootstrap.pypa.io/get-pip.py
   - python get-pip.py
   - pip install --upgrade pip
-  - pip install dist/gr-*.tar.gz
+  - pip install ../dist/gr-*.tar.gz
   - GKS_WSTYPE=png python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
   - python -c 'import gr3'
   artifacts:
@@ -155,9 +162,10 @@ install-fedora26-python2:
   variables:
     GIT_STRATEGY: none
   script:
+  - rm -rf install && mkdir install && cd install
   - dnf install -y python-pip
   - pip install --upgrade pip
-  - pip install dist/gr-*.tar.gz
+  - pip install ../dist/gr-*.tar.gz
   - GKS_WSTYPE=png python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
   - python -c 'import gr3'
   artifacts:
@@ -170,9 +178,10 @@ install-fedora26-python3:
   variables:
     GIT_STRATEGY: none
   script:
+  - rm -rf install && mkdir install && cd install
   - dnf install -y python3-pip
   - python3 -m pip install --upgrade pip
-  - python3 -m pip install dist/gr-*.tar.gz
+  - python3 -m pip install ../dist/gr-*.tar.gz
   - GKS_WSTYPE=png python3 -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
   - python3 -c 'import gr3'
   artifacts:
@@ -185,9 +194,10 @@ install-opensuse15-python3:
   variables:
     GIT_STRATEGY: none
   script:
+  - rm -rf install && mkdir install && cd install
   - zypper install -y python3-pip
   - python3 -m pip install --upgrade pip
-  - python3 -m pip install dist/gr-*.tar.gz
+  - python3 -m pip install ../dist/gr-*.tar.gz
   - GKS_WSTYPE=png python3 -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
   - python3 -c 'import gr3'
   artifacts:
@@ -225,6 +235,7 @@ deploy-to-pypi:
   only:
     - tags@Scientific-IT-Systems/python-gr
   script:
+  - rm -rf deploy && mkdir deploy && cd deploy
   - apt-get update
   - apt-get install -y virtualenv python-pip git
   - virtualenv env
@@ -236,4 +247,4 @@ deploy-to-pypi:
   - echo "[pypi]"                                     >> ~/.pypirc
   - echo "username=$PYPIUSERNAME"                     >> ~/.pypirc
   - echo "password=$PYPIPASSWORD"                     >> ~/.pypirc
-  - env/bin/twine upload --repository pypi dist/gr-*.tar.gz
+  - env/bin/twine upload --repository pypi ../dist/gr-*.tar.gz
