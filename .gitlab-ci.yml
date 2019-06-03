@@ -46,7 +46,7 @@ install-ubuntu1604-python2:
   - env/bin/python -c 'import gr3'
   artifacts:
     paths:
-    - gks.png
+    - install/gks.png
 
 install-ubuntu1604-python3:
   stage: install
@@ -64,7 +64,7 @@ install-ubuntu1604-python3:
   - env/bin/python -c 'import gr3'
   artifacts:
     paths:
-    - gks.png
+    - install/gks.png
 
 install-ubuntu1804-python2:
   stage: install
@@ -82,7 +82,7 @@ install-ubuntu1804-python2:
   - env/bin/python -c 'import gr3'
   artifacts:
     paths:
-    - gks.png
+    - install/gks.png
 
 install-ubuntu1804-python3:
   stage: install
@@ -100,7 +100,7 @@ install-ubuntu1804-python3:
   - env/bin/python -c 'import gr3'
   artifacts:
     paths:
-    - gks.png
+    - install/gks.png
 
 install-debian9-python2:
   stage: install
@@ -118,7 +118,7 @@ install-debian9-python2:
   - env/bin/python -c 'import gr3'
   artifacts:
     paths:
-    - gks.png
+    - install/gks.png
 
 install-debian9-python3:
   stage: install
@@ -136,7 +136,7 @@ install-debian9-python3:
   - env/bin/python -c 'import gr3'
   artifacts:
     paths:
-    - gks.png
+    - install/gks.png
 
 install-centos7-python2:
   stage: install
@@ -154,7 +154,7 @@ install-centos7-python2:
   - python -c 'import gr3'
   artifacts:
     paths:
-    - gks.png
+    - install/gks.png
 
 install-fedora26-python2:
   stage: install
@@ -170,7 +170,7 @@ install-fedora26-python2:
   - python -c 'import gr3'
   artifacts:
     paths:
-    - gks.png
+    - install/gks.png
 
 install-fedora26-python3:
   stage: install
@@ -186,7 +186,7 @@ install-fedora26-python3:
   - python3 -c 'import gr3'
   artifacts:
     paths:
-    - gks.png
+    - install/gks.png
 
 install-opensuse15-python3:
   stage: install
@@ -202,7 +202,7 @@ install-opensuse15-python3:
   - python3 -c 'import gr3'
   artifacts:
     paths:
-    - gks.png
+    - install/gks.png
 
 
 deploy-to-github:
