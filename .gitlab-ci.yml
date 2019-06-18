@@ -156,9 +156,9 @@ install-centos7-python2:
     paths:
     - install/gks.png
 
-install-fedora26-python2:
+install-fedora30-python2:
   stage: install
-  image: fedora:26
+  image: fedora:30
   variables:
     GIT_STRATEGY: none
   script:
@@ -172,9 +172,9 @@ install-fedora26-python2:
     paths:
     - install/gks.png
 
-install-fedora26-python3:
+install-fedora30-python3:
   stage: install
-  image: fedora:26
+  image: fedora:30
   variables:
     GIT_STRATEGY: none
   script:
