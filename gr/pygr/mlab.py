@@ -2091,6 +2091,7 @@ def _colorbar(off=0.0, colors=256, label_name='zlabel'):
     else:
         data = [1000 + int(255 * i / (colors - 1)) for i in range(colors)]
 
+    gr.setlinecolorind(1)
     gr.setscale(0)
     if _plt.kwargs['scale'] & gr.OPTION_FLIP_Z:
         gr.cellarray(0, 1, zmin, zmax, 1, colors, data)
