@@ -524,9 +524,10 @@ def heatmap(data, **kwargs):
     data = np.array(data, copy=False)
     if len(data.shape) != 2:
         raise ValueError('expected 2-D array')
-    height, width = data.shape
     _plt.kwargs.update(kwargs)
-    _plt.args = [(np.arange(width + 1), np.arange(height + 1), data, None, "")]
+    xlim = _plt.kwargs.get('xlim', None)
+    ylim = _plt.kwargs.get('ylim', None)
+    _plt.args = [(xlim, ylim, data, None, "")]
     _plot_data(kind='heatmap')
 
 
@@ -560,9 +561,10 @@ def polar_heatmap(data, **kwargs):
     data = np.array(data, copy=False)
     if len(data.shape) != 2:
         raise ValueError('expected 2-D array')
-    height, width = data.shape
     _plt.kwargs.update(kwargs)
-    _plt.args = [([0, width], [0, height], data, None, "")]
+    rlim = _plt.kwargs.get('rlim', None)
+    philim = _plt.kwargs.get('philim', None)
+    _plt.args = [(rlim, philim, data, None, "")]
     _plot_data(kind='polar_heatmap')
 
 
@@ -1686,10 +1688,18 @@ def _minmax(kind=None):
     x_step = y_step = float('-infinity')
 
     for x, y, z, c, spec in _plt.args:
-        x_min = min(np.nanmin(x), x_min)
-        x_max = max(np.nanmax(x), x_max)
-        y_min = min(np.nanmin(y), y_min)
-        y_max = max(np.nanmax(y), y_max)
+        if x is None and kind in ('heatmap', 'polar_heatmap'):
+            x_min = 0
+            x_max = z.shape[0]
+        else:
+            x_min = min(np.nanmin(x), x_min)
+            x_max = max(np.nanmax(x), x_max)
+        if y is None and kind in ('heatmap', 'polar_heatmap'):
+            y_min = 0
+            y_max = z.shape[1]
+        else:
+            y_min = min(np.nanmin(y), y_min)
+            y_max = max(np.nanmax(y), y_max)
         if z is not None:
             z_min = min(np.nanmin(z), z_min)
             z_max = max(np.nanmax(z), z_max)
@@ -1805,7 +1815,7 @@ def _set_window(kind):
 
     _plt.kwargs['window'] = (x_min, x_max, y_min, y_max)
     if kind in ('polar', 'polar_heatmap'):
-        phi_min, phi_max = _phase_wrapped_philim(_plt.kwargs.get('adjust_philim', True))
+        phi_min, phi_max = _phase_wrapped_philim(adjust=_plt.kwargs.get('adjust_philim', True))
         r_min, r_max = _plt.kwargs['rrange']
         if _plt.kwargs.get('adjust_rlim', True):
             r_min, r_max = gr.adjustlimits(r_min, r_max)
@@ -1866,8 +1876,11 @@ def _set_window(kind):
     gr.setscale(scale)
 
 
-def _phase_wrapped_philim(adjust=False):
-    phi_min, phi_max = _plt.kwargs.get('phirange', (0, 360))
+def _phase_wrapped_philim(phirange=None, adjust=False):
+    if phirange is None:
+        phi_min, phi_max = _plt.kwargs.get('phirange', (0, 360))
+    else:
+        phi_min, phi_max = phirange
     if phi_min == 0 and phi_max == 360:
         return phi_min, phi_max
     phi_min -= np.floor(phi_min / 360.) * 360
@@ -1917,7 +1930,7 @@ def _draw_axes(kind, pass_=1):
     else:
         if kind in ('heatmap', 'shade'):
             ticksize = -ticksize
-        else:
+        if kind not in ('shade',):
             gr.grid(x_tick, y_tick, 0, 0, x_major_count, y_major_count)
         gr.axes(x_tick, y_tick, x_org[0], y_org[0], x_major_count, y_major_count, ticksize)
         gr.axes(x_tick, y_tick, x_org[1], y_org[1], -x_major_count, -y_major_count, -ticksize)
@@ -1957,7 +1970,7 @@ def _draw_polar_axes():
     if _plt.kwargs.get('adjust_rlim', True):
         r_min, r_max = gr.adjustlimits(r_min, r_max)
 
-    phi_min, phi_max = _phase_wrapped_philim(_plt.kwargs.get('adjust_philim', True))
+    phi_min, phi_max = _phase_wrapped_philim(adjust=_plt.kwargs.get('adjust_philim', True))
 
     gr.savestate()
     gr.setcharheight(charheight)
@@ -2262,6 +2275,10 @@ def _plot_data(**kwargs):
                 _colorbar()
         elif kind == 'heatmap':
             x_min, x_max, y_min, y_max = _plt.kwargs['window']
+            if x is not None:
+                x_min, x_max = x
+            if y is not None:
+                y_min, y_max = y
             height, width = z.shape
             cmap = _colormap()
             icmap = np.zeros(256, np.uint32)
@@ -2283,10 +2300,6 @@ def _plot_data(**kwargs):
             for x in range(width):
                 for y in range(height):
                     rgba[y, x] = icmap[int(data[y, x])]
-            if _plt.kwargs.get('xflip', False):
-                x_min, x_max = x_max, x_min
-            if _plt.kwargs.get('yflip', False):
-                y_min, y_max = y_max, y_min
             y_min, y_max = y_max, y_min
             gr.drawimage(x_min, x_max, y_min, y_max, width, height, rgba)
             _colorbar()
@@ -2303,16 +2316,20 @@ def _plot_data(**kwargs):
                 data = (1000 + (z - z_min) / (z_max - z_min) * 255).astype(np.int)
             else:
                 data = np.zeros((height, width), dtype=np.int)
-            phi_min, phi_max = _phase_wrapped_philim()
+            if y is not None:
+                phi_range = np.degrees(y)
+            else:
+                phi_range = None
+            phi_min, phi_max = _phase_wrapped_philim(phi_range)
             if _plt.kwargs.get('phiflip', False):
-                phi_min_adj, phi_max_adj = _phase_wrapped_philim(_plt.kwargs.get('adjust_philim', True))
+                phi_min_adj, phi_max_adj = _phase_wrapped_philim(adjust=_plt.kwargs.get('adjust_philim', True))
                 phi_offset = phi_max_adj + phi_min_adj - phi_max - phi_min
                 phi_min, phi_max = phi_max + phi_offset, phi_min + phi_offset
-            r_range = np.array(_plt.kwargs['rrange'])
-            if _plt.kwargs.get('adjust_rlim', True):
-                r_min, r_max = gr.adjustlimits(r_range[0], r_range[1])
+            if x is not None:
+                r_range = np.array(x)
             else:
-                r_min, r_max = r_range
+                r_range = np.array(_plt.kwargs['rrange'])
+            r_min, r_max = _plt.kwargs['rrange']
             relative_r_min = r_min / r_max
             r_range = ((r_range - r_min) / (r_max - r_min) * (1 - relative_r_min)) + relative_r_min
             if _plt.kwargs.get('rflip', False):
@@ -2526,7 +2543,7 @@ def _plot_polar(phi, rho):
     r_min, r_max = _plt.kwargs['rrange']
     if _plt.kwargs.get('adjust_rlim', True):
         r_min, r_max = gr.adjustlimits(r_min, r_max)
-    phi_min, phi_max = np.radians(_phase_wrapped_philim(_plt.kwargs.get('adjust_philim', True)))
+    phi_min, phi_max = np.radians(_phase_wrapped_philim(adjust=_plt.kwargs.get('adjust_philim', True)))
     phi = np.fmod(phi, 2 * np.pi)
     split_rho = np.logical_or(rho < r_min, rho > r_max)
     split_phi = np.logical_or(phi < phi_min, phi > phi_max)
