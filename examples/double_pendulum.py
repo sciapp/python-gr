@@ -61,7 +61,7 @@ t = 0
 dt = 0.04
 state = array([t1, w1, t2, w2]) * pi / 180
 
-now = time.clock()
+now = time.perf_counter()
 
 while t < 30:
     start = now
@@ -70,7 +70,7 @@ while t < 30:
     t1, w1, t2, w2 = state
     pendulum([t1, t2], [l1, l2], [m1, m2])
 
-    now = time.clock()
+    now = time.perf_counter()
     if start + dt > now:
         time.sleep(start + dt - now)
 

@@ -34,7 +34,7 @@ def diff_step(u, ui):
 
 diff_step_numba = jit('void(f8[:,:], f8[:,:])')(diff_step)
 
-now = time.clock()
+now = time.perf_counter()
 
 t = 0
 worker = 'CPython'
@@ -49,7 +49,7 @@ for m in range(timesteps):
     else:
         diff_step(u, ui)
     ui = numpy.copy(u)
-    now = time.clock()
+    now = time.perf_counter()
     t = t + now - start
 
     c = 1000 + 255 * u.ravel()

@@ -88,7 +88,7 @@ gr3.cameralookat(0, -2, 6, 0, -2, 0, 0, 1, 0)
 gr3.setbackgroundcolor(1, 1, 1, 1)
 gr3.setlightdirection(1, 1, 10)
  
-now = time.clock()
+now = time.perf_counter()
 
 while t < 30:
     start = now
@@ -98,7 +98,7 @@ while t < 30:
     acceleration = sqrt(2 * g * L * (1 - cos(theta)))
     pendulum(t, theta, omega, acceleration)
     
-    now = time.clock()
+    now = time.perf_counter()
     if start + dt > now:
         time.sleep(start + dt - now)
     

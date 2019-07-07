@@ -67,7 +67,7 @@ t = 0
 dt = 0.04
 state = array([theta * pi / 180, 0])
 
-now = time.clock()
+now = time.perf_counter()
 
 while t < 30:
     start = now
@@ -77,6 +77,6 @@ while t < 30:
     acceleration = sqrt(2 * 9.81 * L * (1 - cos(theta)))
     pendulum(t, theta, omega, acceleration)
     
-    now = time.clock()
+    now = time.perf_counter()
     if start + dt > now:
         time.sleep(start + dt - now)
