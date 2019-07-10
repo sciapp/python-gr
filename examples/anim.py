@@ -13,6 +13,9 @@ These are the results on an iMac 3,4 GHz Intel Core i7::
 from pylab import plot, draw, pause
 from numpy import arange, sin, pi
 from time import time, sleep
+import os
+
+os.environ["GKS_WSTYPE"] = "gksqt"
 
 x = arange(0, 2 * pi, 0.01)
 
