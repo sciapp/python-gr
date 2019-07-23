@@ -2508,7 +2508,7 @@ def mimetype():
 
 def isinline():
     global _mime_type
-    return (_mime_type and _mime_type != "mov")
+    return (_mime_type and _mime_type not in ("mov", "webm"))
 
 
 def inline(mime="svg"):
@@ -2548,6 +2548,15 @@ def show():
         if not data:
             return None
         content = HTML(data='<video controls autoplay type="video/mp4" src="data:video/mp4;base64,{0}">'.format(b64encode(data).decode('ascii')))
+        return content
+    elif _mime_type == 'webm':
+        try:
+            data = open('gks.webm', 'rb').read()
+        except IOError:
+            return None
+        if not data:
+            return None
+        content = HTML(data='<video controls autoplay type="video/webm" src="data:video/webm;base64,{0}">'.format(b64encode(data).decode('ascii')))
         return content
     return None
 
