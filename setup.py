@@ -125,6 +125,8 @@ class DownloadBinaryDistribution(build_py):
                     return 'Ubuntu'
                 if 'ID=debian' in release_info:
                     return 'Debian'
+                if 'ID=arch' in release_info:
+                    return 'ArchLinux'
             if '/etc/redhat-release' in release_file_names:
                 if 'release 7' in release_info:
                     return 'CentOS'
