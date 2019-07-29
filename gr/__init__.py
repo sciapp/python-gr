@@ -1026,6 +1026,15 @@ def setfillintstyle(style):
     __gr.gr_setfillintstyle(c_int(style))
 
 
+def inqfillintstyle():
+    """
+    Returns the fill area interior style to be used for fill areas.
+    """
+    style = c_int()
+    __gr.gr_inqfillintstyle(byref(style))
+    return style.value
+
+
 def setfillstyle(index):
     """
     Sets the fill style to be used for subsequent fill areas.
@@ -1045,6 +1054,15 @@ def setfillstyle(index):
     __gr.gr_setfillstyle(c_int(index))
 
 
+def inqfillstyle():
+    """
+    Returns the current fill area color index.
+    """
+    index = c_int()
+    __gr.gr_inqfillstyle(byref(index))
+    return index.value
+
+
 def setfillcolorind(color):
     """
     Sets the current fill area color index.
@@ -1059,6 +1077,15 @@ def setfillcolorind(color):
 
     """
     __gr.gr_setfillcolorind(c_int(color))
+
+
+def inqfillcolorind():
+    """
+    Returns the current fill area color index.
+    """
+    color = c_int()
+    __gr.gr_inqfillcolorind(byref(color))
+    return color.value
 
 
 def setcolorrep(index, red, green, blue):
@@ -2508,7 +2535,7 @@ def mimetype():
 
 def isinline():
     global _mime_type
-    return (_mime_type and _mime_type != "mov")
+    return (_mime_type and _mime_type not in ("mov", "webm"))
 
 
 def inline(mime="svg"):
@@ -2548,6 +2575,15 @@ def show():
         if not data:
             return None
         content = HTML(data='<video controls autoplay type="video/mp4" src="data:video/mp4;base64,{0}">'.format(b64encode(data).decode('ascii')))
+        return content
+    elif _mime_type == 'webm':
+        try:
+            data = open('gks.webm', 'rb').read()
+        except IOError:
+            return None
+        if not data:
+            return None
+        content = HTML(data='<video controls autoplay type="video/webm" src="data:video/webm;base64,{0}">'.format(b64encode(data).decode('ascii')))
         return content
     return None
 
@@ -2887,8 +2923,11 @@ __gr.gr_setcharup.argtypes = [c_double, c_double]
 __gr.gr_settextpath.argtypes = [c_int]
 __gr.gr_settextalign.argtypes = [c_int, c_int]
 __gr.gr_setfillintstyle.argtypes = [c_int]
+__gr.gr_inqfillintstyle.argtypes = [POINTER(c_int)]
 __gr.gr_setfillstyle.argtypes = [c_int]
+__gr.gr_inqfillstyle.argtypes = [POINTER(c_int)]
 __gr.gr_setfillcolorind.argtypes = [c_int]
+__gr.gr_inqfillcolorind.argtypes = [POINTER(c_int)]
 __gr.gr_setcolorrep.argtypes = [c_int, c_double, c_double, c_double]
 __gr.gr_setwindow.argtypes = [c_double, c_double, c_double, c_double]
 __gr.gr_inqwindow.argtypes = [POINTER(c_double), POINTER(c_double),

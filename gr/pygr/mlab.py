@@ -501,13 +501,13 @@ def heatmap(data, **kwargs):
 
     This function uses the current colormap to display a two-dimensional
     array as a heatmap. The array is drawn with its first value in the upper
-    left corner, so in some cases it may be neccessary to flip the columns
+    left corner, so in some cases it may be necessary to flip the columns
     (see the example below).
 
     By default the function will use the row and column indices for the x- and
     y-axes, so setting the axis limits is recommended. Also note that the
     values in the array must lie within the current z-axis limits so it may
-    be neccessary to adjust these limits or clip the range of array values.
+    be necessary to adjust these limits or clip the range of array values.
 
     :param data: the heatmap data
 
@@ -524,10 +524,48 @@ def heatmap(data, **kwargs):
     data = np.array(data, copy=False)
     if len(data.shape) != 2:
         raise ValueError('expected 2-D array')
-    height, width = data.shape
     _plt.kwargs.update(kwargs)
-    _plt.args = [(np.arange(width + 1), np.arange(height + 1), data, None, "")]
+    xlim = _plt.kwargs.get('xlim', None)
+    ylim = _plt.kwargs.get('ylim', None)
+    _plt.args = [(xlim, ylim, data, None, "")]
     _plot_data(kind='heatmap')
+
+
+@_close_gks_on_error
+def polar_heatmap(data, **kwargs):
+    """
+    Draw a polar heatmap.
+
+    This function uses the current colormap to display a two-dimensional
+    array mapped to a disk using polar coordinates. The array is mapped
+    by interpreting the rows as the angle and the columns as the radius.
+
+    By default the function will use an inner radius of 0 and the number
+    of columns as the outer radius and draw a complete circle, so setting
+    the axis limits is recommended. Also note that the values in the array
+    must lie within the current z-axis limits so it may be necessary to
+    adjust these limits or clip the range of array values.
+
+    :param data: the heatmap data
+
+    **Usage examples:**
+
+    >>> # Create example data
+    >>> x = np.linspace(-2, 2, 100)
+    >>> y = np.linspace(0, np.pi, 200)
+    >>> z = np.sin(x[np.newaxis, :]) + np.cos(y[:, np.newaxis])
+    >>> # Draw the heatmap
+    >>> mlab.polar_heatmap(z, rlim=(1, 10), philim=(0, np.pi / 2))
+    """
+    global _plt
+    data = np.array(data, copy=False)
+    if len(data.shape) != 2:
+        raise ValueError('expected 2-D array')
+    _plt.kwargs.update(kwargs)
+    rlim = _plt.kwargs.get('rlim', None)
+    philim = _plt.kwargs.get('philim', None)
+    _plt.args = [(rlim, philim, data, None, "")]
+    _plot_data(kind='polar_heatmap')
 
 
 @_close_gks_on_error
@@ -1040,6 +1078,88 @@ def zlim(z_min=None, z_max=None, adjust=True):
 
 
 @_close_gks_on_error
+def rlim(r_min=None, r_max=None, adjust=True):
+    """
+    Set the limits for the radii in polar plots.
+
+    The inner and outer radius can either be passed as individual arguments
+    or as a tuple of (**r_min**, **r_max**). Setting either limit to **None**
+    will cause it to be automatically determined based on the data, which is the
+    default behavior. **r_min** and **r_max** must both be greater or equal 0.
+
+    :param r_min:
+        - the inner radius, or
+        - **None** to use an automatic inner radius, or
+        - a tuple of both radii
+    :param r_max:
+        - the outer radius, or
+        - **None** to use an automatic outer radius, or
+        - **None** if both radii were passed as first argument
+    :param adjust: whether or not the radii may be adjusted
+
+    **Usage examples:**
+
+    >>> # Set the radii in polar plots to 0 and 1
+    >>> mlab.rlim(0, 1)
+    >>> # Set the radii in polar plots to 0 and 1 using a tuple
+    >>> mlab.rlim((0, 1))
+    >>> # Reset the radii to be determined automatically
+    >>> mlab.rlim()
+    >>> # Reset the outer radius and set the inner radius to 0
+    >>> mlab.rlim(0, None)
+    >>> # Reset the inner radius and set the outer radius to 1
+    >>> mlab.rlim(None, 1)
+    """
+    if r_max is None and r_min is not None:
+        try:
+            r_min, r_max = r_min
+        except TypeError:
+            pass
+    _plot_data(rlim=(r_min, r_max), adjust_rlim=adjust)
+
+
+@_close_gks_on_error
+def philim(phi_min=None, phi_max=None, adjust=True):
+    """
+    Set the start and end angle for polar plots in radians.
+
+    The angles can either be passed as individual arguments or as a tuple
+    of (**phi_min**, **phi_max**). Setting either angle to **None** will
+    cause it to be automatically determined based on the data, which is the
+    default behavior.
+
+    :param phi_min:
+        - the start angle in radians, or
+        - **None** to use an automatic start angle, or
+        - a tuple of both angles
+    :param phi_max:
+        - the end angle in radians, or
+        - **None** to use an automatic end angle, or
+        - **None** if both angles were passed as first argument
+    :param adjust: whether or not the angles may be adjusted
+
+    **Usage examples:**
+
+    >>> # Set the angle limits to 0 and 2 Pi
+    >>> mlab.philim(0, 2*np.pi)
+    >>> # Set the angle limits to 0 and 2 Pi using a tuple
+    >>> mlab.philim((0, 2*np.pi))
+    >>> # Reset the angle limits to be determined automatically
+    >>> mlab.philim()
+    >>> # Reset the end angle and set the start angle to 0
+    >>> mlab.philim(0, None)
+    >>> # Reset the start angle and set end angle to 2 Pi
+    >>> mlab.philim(None, 2*np.pi)
+    """
+    if phi_max is None and phi_min is not None:
+        try:
+            phi_min, phi_max = phi_min
+        except TypeError:
+            pass
+    _plot_data(philim=(phi_min, phi_max), adjust_philim=adjust)
+
+
+@_close_gks_on_error
 def xlog(xlog=True):
     """
     Enable or disable a logarithmic scale for the x-axis.
@@ -1100,9 +1220,9 @@ def xflip(xflip=True):
     **Usage examples:**
 
     >>> # Flips/Reverses the x-axis
-    >>> mlab.xlog()
+    >>> mlab.xflip()
     >>> # Restores the x-axis
-    >>> mlab.xlog(False)
+    >>> mlab.xflip(False)
     """
     _plot_data(xflip=xflip)
 
@@ -1117,9 +1237,9 @@ def yflip(yflip=True):
     **Usage examples:**
 
     >>> # Flips/Reverses the y-axis
-    >>> mlab.ylog()
+    >>> mlab.yflip()
     >>> # Restores the y-axis
-    >>> mlab.ylog(False)
+    >>> mlab.yflip(False)
     """
     _plot_data(yflip=yflip)
 
@@ -1134,11 +1254,45 @@ def zflip(zflip=True):
     **Usage examples:**
 
     >>> # Flips/Reverses the z-axis
-    >>> mlab.zlog()
+    >>> mlab.zflip()
     >>> # Restores the z-axis
-    >>> mlab.zlog(False)
+    >>> mlab.zflip(False)
     """
     _plot_data(zflip=zflip)
+
+
+@_close_gks_on_error
+def rflip(rflip=True):
+    """
+    Enable or disable flipping/reversal of the radius.
+
+    :param rflip: whether or not the inner and outer radius should be flipped
+
+    **Usage examples:**
+
+    >>> # Flips/Reverses the inner and outer radius
+    >>> mlab.rflip()
+    >>> # Restores the radius
+    >>> mlab.rflip(False)
+    """
+    _plot_data(rflip=rflip)
+
+
+@_close_gks_on_error
+def phiflip(phiflip=True):
+    """
+    Enable or disable flipping/reversal of the polar angles.
+
+    :param zflip: whether or not the start and end angle should be flipped
+
+    **Usage examples:**
+
+    >>> # Flips/Reverses the start and end angle
+    >>> mlab.phiflip()
+    >>> # Restores the angles
+    >>> mlab.phiflip(False)
+    """
+    _plot_data(phiflip=phiflip)
 
 
 @_close_gks_on_error
@@ -1487,7 +1641,7 @@ def _set_viewport(kind, subplot):
 
     if width > height:
         viewport[2] += (1 - (subplot[3] - subplot[2])**2) * 0.02
-    if kind in ('contour', 'contourf', 'heatmap', 'hexbin', 'quiver'):
+    if kind in ('contour', 'contourf', 'heatmap', 'polar_heatmap', 'hexbin', 'quiver'):
         viewport[1] -= 0.1
     gr.setviewport(*viewport)
     _plt.kwargs['viewport'] = viewport
@@ -1534,10 +1688,18 @@ def _minmax(kind=None):
     x_step = y_step = float('-infinity')
 
     for x, y, z, c, spec in _plt.args:
-        x_min = min(np.nanmin(x), x_min)
-        x_max = max(np.nanmax(x), x_max)
-        y_min = min(np.nanmin(y), y_min)
-        y_max = max(np.nanmax(y), y_max)
+        if x is None and kind in ('heatmap', 'polar_heatmap'):
+            x_min = 0
+            x_max = z.shape[0]
+        else:
+            x_min = min(np.nanmin(x), x_min)
+            x_max = max(np.nanmax(x), x_max)
+        if y is None and kind in ('heatmap', 'polar_heatmap'):
+            y_min = 0
+            y_max = z.shape[1]
+        else:
+            y_min = min(np.nanmin(y), y_min)
+            y_max = max(np.nanmax(y), y_max)
         if z is not None:
             z_min = min(np.nanmin(z), z_min)
             z_max = max(np.nanmax(z), z_max)
@@ -1565,6 +1727,8 @@ def _minmax(kind=None):
     x_range = _plt.kwargs.get('xlim', (x_min, x_max))
     y_range = _plt.kwargs.get('ylim', (y_min, y_max))
     z_range = _plt.kwargs.get('zlim', (z_min, z_max))
+    r_range = _plt.kwargs.get('rlim', (0, y_max))
+    phi_range = _plt.kwargs.get('philim', (None, None))
 
     # Replace None with values determined above
     if x_range[0] is None:
@@ -1579,10 +1743,24 @@ def _minmax(kind=None):
         z_range = (z_min, z_range[1])
     if z_range[1] is None:
         z_range = (z_range[0], z_max)
+    if r_range[0] is None:
+        r_range = (0, r_range[1])
+    if r_range[1] is None:
+        r_range = (r_range[0], y_max)
+    if phi_range[0] is None:
+        phi_range = (0, phi_range[1])
+    else:
+        phi_range = (np.degrees(phi_range[0]), phi_range[1])
+    if phi_range[1] is None:
+        phi_range = (phi_range[0], 360)
+    else:
+        phi_range = (phi_range[0], np.degrees(phi_range[1]))
 
     _plt.kwargs['xrange'] = x_range
     _plt.kwargs['yrange'] = y_range
     _plt.kwargs['zrange'] = z_range
+    _plt.kwargs['rrange'] = r_range
+    _plt.kwargs['phirange'] = phi_range
 
 
 def _set_window(kind):
@@ -1636,8 +1814,42 @@ def _set_window(kind):
     _plt.kwargs['yaxis'] = y_tick, yorg, y_major_count
 
     _plt.kwargs['window'] = (x_min, x_max, y_min, y_max)
-    if kind == 'polar':
-        gr.setwindow(-1, 1, -1, 1)
+    if kind in ('polar', 'polar_heatmap'):
+        phi_min, phi_max = _phase_wrapped_philim(adjust=_plt.kwargs.get('adjust_philim', True))
+        r_min, r_max = _plt.kwargs['rrange']
+        if _plt.kwargs.get('adjust_rlim', True):
+            r_min, r_max = gr.adjustlimits(r_min, r_max)
+        r_rrel_min = r_min / r_max
+        angles = [a for a in (0, 90, 180, 270, 360) if phi_min < a < phi_max] + [phi_min, phi_max]
+        bbox = [1, -1, 1, -1]
+        for angle in angles:
+            sinf = np.sin(np.radians(angle))
+            cosf = np.cos(np.radians(angle))
+            min_x = min(cosf * 1.12, r_rrel_min * cosf)
+            max_x = max(cosf * 1.12, r_rrel_min * cosf)
+            min_y = min(sinf * 1.12, r_rrel_min * sinf)
+            max_y = max(sinf * 1.12, r_rrel_min * sinf)
+            bbox[0] = min(bbox[0], min_x)
+            bbox[1] = max(bbox[1], max_x)
+            bbox[2] = min(bbox[2], min_y)
+            bbox[3] = max(bbox[3], max_y)
+        viewport = _plt.kwargs['viewport']
+        vp = _plt.kwargs['vp']
+        viewport_aspect = (viewport[1] - viewport[0]) / (viewport[3] - viewport[2])
+        vp_aspect = (vp[1] - vp[0]) / (vp[3] - vp[2])
+        vp_aspect = vp_aspect / viewport_aspect
+        width = (bbox[1] - bbox[0]) / vp_aspect
+        height = bbox[3] - bbox[2]
+        aspect = width / height
+        if aspect > 1:
+            d = (width - height) / 2
+            bbox[3] += d
+            bbox[2] -= d
+        else:
+            d = (height - width) / 2
+            bbox[1] += d
+            bbox[0] -= d
+        gr.setwindow(*bbox)
     else:
         gr.setwindow(x_min, x_max, y_min, y_max)
 
@@ -1662,6 +1874,30 @@ def _set_window(kind):
 
     _plt.kwargs['scale'] = scale
     gr.setscale(scale)
+
+
+def _phase_wrapped_philim(phirange=None, adjust=False):
+    if phirange is None:
+        phi_min, phi_max = _plt.kwargs.get('phirange', (0, 360))
+    else:
+        phi_min, phi_max = phirange
+    if phi_min == 0 and phi_max == 360:
+        return phi_min, phi_max
+    phi_min -= np.floor(phi_min / 360.) * 360
+    phi_max -= np.floor(phi_max / 360.) * 360
+    if abs(phi_min - phi_max) < 1e-6:
+        phi_max += 360
+    if phi_min > phi_max:
+        phi_max, phi_min = phi_min, phi_max
+    if adjust:
+        phi_min, phi_max = gr.adjustlimits(phi_min / 3., phi_max / 3.)
+        phi_min *= 3
+        phi_max *= 3
+    if phi_max > 360:
+        phi_max = 360
+    if phi_min > 360:
+        phi_min = 360
+    return phi_min, phi_max
 
 
 def _draw_axes(kind, pass_=1):
@@ -1694,7 +1930,7 @@ def _draw_axes(kind, pass_=1):
     else:
         if kind in ('heatmap', 'shade'):
             ticksize = -ticksize
-        else:
+        if kind not in ('shade',):
             gr.grid(x_tick, y_tick, 0, 0, x_major_count, y_major_count)
         gr.axes(x_tick, y_tick, x_org[0], y_org[0], x_major_count, y_major_count, ticksize)
         gr.axes(x_tick, y_tick, x_org[1], y_org[1], -x_major_count, -y_major_count, -ticksize)
@@ -1730,36 +1966,60 @@ def _draw_polar_axes():
     diag = ((viewport[1] - viewport[0])**2 + (viewport[3] - viewport[2])**2)**0.5
     charheight = max(0.018 * diag, 0.012)
 
-    window = _plt.kwargs['window']
-    r_min, r_max = window[2], window[3]
+    r_min, r_max = _plt.kwargs['rrange']
+    if _plt.kwargs.get('adjust_rlim', True):
+        r_min, r_max = gr.adjustlimits(r_min, r_max)
+
+    phi_min, phi_max = _phase_wrapped_philim(adjust=_plt.kwargs.get('adjust_philim', True))
 
     gr.savestate()
     gr.setcharheight(charheight)
     gr.setlinetype(gr.LINETYPE_SOLID)
-
+    tick = gr.tick(phi_min / 6., phi_max / 6.) * 1.5
+    n = int(round((phi_max - phi_min) / tick + 0.5))
+    for i in range(n + 1):
+        angle_label = phi_min + i * tick
+        if _plt.kwargs.get('phiflip', False):
+            angle = phi_max - i * tick
+        else:
+            angle = angle_label
+        sinf = np.sin(np.radians(angle))
+        cosf = np.cos(np.radians(angle))
+        pline = np.array([r_min / r_max, 1])
+        if phi_min <= angle <= phi_max:
+            if i % 2 == 0 and not (i == n and phi_max % 360 == phi_min % 360):
+                gr.setlinecolorind(88)
+                gr.settextalign(gr.TEXT_HALIGN_CENTER, gr.TEXT_VALIGN_HALF)
+                x, y = gr.wctondc(1.1 * cosf, 1.1 * sinf)
+                gr.textext(x, y, "%g\xb0" % angle_label)
+            else:
+                gr.setlinecolorind(90)
+        else:
+            angle = np.clip(angle, phi_min, phi_max)
+            gr.setlinecolorind(88)
+            sinf = np.sin(np.radians(angle))
+            cosf = np.cos(np.radians(angle))
+        gr.polyline(cosf * pline, sinf * pline)
     tick = 0.5 * gr.tick(r_min, r_max)
     n = int(round((r_max - r_min) / tick + 0.5))
     for i in range(n + 1):
-        r = i / n
-        if i % 2 == 0:
-            gr.setlinecolorind(88)
-            if i > 0:
-                gr.drawarc(-r, r, -r, r, 0, 180)
-                gr.drawarc(-r, r, -r, r, 180, 360)
-            gr.settextalign(gr.TEXT_HALIGN_LEFT, gr.TEXT_VALIGN_HALF)
-            x, y = gr.wctondc(0.05, r)
-            gr.text(x, y, "%g" % (r_min + i * tick))
-        else:
+        r = (r_min + i * tick) / r_max
+        gr.setlinecolorind(88)
+        r = np.clip(r, 0, 1)
+        if i % 2 == 1 and r <= 1:
             gr.setlinecolorind(90)
-            gr.drawarc(-r, r, -r, r, 0, 180)
-            gr.drawarc(-r, r, -r, r, 180, 360)
-    for alpha in range(0, 360, 45):
-        sinf = np.sin(np.radians(alpha + 90))
-        cosf = np.cos(np.radians(alpha + 90))
-        gr.polyline([sinf, 0], [cosf, 0])
-        gr.settextalign(gr.TEXT_HALIGN_CENTER, gr.TEXT_VALIGN_HALF)
-        x, y = gr.wctondc(1.1 * sinf, 1.1 * cosf)
-        gr.textext(x, y, "%d\xb0" % alpha)
+        gr.drawarc(-r, r, -r, r, phi_min, phi_max)
+        if i % 2 == 0 and not r > 1:
+            gr.settextalign(gr.TEXT_HALIGN_CENTER, gr.TEXT_VALIGN_HALF)
+            sinf = np.sin(np.radians(phi_min))
+            cosf = np.cos(np.radians(phi_min))
+            x, y = gr.wctondc(r * cosf + sinf * 0.05, r * sinf - cosf * 0.05)
+            if _plt.kwargs.get('rflip', False):
+                r_label = r_max - i * tick
+            else:
+                r_label = r_min + i * tick
+            gr.text(x, y, "%g" % r_label)
+
     gr.restorestate()
 
 
@@ -1831,6 +2091,8 @@ def _colorbar(off=0.0, colors=256, label_name='zlabel'):
     else:
         data = [1000 + int(255 * i / (colors - 1)) for i in range(colors)]
 
+    gr.setlinecolorind(1)
+    gr.setscale(0)
     if _plt.kwargs['scale'] & gr.OPTION_FLIP_Z:
         gr.cellarray(0, 1, zmin, zmax, 1, colors, data)
     else:
@@ -1876,8 +2138,13 @@ def _plot_data(**kwargs):
         _set_window(kind)
         if kind == 'polar':
             _draw_polar_axes()
+        elif kind == 'polar_heatmap':
+            pass
         else:
             _draw_axes(kind)
+    elif kind in ('polar', 'polar_heatmap'):
+        _set_viewport(kind, _plt.kwargs['subplot'])
+        _set_window(kind)
 
     _set_colormap()
     gr.uselinespec(" ")
@@ -2010,6 +2277,10 @@ def _plot_data(**kwargs):
                 _colorbar()
         elif kind == 'heatmap':
             x_min, x_max, y_min, y_max = _plt.kwargs['window']
+            if x is not None:
+                x_min, x_max = x
+            if y is not None:
+                y_min, y_max = y
             height, width = z.shape
             cmap = _colormap()
             icmap = np.zeros(256, np.uint32)
@@ -2031,12 +2302,42 @@ def _plot_data(**kwargs):
             for x in range(width):
                 for y in range(height):
                     rgba[y, x] = icmap[int(data[y, x])]
-            if _plt.kwargs.get('xflip', False):
-                x_min, x_max = x_max, x_min
-            if _plt.kwargs.get('yflip', False):
-                y_min, y_max = y_max, y_min
             y_min, y_max = y_max, y_min
             gr.drawimage(x_min, x_max, y_min, y_max, width, height, rgba)
+            _colorbar()
+        elif kind == 'polar_heatmap':
+            height, width = z.shape
+            z_min, z_max = _plt.kwargs.get('zlim', (np.min(z), np.max(z)))
+            if z_max < z_min:
+                z_max, z_min = z_min, z_max
+            if _plt.kwargs.get('zlog', False):
+                z = np.log(z)
+                z_min = np.log(z_min)
+                z_max = np.log(z_max)
+            if z_max > z_min:
+                data = (1000 + (z - z_min) / (z_max - z_min) * 255).astype(np.int)
+            else:
+                data = np.zeros((height, width), dtype=np.int)
+            if y is not None:
+                phi_range = np.degrees(y)
+            else:
+                phi_range = None
+            phi_min, phi_max = _phase_wrapped_philim(phi_range)
+            if _plt.kwargs.get('phiflip', False):
+                phi_min_adj, phi_max_adj = _phase_wrapped_philim(adjust=_plt.kwargs.get('adjust_philim', True))
+                phi_offset = phi_max_adj + phi_min_adj - phi_max - phi_min
+                phi_min, phi_max = phi_max + phi_offset, phi_min + phi_offset
+            if x is not None:
+                r_range = np.array(x)
+            else:
+                r_range = np.array(_plt.kwargs['rrange'])
+            r_min, r_max = _plt.kwargs['rrange']
+            relative_r_min = r_min / r_max
+            r_range = ((r_range - r_min) / (r_max - r_min) * (1 - relative_r_min)) + relative_r_min
+            if _plt.kwargs.get('rflip', False):
+                r_range = 1 + relative_r_min - r_range
+            gr.polarcellarray(0, 0, phi_min, phi_max, r_range[0], r_range[1], width, height, data)
+            _draw_polar_axes()
             _colorbar()
         elif kind == 'wireframe':
             if x.shape == y.shape == z.shape:
@@ -2239,17 +2540,28 @@ def _plot_iso(v):
     gr.selntran(1)
 
 
-def _plot_polar(theta, rho):
+def _plot_polar(phi, rho):
     global _plt
-    window = _plt.kwargs['window']
-    r_min, r_max = window[2:]
-    tick = 0.5 * gr.tick(r_min, r_max)
-    n = int(round((r_max - r_min) / tick + 0.5))
-    r_max = r_min + n * tick
-    rho = (rho - r_min) / (r_max - r_min)
-    x = rho * np.cos(theta)
-    y = rho * np.sin(theta)
-    gr.polyline(x, y)
+    r_min, r_max = _plt.kwargs['rrange']
+    if _plt.kwargs.get('adjust_rlim', True):
+        r_min, r_max = gr.adjustlimits(r_min, r_max)
+    phi_min, phi_max = np.radians(_phase_wrapped_philim(adjust=_plt.kwargs.get('adjust_philim', True)))
+    phi = np.fmod(phi, 2 * np.pi)
+    split_rho = np.logical_or(rho < r_min, rho > r_max)
+    split_phi = np.logical_or(phi < phi_min, phi > phi_max)
+    split = np.where(np.logical_or(split_phi, split_rho))[0].astype(np.int)
+    relative_r_min = r_min / r_max
+    rho = ((rho - r_min) / (r_max - r_min) * (1 - relative_r_min)) + relative_r_min
+    if _plt.kwargs.get('rflip', False):
+        rho = 1 + relative_r_min - rho
+    if _plt.kwargs.get('phiflip', False):
+        phi = phi_max + phi_min - phi
+    for r, a in zip(np.split(rho, split), np.split(phi, split)):
+        if not len(r) > 1:
+            continue
+        x = r * np.cos(a)
+        y = r * np.sin(a)
+        gr.polyline(x, y)
 
 
 def _convert_to_array(obj, may_be_2d=False, xvalues=None, always_flatten=False):
