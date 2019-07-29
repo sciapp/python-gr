@@ -204,6 +204,21 @@ install-opensuse15-python3:
     paths:
     - install/gks.png
 
+install-arch-python3:
+  stage: install
+  image: archlinux/base
+  variables:
+    GIT_STRATEGY: none
+  script:
+  - rm -rf install && mkdir install && cd install
+  - pacman -Syu --noconfirm python-pip
+  - python3 -m pip install --upgrade pip
+  - python3 -m pip install ../dist/gr-*.tar.gz
+  - GKS_WSTYPE=png python3 -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
+  - python3 -c 'import gr3'
+  artifacts:
+    paths:
+    - install/gks.png
 
 deploy-to-github:
   stage: deploy
