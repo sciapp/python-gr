@@ -5,7 +5,12 @@ from numpy import sin, cos, pi, array
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.integrate as integrate
-from time import perf_counter, sleep
+from time import sleep
+
+try:
+    from time import perf_counter
+except ImportError:
+    from time import clock as perf_counter
 
 
 G = 9.8  # acceleration due to gravity, in m/s^2

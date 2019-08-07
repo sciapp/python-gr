@@ -9,6 +9,11 @@ import time
 import gr
 import gr3
 
+try:
+    from time import perf_counter
+except ImportError:
+    from time import clock as perf_counter
+
 g = 9.8        # gravitational constant
 
 def rk4(x, h, y, f):
@@ -76,7 +81,7 @@ gr3.cameralookat(6, -2, 4, 0, -2, 0, 0, 1, 0)
 gr3.setbackgroundcolor(1, 1, 1, 1)
 gr3.setlightdirection(1, 1, 10)
 
-now = time.perf_counter()
+now = perf_counter()
 
 while t < 30:
     start = now
@@ -85,7 +90,7 @@ while t < 30:
     t1, w1, t2, w2 = state
     double_pendulum([t1, t2], [l1, l2], [m1, m2])
 
-    now = time.perf_counter()
+    now = perf_counter()
     if start + dt > now:
         time.sleep(start + dt - now)
 
