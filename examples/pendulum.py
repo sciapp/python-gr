@@ -8,6 +8,11 @@ from numpy import sin, cos, sqrt, pi, array
 import time
 import gr
 
+try:
+    from time import perf_counter
+except ImportError:
+    from time import clock as perf_counter
+
 def rk4(x, h, y, f):
     k1 = h * f(x, y)
     k2 = h * f(x + 0.5 * h, y + 0.5 * k1)
@@ -67,7 +72,7 @@ t = 0
 dt = 0.04
 state = array([theta * pi / 180, 0])
 
-now = time.clock()
+now = perf_counter()
 
 while t < 30:
     start = now
@@ -77,6 +82,6 @@ while t < 30:
     acceleration = sqrt(2 * 9.81 * L * (1 - cos(theta)))
     pendulum(t, theta, omega, acceleration)
     
-    now = time.clock()
+    now = perf_counter()
     if start + dt > now:
         time.sleep(start + dt - now)
