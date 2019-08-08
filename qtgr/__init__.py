@@ -82,15 +82,19 @@ class GRWidget(QWidget):
                 self._sizey = 1.
                 self._mwidth = self._mheight
                 self._dwidth = self._dheight
-            else:
+            elif self._mwidth > 0:
                 self._sizey = self._mheight / self._mwidth
+            else:
+                self._sizey = 1.
         else:
             if self.keepRatio:
                 self._sizex = 1.
                 self._mheight = self._mwidth
                 self._dheight = self._dwidth
-            else:
+            elif self._mheight > 0:
                 self._sizex = self._mwidth / self._mheight
+            else:
+                self._sizex = 1.
             self._sizey = 1.
 
     def setBackground(self, qcolor):
