@@ -5,7 +5,12 @@ from numpy import sin, cos, pi, array
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.integrate as integrate
-from time import clock, sleep
+from time import sleep
+
+try:
+    from time import perf_counter
+except ImportError:
+    from time import clock as perf_counter
 
 
 G = 9.8  # acceleration due to gravity, in m/s^2
@@ -68,7 +73,7 @@ line, = ax.plot([], [], 'o-', lw=2)
 time_template = 'time = %.1fs'
 time_text = ax.text(0.05, 0.9, '', transform=ax.transAxes)
 
-now = clock()
+now = perf_counter()
 
 for i in range(len(t)):
     start = now
@@ -80,7 +85,7 @@ for i in range(len(t)):
     time_text.set_text(time_template % (i*dt))
     plt.show()
 
-    now = clock()
+    now = perf_counter()
     if start + dt > now:
         sleep(start + dt - now)
 
