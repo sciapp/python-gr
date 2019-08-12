@@ -248,7 +248,7 @@ class InteractiveGRWidget(GRWidget):
 
         if self._pickEvent:
             event = self._pickEvent
-            gr.setviewport(*event.viewport)
+            gr.setviewport(*event.viewportscaled)
             wcPoint = event.getWC(event.viewport)
             window = gr.inqwindow()
             gr.setwindow(*event.getWindow())
@@ -332,7 +332,7 @@ class InteractiveGRWidget(GRWidget):
 
     def _pick(self, p0, type):
         for plot in self._getPlotsForPoint(p0):
-            (coord, _axes, _curve) = plot.pick(p0, self.dwidth, self.dheight)
+            (coord, axes, _curve) = plot.pick(p0, self.dwidth, self.dheight)
             if coord:
                 dcPoint = coord.getDC()
                 QApplication.sendEvent(self, PickEvent(type,
@@ -341,7 +341,9 @@ class InteractiveGRWidget(GRWidget):
                                                              dcPoint.x,
                                                              dcPoint.y,
                                                              plot.viewport,
-                                                             coord.getWindow()))
+                                                             coord.getWindow(),
+                                                             sizex=axes.sizex,
+                                                             sizey=axes.sizey))
 
     def _select(self, p0, p1):
         self._pickEvent = None

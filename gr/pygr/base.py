@@ -103,9 +103,9 @@ class GRViewPort(object):
 
     DEFAULT_VIEWPORT = (.1, .95, .1, .95)
 
-    def __init__(self, viewport=DEFAULT_VIEWPORT):
+    def __init__(self, viewport=DEFAULT_VIEWPORT, sizex=1., sizey=1.):
         self._viewport = list(viewport)
-        self._sizex, self._sizey = 1., 1.
+        self._sizex, self._sizey = sizex, sizey
 
     @property
     def sizex(self):
