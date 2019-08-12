@@ -100,10 +100,10 @@ class PickEvent(MouseLocationEventMeta, GRViewPort):
     PICK_PRESS = QtCore.QEvent.registerEventType()
 
     def __init__(self, type, width, height, x, y, viewport, window=None,
-                 scale=None):
+                 scale=None, sizex=1., sizey=1.):
         super(PickEvent, self).__init__(type, width, height, x, y,
                                         window=window, scale=scale)
-        GRViewPort.__init__(self, viewport)
+        GRViewPort.__init__(self, viewport, sizex, sizey)
 
 
 class ROIEvent(MouseEvent):
