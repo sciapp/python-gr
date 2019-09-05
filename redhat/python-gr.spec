@@ -1,5 +1,9 @@
 %define debug_package %{nil}
+%if 0%{?fedora_version} >= 29
+%{?__python2: %global __python %{__python2}}
+%else
 %{!?__python: %global __python %{_bindir}/python}
+%endif
 
 %if 0%{?__jcns}
 %define fixedversion %{version}
