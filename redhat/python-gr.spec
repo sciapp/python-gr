@@ -64,4 +64,7 @@ GR, a universal framework for visualization applications
 
 %files
 %defattr(-,root,root)
-%{_prefix}
+%{_prefix}/lib*/python*/site-packages/gr-*.egg-info
+%{_prefix}/lib*/python*/site-packages/gr
+%{_prefix}/lib*/python*/site-packages/gr3
+%{_prefix}/lib*/python*/site-packages/qtgr
