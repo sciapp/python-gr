@@ -1,5 +1,9 @@
 %define debug_package %{nil}
+%if 0%{?fedora_version} >= 29
+%{?__python2: %global __python %{__python2}}
+%else
 %{!?__python: %global __python %{_bindir}/python}
+%endif
 
 %if 0%{?__jcns}
 %define fixedversion %{version}
@@ -60,4 +64,7 @@ GR, a universal framework for visualization applications
 
 %files
 %defattr(-,root,root)
-%{_prefix}
+%{_prefix}/lib*/python*/site-packages/gr-*.egg-info
+%{_prefix}/lib*/python*/site-packages/gr
+%{_prefix}/lib*/python*/site-packages/gr3
+%{_prefix}/lib*/python*/site-packages/qtgr
