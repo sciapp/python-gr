@@ -702,6 +702,115 @@ def surface(*args, **kwargs):
 
 
 @_close_gks_on_error
+def bar(y, *args, **kwargs):
+    """
+    Draw a two-dimensional bar plot.
+
+    This function uses a list of y values to create a two dimensional bar
+    plot. It can receive the following parameters:
+
+    - a list of y values, or
+    - a list of same length lists which contain y values (multiple bars)
+    - a list of colors
+    - one or more of the following key value pairs:
+        - a parameter bar_width
+        - a parameter edge_width
+        - a parameter bar_color (either an int or a list of rgb values)
+        - a parameter edge_color (either an int or a list of rgb values)
+        - a list of xnotations
+        - a list ind_bar_color, ind_edge_color which can be one color pack or
+          a list with multiple ones for individual bars (color pack: first
+          value: list with the indices or one index as an int, second value:
+          color (rgb list))
+        - a list ind_edge_width can be one width pack or a list with multiple
+          ones for individual bars (width pack: first value: list with the
+          indices or one index as an int, second value: width (float))
+        - a style parameter (only for multi-bar)
+
+    All parameters except for xnotations, ind_bar_color, ind_edge_color and
+    ind_edge_width will be saved for the next bar plot (set to None for
+    default)
+
+    :param y: the data to plot
+    :param args: the list of colors
+
+    **Usage examples:**
+
+    >>> # Create example data
+    >>> y = np.random.uniform(0, 10, 5)
+    >>> # Draw the bar plot
+    >>> mlab.bar(y)
+    >>> # Draw the bar plot with locations specified by x
+    >>> x = ['a', 'b', 'c', 'd', 'e']
+    >>> mlab.bar(y, xnotations=x)
+    >>> # Draw the bar plot with different bar_width, edge_width, edge_color and bar_color
+    >>> # (bar_width: float in (0;1], edge_width: float value bigger or equal to 0, color: int in [0;1255] or rgb list)
+    >>> mlab.bar(y, bar_width=0.6, edge_width=2, bar_color=999, edge_color=3)
+    >>> mlab.bar(y, bar_color=[0.66, 0.66, 0.66], edge_color=[0.33, 0.33, 0.33])
+    >>> # Draw the bar plot with bars that have individual bar_color, edge_color, edge_with
+    >>> mlab.bar(y, ind_bar_color=[1, [0.4, 0.4, 0.4]], ind_edge_color=[[1, 2], [0.66, 0.33, 0.33]], ind_edge_width=[[1, 2], 3])
+    >>> # Draw the bar plot with bars that have multiple individual colors
+    >>> mlab.bar(y, ind_bar_color=[[1, [1, 0.3, 0]], [[2, 3], [1, 0.5, 0]]])
+    >>> # Draw the bar plot with default bar_width, edge_width, edge_color and bar_color
+    >>> mlab.bar(y, bar_width=None, edge_width=None, bar_color=None, edge_color=None)
+    >>> # Draw the bar plot with colorlist
+    >>> mlab.bar(y, [989, 982, 980, 981, 996])
+    >>> # Create example sublist data
+    >>> yy = np.random.rand(3, 3)
+    >>> # Draw the bar plot lined / stacked / with colorlist
+    >>> mlab.bar(yy, bar_style='lined')
+    >>> mlab.bar(yy, bar_style='stacked')
+    >>> mlab.bar(yy, [989, 998, 994])
+    """
+    global _plt
+    _plt.kwargs.update(kwargs)
+    if 'bar_style' not in _plt.kwargs:
+        _plt.kwargs['bar_style'] = 'stacked'
+    if isinstance(y[0], list) or (isinstance(y, np.ndarray) and len(y.shape) == 2):
+        if isinstance(y, np.ndarray) and len(y.shape) > 2:
+            raise IndexError('Numpy array has to be of dimension 2 or lower!')
+        _plt.kwargs['multi_bar'] = True
+        if _plt.kwargs['bar_style'] == 'lined':
+            new_arg = []
+            for ls in y:
+                new_arg.append(max(ls))
+        else:
+            new_arg = []
+            for ls in y:
+                new_arg.append(sum(ls))
+        new_args = [new_arg, y]
+    else:
+        _plt.kwargs['multi_bar'] = False
+        new_args = [y, None]
+
+    if args:
+        c = args[0]
+        if not isinstance(c, list):
+            raise TypeError('C has to be of type list!')
+        if _plt.kwargs['multi_bar']:
+            if len(c) != len(y[0]):
+                raise IndexError('The length of c has to equal the length of the sublists when using a multi-bar!')
+        else:
+            if len(c) != len(y):
+                raise IndexError('The length of c has to equal the amount of y-values!')
+        for color in c:
+            if isinstance(color, int):
+                if color < 0:
+                    raise ValueError('The values in c have to be bigger or equal to 0!')
+            if isinstance(color, list):
+                if len(color) != 3:
+                    raise IndexError("RGB list has to contain 3 values!")
+                rgb = color
+                for v in rgb:
+                    if v < 0 or v > 1:
+                        raise ValueError('The values of a rgb color have to be in [1;0]!')
+        new_args.append(c)
+
+    _plt.args = _plot_args(new_args, fmt='y')
+    _plot_data(kind='bar')
+
+
+@_close_gks_on_error
 def plot3(*args, **kwargs):
     """
     Draw one or more three-dimensional line plots.
@@ -1705,7 +1814,7 @@ def _minmax(kind=None):
         else:
             y_min = min(np.nanmin(y), y_min)
             y_max = max(np.nanmax(y), y_max)
-        if z is not None:
+        if z is not None and kind not in ('bar', ):
             z_min = min(np.nanmin(z), z_min)
             z_max = max(np.nanmax(z), z_max)
         if kind in ('quiver',):
@@ -1726,7 +1835,11 @@ def _minmax(kind=None):
         lengths_squared = u**2 + v**2
         z_min = np.sqrt(np.min(lengths_squared))
         z_max = np.sqrt(np.max(lengths_squared))
-    x_min, x_max = _fix_minmax(x_min, x_max)
+    if kind in ('bar'):
+        x_min -= 1
+        x_max += 1
+    else:
+        x_min, x_max = _fix_minmax(x_min, x_max)
     y_min, y_max = _fix_minmax(y_min, y_max)
     z_min, z_max = _fix_minmax(z_min, z_max)
     x_range = _plt.kwargs.get('xlim', (x_min, x_max))
@@ -1789,8 +1902,15 @@ def _set_window(kind):
     if not scale & gr.OPTION_X_LOG:
         if _plt.kwargs.get('adjust_xlim', True):
             x_min, x_max = gr.adjustlimits(x_min, x_max)
-        x_major_count = major_count
-        x_tick = gr.tick(x_min, x_max) / x_major_count
+        if kind in ('bar'):
+            x_tick = 1
+            if 'xnotations' in _plt.kwargs:
+                x_major_count = 0
+            else:
+                x_major_count = 1
+        else:
+            x_major_count = major_count
+            x_tick = gr.tick(x_min, x_max) / x_major_count
     else:
         x_tick = x_major_count = 1
     if not scale & gr.OPTION_FLIP_X:
@@ -1800,7 +1920,7 @@ def _set_window(kind):
     _plt.kwargs['xaxis'] = x_tick, xorg, x_major_count
 
     y_min, y_max = _plt.kwargs['yrange']
-    if kind in ('hist', ) and 'ylim' not in _plt.kwargs:
+    if kind in ('hist', 'bar') and 'ylim' not in _plt.kwargs:
         if scale & gr.OPTION_Y_LOG:
             y_min = 1
         else:
@@ -1963,6 +2083,21 @@ def _draw_axes(kind, pass_=1):
             gr.setcharup(-1, 0)
             gr.textext(vp[0] + 0.5 * charheight, 0.5 * (viewport[2] + viewport[3]), _plt.kwargs['ylabel'])
             gr.restorestate()
+
+    if kind in ('bar'):
+        if 'xnotations' in _plt.kwargs:
+            x_notations = _plt.kwargs.pop('xnotations')
+            yval = _plt.args[0][2] if _plt.kwargs['multi_bar'] else _plt.args[0][1]
+            if len(x_notations) == len(yval):
+                window = _plt.kwargs['window']
+                gr.setcharheight(charheight)
+                gr.settextalign(2, 1)
+                for i in range(1, len(x_notations) + 1):
+                    x = viewport[0] + ((viewport[1] - viewport[0]) * i) / (window[1] - window[0])
+                    y = viewport[2] - 0.5 * charheight
+                    gr.textext(x, y, x_notations[i - 1])
+            else:
+                raise IndexError('The length of xnotations has to equal the amount of y-values!')
 
 
 def _draw_polar_axes():
@@ -2215,6 +2350,8 @@ def _plot_data(**kwargs):
                     gr.polymarker([x[i]], [y[i]])
             else:
                 gr.polymarker(x, y)
+        elif kind == 'bar':
+            _plot_bar()
         elif kind == 'quiver':
             u = z
             v = c
@@ -2625,6 +2762,314 @@ def _convert_to_array(obj, may_be_2d=False, xvalues=None, always_flatten=False):
     return a
 
 
+def _plot_bar():
+    global _plt
+    kwargs = _plt.kwargs
+    args = _plt.args[0]
+    multi_bar = kwargs['multi_bar']
+    style = kwargs['bar_style']
+
+    # Default
+    bar_width = 1
+    edgewidth = 1
+    edgecolor = [0, 0, 0]
+    std_colors = [989, 982, 980, 981, 996, 983, 995, 988, 986, 990, 991, 984, 992, 993, 994, 987, 985, 997, 998, 999]
+    color = std_colors[0]
+    color_save_spot = 1000
+
+    # Args
+    if multi_bar:
+        y_values = args[2]
+        colorlist = args[3]
+    else:
+        y_values = args[1]
+        colorlist = args[3]
+
+    # Width
+    if kwargs.get('bar_width'):
+        bar_width = kwargs['bar_width']
+        if not isinstance(bar_width, (int, float)):
+            raise TypeError('Bar_width has to be an int or float!')
+        elif bar_width > 1 or bar_width <= 0:
+            raise ValueError('Bar_width has to be in (0;1]!')
+
+    # Color
+    if kwargs.get('bar_color'):
+        color = kwargs['bar_color']
+        if isinstance(kwargs['bar_color'], int):
+            if not color >= 0 or not color < 1256:
+                raise ValueError('Bar_color has to be in [0;1256)!')
+        elif isinstance(kwargs['bar_color'], list) and len(kwargs['bar_color']) == 3:
+            for c in color:
+                if c < 0 or c > 1:
+                    raise ValueError('The values of bar_color have to be in [1;0]!')
+        else:
+            raise TypeError('Bar_color has to be an int or list of RGB values!')
+
+    # EdgeColor
+    if kwargs.get('edge_color'):
+        edgecolor = kwargs['edge_color']
+        if isinstance(kwargs['edge_color'], int):
+            if not edgecolor >= 0 or not edgecolor < 1256:
+                raise ValueError('Edge_color has to be in [0;1256)!')
+        elif isinstance(kwargs['edge_color'], list) and len(kwargs['edge_color']) == 3:
+            for c in edgecolor:
+                if c < 0 or c > 1:
+                    raise ValueError('The values of edge_color have to be in [1;0]!')
+        else:
+            raise TypeError('Edge_color has to be an int or list of RGB values!')
+
+    # EdgeWidth
+    if kwargs.get('edge_width'):
+        if not isinstance(kwargs['edge_width'], (float, int)):
+            raise TypeError('Edge_width has to be of type int or float')
+        edgewidth = kwargs['edge_width']
+        if edgewidth < 0:
+            raise ValueError('Edge_width has to be bigger or equal to 0!')
+
+    # Change individual color
+    pos_indcolor = []
+    changecolor = False
+    indcolors = [None for i in range(len(y_values) + 1)]
+    if 'ind_bar_color' in kwargs:
+        changecolor = True
+        indcolor = kwargs.pop('ind_bar_color')
+        if not isinstance(indcolor, list):
+            raise TypeError('Ind_bar_color has to be a list!')
+        if not indcolor:
+            raise IndexError('Ind_bar_color can`t be empty!')
+        if isinstance(indcolor[0], list) and not indcolor[0]:
+            raise IndexError('Ind_bar_color[0] can`t be empty!')
+        try:
+            if isinstance(indcolor[0], list) and isinstance(indcolor[0][1], int) or isinstance(indcolor[0], int):
+                has_pairs = False
+            elif isinstance(indcolor[0], list) and isinstance(indcolor[0][1], list):
+                has_pairs = True
+            else:
+                raise TypeError('Ind_bar_color[0] has to be an int or list!')
+        except IndexError:
+            raise IndexError('Ind_bar_color[0] has to be a colorpack, a list bigger than 1 or an int!')
+        if not has_pairs:
+            indcolor = [indcolor]
+        for colorpack in indcolor:
+            if not isinstance(colorpack[0], (list, int)) or not isinstance(colorpack[1], list):
+                raise TypeError('Colorpack[0] has to be an int or list and colorpack[1] has to be a list!')
+            if not len(colorpack[1]) == 3:
+                raise IndexError('Colorpack[1] has to be of length 3!')
+            for c in colorpack[1]:
+                if c < 0 or c > 1:
+                    raise ValueError('The values in colorpack[1] have to be in [0;1]!')
+            indcolor_rgb = [colorpack[1][0], colorpack[1][1], colorpack[1][2]]
+            if isinstance(colorpack[0], list):
+                pos_indcolor.extend(colorpack[0])
+                for index in colorpack[0]:
+                    indcolors[index] = indcolor_rgb
+            elif isinstance(colorpack[0], int):
+                pos_indcolor.append(colorpack[0])
+                indcolors[colorpack[0]] = indcolor_rgb
+
+    # Change individual edgecolor
+    pos_indedgecolor = []
+    changeedgecolor = False
+    indedgecolors = [None for i in range(len(y_values) + 1)]
+    if 'ind_edge_color' in kwargs:
+        changeedgecolor = True
+        indedgecolor = kwargs.pop('ind_edge_color')
+        if not isinstance(indedgecolor, list):
+            raise TypeError('Ind_edge_color has to be a list!')
+        try:
+            if isinstance(indedgecolor[0], list) and isinstance(indedgecolor[0][1], int) or isinstance(indedgecolor[0], int):
+                has_pairs = False
+            elif isinstance(indedgecolor[0], list) and isinstance(indedgecolor[0][1], list):
+                has_pairs = True
+            else:
+                raise TypeError('Ind_edge_color[0] has to be an int or list!')
+        except IndexError:
+            raise IndexError('Ind_edge_color[0] has to be a colorpack, a list bigger than 1 or an int!')
+        if not has_pairs:
+            indedgecolor = [indedgecolor]
+        for colorpack in indedgecolor:
+            if not isinstance(colorpack[0], (list, int)):
+                raise TypeError('Colorpack[0] has to be an int or list!')
+            if not isinstance(colorpack[1], list):
+                raise TypeError('Colorpack[1] has to be a list!')
+            if len(colorpack[1]) != 3:
+                raise IndexError('Colorpack[1] has to be of length 3!')
+            for c in colorpack[1]:
+                if c < 0 or c > 1:
+                    raise ValueError('The values in colorpack[1] have to be in [0;1]!')
+            indedgecolor_rgb = [colorpack[1][0], colorpack[1][1], colorpack[1][2]]
+            if isinstance(colorpack[0], list):
+                pos_indedgecolor.extend(colorpack[0])
+                for index in colorpack[0]:
+                    indedgecolors[index] = indedgecolor_rgb
+            elif isinstance(colorpack[0], int):
+                pos_indedgecolor.append(colorpack[0])
+                indedgecolors[colorpack[0]] = indedgecolor_rgb
+
+    # Change individual edge width
+    pos_indedgewidth = []
+    changeedgewidth = False
+    indedgewidths = [None for i in range(len(y_values) + 1)]
+    if 'ind_edge_width' in kwargs:
+        indedgewidth = kwargs.pop('ind_edge_width')
+        if not isinstance(indedgewidth, list):
+            raise TypeError('Ind_edge_width has to be of type list!')
+        if isinstance(indedgewidth[1], (float, int)) and isinstance(indedgewidth[0], (int, list)):
+            has_pairs = False
+        elif isinstance(indedgewidth[1], list):
+            has_pairs = True
+        else:
+            raise TypeError('Ind_edge_width[0] has to be of type int or list and Ind_edge_width[1] of type int '
+                            'or float!')
+        if not has_pairs:
+            indedgewidth = [indedgewidth]
+        for widthpack in indedgewidth:
+            if isinstance(widthpack[1], (float, int)) and isinstance(widthpack[0], (int, list)):
+                if not widthpack[1] >= 0:
+                    raise ValueError('Widthpack[1] has to be bigger or equal to 0!')
+                changeedgewidth = True
+                ind_edgewidth = widthpack[1]
+                if isinstance(widthpack[0], list):
+                    pos_indedgewidth.extend(widthpack[0])
+                    for index in widthpack[0]:
+                        indedgewidths[index] = ind_edgewidth
+                elif isinstance(widthpack[0], int):
+                    pos_indedgewidth.append(widthpack[0])
+                    indedgewidths[widthpack[0]] = ind_edgewidth
+
+    # Draw bars
+    wfac = bar_width * 0.8
+    gr.setfillintstyle(1)
+    for a, y in enumerate(y_values):
+        x = a + 1
+        if style == 'stacked' and multi_bar:
+            c = 0
+            for i in range(0, len(y), 1):
+                if changecolor and (i + 1 in pos_indcolor):
+                    current_rgb = indcolors[i + 1]
+                    gr.setcolorrep(color_save_spot, current_rgb[0], current_rgb[1], current_rgb[2])
+                    gr.setfillcolorind(color_save_spot)
+                else:
+                    if colorlist:
+                        if isinstance(colorlist[i], int):
+                            gr.setfillcolorind(colorlist[i])
+                        else:
+                            current_rgb = colorlist[i]
+                            gr.setcolorrep(color_save_spot, current_rgb[0], current_rgb[1], current_rgb[2])
+                            gr.setfillcolorind(color_save_spot)
+                    else:
+                        gr.setfillcolorind(std_colors[i % len(std_colors)])
+                gr.fillrect((x - 0.5 * bar_width), (x + 0.5 * bar_width),
+                            c, (y[i] + c))
+                c = y[i] + c
+        elif style == 'lined' and multi_bar:
+            bar_width = wfac / (len(y))
+            for i in range(0, len(y), 1):
+                if changecolor and (i + 1 in pos_indcolor):
+                    current_rgb = indcolors[i + 1]
+                    gr.setcolorrep(color_save_spot, current_rgb[0], current_rgb[1], current_rgb[2])
+                    gr.setfillcolorind(color_save_spot)
+                else:
+                    if colorlist:
+                        if isinstance(colorlist[i], int):
+                            gr.setfillcolorind(colorlist[i])
+                        else:
+                            current_rgb = colorlist[i]
+                            gr.setcolorrep(color_save_spot, current_rgb[0], current_rgb[1], current_rgb[2])
+                            gr.setfillcolorind(color_save_spot)
+                    else:
+                        gr.setfillcolorind(std_colors[i % len(std_colors)])
+                gr.fillrect((x - 0.5 * wfac + bar_width * i),
+                            (x - 0.5 * wfac + bar_width + bar_width * i), 0,
+                            y[i])
+        else:
+            if changecolor and (x in pos_indcolor):
+                current_rgb = indcolors[x]
+                gr.setcolorrep(color_save_spot, current_rgb[0], current_rgb[1], current_rgb[2])
+                gr.setfillcolorind(color_save_spot)
+            else:
+                if colorlist:
+                    if isinstance(colorlist[a], int):
+                        gr.setfillcolorind(colorlist[a])
+                    else:
+                        current_rgb = colorlist[a]
+                        gr.setcolorrep(color_save_spot, current_rgb[0], current_rgb[1], current_rgb[2])
+                        gr.setfillcolorind(color_save_spot)
+                else:
+                    if isinstance(color, int):
+                        gr.setfillcolorind(color)
+                    else:
+                        current_rgb = color
+                        gr.setcolorrep(color_save_spot, current_rgb[0], current_rgb[1], current_rgb[2])
+                        gr.setfillcolorind(color_save_spot)
+            gr.fillrect((x - 0.5 * bar_width), (x + 0.5 * bar_width), 0, y)
+
+    # Draw edges
+    gr.setfillintstyle(0)
+    for a, y in enumerate(y_values):
+        x = a + 1
+        if style == 'stacked' and multi_bar:
+            c = 0
+            for i in range(0, len(y), 1):
+                if changeedgecolor and (i + 1 in pos_indedgecolor):
+                    current_rgb = indedgecolors[i + 1]
+                    gr.setcolorrep(color_save_spot, current_rgb[0], current_rgb[1], current_rgb[2])
+                    gr.setlinecolorind(color_save_spot)
+                else:
+                    if isinstance(edgecolor, int):
+                        gr.setlinecolorind(edgecolor)
+                    else:
+                        current_rgb = edgecolor
+                        gr.setcolorrep(color_save_spot, current_rgb[0], current_rgb[1], current_rgb[2])
+                        gr.setlinecolorind(color_save_spot)
+                if changeedgewidth and (i + 1 in pos_indedgewidth):
+                    gr.setlinewidth(indedgewidths[i + 1])
+                else:
+                    gr.setlinewidth(edgewidth)
+                gr.drawrect((x - 0.5 * bar_width), (x + 0.5 * bar_width),
+                            c, (y[i] + c))
+                c = y[i] + c
+        elif style == 'lined' and multi_bar:
+            bar_width = wfac / (len(y))
+            for i in range(0, len(y), 1):
+                if changeedgecolor and (i + 1 in pos_indedgecolor):
+                    current_rgb = indedgecolors[i + 1]
+                    gr.setcolorrep(color_save_spot, current_rgb[0], current_rgb[1], current_rgb[2])
+                    gr.setlinecolorind(color_save_spot)
+                else:
+                    if isinstance(edgecolor, int):
+                        gr.setlinecolorind(edgecolor)
+                    else:
+                        current_rgb = edgecolor
+                        gr.setcolorrep(color_save_spot, current_rgb[0], current_rgb[1], current_rgb[2])
+                        gr.setlinecolorind(color_save_spot)
+                if changeedgewidth and (i + 1 in pos_indedgewidth):
+                    gr.setlinewidth(indedgewidths[i + 1])
+                else:
+                    gr.setlinewidth(edgewidth)
+                gr.drawrect((x - 0.5 * wfac + bar_width * i),
+                            (x - 0.5 * wfac + bar_width + bar_width * i), 0,
+                            y[i])
+        else:
+            if changeedgecolor and (x in pos_indedgecolor):
+                current_rgb = indedgecolors[x]
+                gr.setcolorrep(color_save_spot, current_rgb[0], current_rgb[1], current_rgb[2])
+                gr.setlinecolorind(color_save_spot)
+            else:
+                if isinstance(edgecolor, int):
+                    gr.setlinecolorind(edgecolor)
+                else:
+                    current_rgb = edgecolor
+                    gr.setcolorrep(color_save_spot, current_rgb[0], current_rgb[1], current_rgb[2])
+                    gr.setlinecolorind(color_save_spot)
+            if changeedgewidth and (x in pos_indedgewidth):
+                gr.setlinewidth(indedgewidths[x])
+            else:
+                gr.setlinewidth(edgewidth)
+            gr.drawrect((x - 0.5 * bar_width), (x + 0.5 * bar_width), 0, y)
+
+
 def _plot_args(args, fmt='xys'):
     global _plt
     args = list(args)
@@ -2679,6 +3124,9 @@ def _plot_args(args, fmt='xys'):
                     except (TypeError, IndexError):
                         y = a
                         x = np.arange(1, len(a) + 1)
+                elif fmt == 'y':
+                    y = a
+                    x = np.arange(1, len(a) + 1)
                 elif fmt == 'xyac' or fmt == 'xyzc':
                     try:
                         x = a
@@ -2765,5 +3213,9 @@ def _plot_args(args, fmt='xys'):
         spec = ""
         if fmt == 'xys' and len(args) > 0 and isinstance(args[0], basestring):
             spec = args.pop(0)
+        if fmt == 'y' and args:
+            z = args.pop(0)
+            if args:
+                c = args.pop(0)
         parsed_args.append((x, y, z, c, spec))
     return parsed_args
