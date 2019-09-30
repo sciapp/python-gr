@@ -338,7 +338,7 @@ def stem(*args, **kwargs):
     _plot_data(kind='stem')
 
 
-def _hist(x, nbins=0):
+def _hist(x, nbins=0, weights=None):
     x = np.array(x)
     x_min = x.min()
     x_max = x.max()
@@ -346,13 +346,13 @@ def _hist(x, nbins=0):
         nbins = int(np.round(3.3 * np.log10(len(x)))) + 1
     binned_x = np.array(np.floor((x - x_min) / (x_max - x_min) * nbins), dtype=int)
     binned_x[binned_x == nbins] = nbins - 1
-    counts = np.bincount(binned_x)
+    counts = np.bincount(binned_x, weights=weights)
     edges = np.linspace(x_min, x_max, nbins + 1)
     return counts, edges
 
 
 @_close_gks_on_error
-def histogram(x, num_bins=0, **kwargs):
+def histogram(x, num_bins=0, weights=None, **kwargs):
     r"""
     Draw a histogram.
 
@@ -363,6 +363,7 @@ def histogram(x, num_bins=0, **kwargs):
 
     :param x: the values to draw as histogram
     :param num_bins: the number of bins in the histogram
+    :param weights: weights for the x values
 
     **Usage examples:**
 
@@ -372,10 +373,14 @@ def histogram(x, num_bins=0, **kwargs):
     >>> mlab.histogram(x)
     >>> # Draw the histogram with 19 bins
     >>> mlab.histogram(x, num_bins=19)
+    >>> # Draw the histogram with weights
+    >>> weights = np.ones_like(x)
+    >>> weights[x < 0] = 2.5
+    >>> mlab.histogram(x, weights=weights)
     """
     global _plt
     _plt.kwargs.update(kwargs)
-    hist, bins = _hist(x, num_bins)
+    hist, bins = _hist(x, nbins=num_bins, weights=weights)
     _plt.args = [(np.array(bins), np.array(hist), None, None, "")]
     _plot_data(kind='hist')
 
