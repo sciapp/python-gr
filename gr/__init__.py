@@ -6,11 +6,13 @@ which may be imported directly, e.g.:
 import gr
 """
 
+import functools
 import os
 import sys
+import warnings
 import numpy as np
 from numpy import array, ndarray, float64, int32, empty, prod
-from ctypes import c_int, c_double, c_char_p, c_void_p, c_uint8
+from ctypes import c_int, c_double, c_char_p, c_void_p, c_uint8, c_uint
 from ctypes import byref, POINTER, addressof, CDLL, CFUNCTYPE
 from ctypes import create_string_buffer, cast
 from sys import version_info, platform
@@ -38,7 +40,7 @@ except ImportError:
         __version__ = 'unknown'
         __revision__ = None
 
-from gr.runtime_helper import load_runtime, register_gksterm
+from gr.runtime_helper import load_runtime, register_gksterm, version_string_to_tuple
 
 # Detect whether this is a site-package installation
 if os.path.isdir(os.path.join(os.path.dirname(__file__), "fonts")):
@@ -59,6 +61,33 @@ try:
     from base64 import b64encode
 except ImportError:
     clear_output = None
+
+
+def _require_runtime_version(*_minimum_runtime_version):
+    """
+    Decorator to add GR runtime version requirements to functions.
+
+    :param _minimum_runtime_version: required version as integers
+    :return: the wrapped function with a version check
+    """
+    def require_runtime_version_decorator(_func, _minimum_runtime_version=_minimum_runtime_version):
+        minimum_runtime_version_str = '.'.join(
+            'post' + str(c) if i == 3 else str(c)
+            for i, c in enumerate(_minimum_runtime_version)
+        )
+        _func.__doc__ += "\n\nThis function requires GR runtime version {} or higher.".format(minimum_runtime_version_str)
+
+        @functools.wraps(_func)
+        def wrapped_func(_func=_func, _minimum_runtime_version=_minimum_runtime_version, _minimum_runtime_version_str=minimum_runtime_version_str, *args, **kwargs):
+            global _RUNTIME_VERSION
+            if _RUNTIME_VERSION == (0, 0, 0):
+                raise RuntimeError("This function requires GR runtime version {} or higher, but the runtime version could not be detected.".format(_minimum_runtime_version_str))
+            if _RUNTIME_VERSION < _minimum_runtime_version:
+                raise RuntimeError("This function requires GR runtime version {} or higher.".format(_minimum_runtime_version_str))
+            return _func(*args, **kwargs)
+
+        return wrapped_func
+    return require_runtime_version_decorator
 
 
 class floatarray:
@@ -2859,7 +2888,8 @@ def runtime_version():
     """
     Returns the version string of the GR runtime.
     """
-    return str(__gr.gr_version().decode('ascii'))
+    global _RUNTIME_VERSION_STR
+    return _RUNTIME_VERSION_STR
 
 
 def version():
@@ -3054,6 +3084,14 @@ __gr.gr_quiver.argtypes = [c_int, c_int, POINTER(c_double), POINTER(c_double), P
 __gr.gr_shadepoints.argtypes = [c_int, POINTER(c_double), POINTER(c_double), c_int, c_int, c_int]
 __gr.gr_shadelines.argtypes = [c_int, POINTER(c_double), POINTER(c_double), c_int, c_int, c_int]
 
+# detect runtime version and use it for version dependent features
+_RUNTIME_VERSION_STR = str(__gr.gr_version().decode('ascii'))
+try:
+    _RUNTIME_VERSION = version_string_to_tuple(_RUNTIME_VERSION_STR)
+except TypeError:
+    # runtime version is unknown, so disable all version dependent features
+    _RUNTIME_VERSION = (0, 0, 0)
+    warnings.warn('Unable to detect GR runtime version. Some features may not be available.')
 
 precision = __gr.gr_precision()
 
