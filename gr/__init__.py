@@ -2877,6 +2877,76 @@ def volume(data, algorithm=0, dmin=-1, dmax=-1):
     return _dmin.value, _dmax.value
 
 
+@_require_runtime_version(0, 41, 5, 43)
+def setresamplemethod(resample_method):
+    """
+    Set the resample method used for gr.drawimage().
+
+    :param resample_method: the new resample method
+
+    The available options are:
+
+    +------------------+------------+--------------------+
+    |RESAMPLE_DEFAULT  | 0x00000000 |default             |
+    +------------------+------------+--------------------+
+    |RESAMPLE_NEAREST  | 0x01010101 |nearest neighbour   |
+    +------------------+------------+--------------------+
+    |RESAMPLE_LINEAR   | 0x02020202 |linear              |
+    +------------------+------------+--------------------+
+    |RESAMPLE_LANCZOS  | 0x03030303 |Lanczos             |
+    +------------------+------------+--------------------+
+
+    Alternatively, combinations of these methods can be selected for horizontal or vertical upsampling or downsampling:
+
+    +-------------------------------+------------+----------------------------------------------+
+    | UPSAMPLE_VERTICAL_DEFAULT     | 0x00000000 | default for vertical upsampling              |
+    +-------------------------------+------------+----------------------------------------------+
+    | UPSAMPLE_HORIZONTAL_DEFAULT   | 0x00000000 | default for horizontal upsampling            |
+    +-------------------------------+------------+----------------------------------------------+
+    | DOWNSAMPLE_VERTICAL_DEFAULT   | 0x00000000 | default for vertical downsampling            |
+    +-------------------------------+------------+----------------------------------------------+
+    | DOWNSAMPLE_HORIZONTAL_DEFAULT | 0x00000000 | default for horizontal downsampling          |
+    +-------------------------------+------------+----------------------------------------------+
+    | UPSAMPLE_VERTICAL_NEAREST     | 0x00000001 | nearest neighbor for vertical upsampling     |
+    +-------------------------------+------------+----------------------------------------------+
+    | UPSAMPLE_HORIZONTAL_NEAREST   | 0x00000100 | nearest neighbor for horizontal upsampling   |
+    +-------------------------------+------------+----------------------------------------------+
+    | DOWNSAMPLE_VERTICAL_NEAREST   | 0x00010000 | nearest neighbor for vertical downsampling   |
+    +-------------------------------+------------+----------------------------------------------+
+    | DOWNSAMPLE_HORIZONTAL_NEAREST | 0x01000000 | nearest neighbor for horizontal downsampling |
+    +-------------------------------+------------+----------------------------------------------+
+    | UPSAMPLE_VERTICAL_LINEAR      | 0x00000002 | linear for vertical upsampling               |
+    +-------------------------------+------------+----------------------------------------------+
+    | UPSAMPLE_HORIZONTAL_LINEAR    | 0x00000200 | linear for horizontal upsampling             |
+    +-------------------------------+------------+----------------------------------------------+
+    | DOWNSAMPLE_VERTICAL_LINEAR    | 0x00020000 | linear for vertical downsampling             |
+    +-------------------------------+------------+----------------------------------------------+
+    | DOWNSAMPLE_HORIZONTAL_LINEAR  | 0x02000000 | linear for horizontal downsampling           |
+    +-------------------------------+------------+----------------------------------------------+
+    | UPSAMPLE_VERTICAL_LANCZOS     | 0x00000003 | lanczos for vertical upsampling              |
+    +-------------------------------+------------+----------------------------------------------+
+    | UPSAMPLE_HORIZONTAL_LANCZOS   | 0x00000300 | lanczos for horizontal upsampling            |
+    +-------------------------------+------------+----------------------------------------------+
+    | DOWNSAMPLE_VERTICAL_LANCZOS   | 0x00030000 | lanczos for vertical downsampling            |
+    +-------------------------------+------------+----------------------------------------------+
+    | DOWNSAMPLE_HORIZONTAL_LANCZOS | 0x03000000 | lanczos for horizontal downsampling          |
+    +-------------------------------+------------+----------------------------------------------+
+    """
+    _gr.gr_setresamplemethod(c_uint(resample_method))
+
+
+@_require_runtime_version(0, 41, 5, 43)
+def inqresamplemethod():
+    """
+    Inquire the resample method used for gr.drawimage().
+
+    :return: the current resample method
+    """
+    _resample_method = c_uint(0)
+    __gr.gr_inqresamplemethod(byref(_resample_method))
+    return _resample_method.value
+
+
 def wrapper_version():
     """
     Returns the version string of the Python package gr.
@@ -3092,6 +3162,12 @@ except TypeError:
     # runtime version is unknown, so disable all version dependent features
     _RUNTIME_VERSION = (0, 0, 0)
     warnings.warn('Unable to detect GR runtime version. Some features may not be available.')
+
+if _RUNTIME_VERSION >= (0, 41, 5, 43):
+    __gr.gr_setresamplemethod.argtypes = [c_uint]
+    __gr.gr_setresamplemethod.restype = None
+    __gr.gr_inqresamplemethod.argtypes = [POINTER(c_uint)]
+    __gr.gr_inqresamplemethod.restype = None
 
 precision = __gr.gr_precision()
 
@@ -3378,6 +3454,37 @@ INTERP2_SPLINE = 2
 VOLUME_EMISSION = 0
 VOLUME_ABSORPTION = 1
 VOLUME_MIP = 2
+
+if _RUNTIME_VERSION >= (0, 41, 5, 43):
+    UPSAMPLE_VERTICAL_DEFAULT = 0x00000000
+    UPSAMPLE_HORIZONTAL_DEFAULT = 0x00000000
+    DOWNSAMPLE_VERTICAL_DEFAULT = 0x00000000
+    DOWNSAMPLE_HORIZONTAL_DEFAULT = 0x00000000
+    UPSAMPLE_VERTICAL_NEAREST = 0x00000001
+    UPSAMPLE_HORIZONTAL_NEAREST = 0x00000100
+    DOWNSAMPLE_VERTICAL_NEAREST = 0x00010000
+    DOWNSAMPLE_HORIZONTAL_NEAREST = 0x01000000
+    UPSAMPLE_VERTICAL_LINEAR = 0x00000002
+    UPSAMPLE_HORIZONTAL_LINEAR = 0x00000200
+    DOWNSAMPLE_VERTICAL_LINEAR = 0x00020000
+    DOWNSAMPLE_HORIZONTAL_LINEAR = 0x02000000
+    UPSAMPLE_VERTICAL_LANCZOS = 0x00000003
+    UPSAMPLE_HORIZONTAL_LANCZOS = 0x00000300
+    DOWNSAMPLE_VERTICAL_LANCZOS = 0x00030000
+    DOWNSAMPLE_HORIZONTAL_LANCZOS = 0x03000000
+
+    RESAMPLE_DEFAULT = (
+            UPSAMPLE_VERTICAL_DEFAULT | UPSAMPLE_HORIZONTAL_DEFAULT | DOWNSAMPLE_VERTICAL_DEFAULT | DOWNSAMPLE_HORIZONTAL_DEFAULT
+    )
+    RESAMPLE_NEAREST = (
+            UPSAMPLE_VERTICAL_NEAREST | UPSAMPLE_HORIZONTAL_NEAREST | DOWNSAMPLE_VERTICAL_NEAREST | DOWNSAMPLE_HORIZONTAL_NEAREST
+    )
+    RESAMPLE_LINEAR = (
+            UPSAMPLE_VERTICAL_LINEAR | UPSAMPLE_HORIZONTAL_LINEAR | DOWNSAMPLE_VERTICAL_LINEAR | DOWNSAMPLE_HORIZONTAL_LINEAR
+    )
+    RESAMPLE_LANCZOS = (
+            UPSAMPLE_VERTICAL_LANCZOS | UPSAMPLE_HORIZONTAL_LANCZOS | DOWNSAMPLE_VERTICAL_LANCZOS | DOWNSAMPLE_HORIZONTAL_LANCZOS
+    )
 
 # automatically switch to inline graphics in Jupyter Notebooks
 if 'ipykernel' in sys.modules:
