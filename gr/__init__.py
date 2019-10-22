@@ -6,11 +6,13 @@ which may be imported directly, e.g.:
 import gr
 """
 
+import functools
 import os
 import sys
+import warnings
 import numpy as np
 from numpy import array, ndarray, float64, int32, empty, prod
-from ctypes import c_int, c_double, c_char_p, c_void_p, c_uint8
+from ctypes import c_int, c_double, c_char_p, c_void_p, c_uint8, c_uint
 from ctypes import byref, POINTER, addressof, CDLL, CFUNCTYPE
 from ctypes import create_string_buffer, cast
 from sys import version_info, platform
@@ -38,7 +40,7 @@ except ImportError:
         __version__ = 'unknown'
         __revision__ = None
 
-from gr.runtime_helper import load_runtime, register_gksterm
+from gr.runtime_helper import load_runtime, register_gksterm, version_string_to_tuple
 
 # Detect whether this is a site-package installation
 if os.path.isdir(os.path.join(os.path.dirname(__file__), "fonts")):
@@ -59,6 +61,33 @@ try:
     from base64 import b64encode
 except ImportError:
     clear_output = None
+
+
+def _require_runtime_version(*_minimum_runtime_version):
+    """
+    Decorator to add GR runtime version requirements to functions.
+
+    :param _minimum_runtime_version: required version as integers
+    :return: the wrapped function with a version check
+    """
+    def require_runtime_version_decorator(_func, _minimum_runtime_version=_minimum_runtime_version):
+        minimum_runtime_version_str = '.'.join(
+            'post' + str(c) if i == 3 else str(c)
+            for i, c in enumerate(_minimum_runtime_version)
+        )
+        _func.__doc__ += "\n\nThis function requires GR runtime version {} or higher.".format(minimum_runtime_version_str)
+
+        @functools.wraps(_func)
+        def wrapped_func(_func=_func, _minimum_runtime_version=_minimum_runtime_version, _minimum_runtime_version_str=minimum_runtime_version_str, *args, **kwargs):
+            global _RUNTIME_VERSION
+            if _RUNTIME_VERSION == (0, 0, 0):
+                raise RuntimeError("This function requires GR runtime version {} or higher, but the runtime version could not be detected.".format(_minimum_runtime_version_str))
+            if _RUNTIME_VERSION < _minimum_runtime_version:
+                raise RuntimeError("This function requires GR runtime version {} or higher.".format(_minimum_runtime_version_str))
+            return _func(*args, **kwargs)
+
+        return wrapped_func
+    return require_runtime_version_decorator
 
 
 class floatarray:
@@ -2848,6 +2877,76 @@ def volume(data, algorithm=0, dmin=-1, dmax=-1):
     return _dmin.value, _dmax.value
 
 
+@_require_runtime_version(0, 41, 5, 43)
+def setresamplemethod(resample_method):
+    """
+    Set the resample method used for gr.drawimage().
+
+    :param resample_method: the new resample method
+
+    The available options are:
+
+    +------------------+------------+--------------------+
+    |RESAMPLE_DEFAULT  | 0x00000000 |default             |
+    +------------------+------------+--------------------+
+    |RESAMPLE_NEAREST  | 0x01010101 |nearest neighbour   |
+    +------------------+------------+--------------------+
+    |RESAMPLE_LINEAR   | 0x02020202 |linear              |
+    +------------------+------------+--------------------+
+    |RESAMPLE_LANCZOS  | 0x03030303 |Lanczos             |
+    +------------------+------------+--------------------+
+
+    Alternatively, combinations of these methods can be selected for horizontal or vertical upsampling or downsampling:
+
+    +-------------------------------+------------+----------------------------------------------+
+    | UPSAMPLE_VERTICAL_DEFAULT     | 0x00000000 | default for vertical upsampling              |
+    +-------------------------------+------------+----------------------------------------------+
+    | UPSAMPLE_HORIZONTAL_DEFAULT   | 0x00000000 | default for horizontal upsampling            |
+    +-------------------------------+------------+----------------------------------------------+
+    | DOWNSAMPLE_VERTICAL_DEFAULT   | 0x00000000 | default for vertical downsampling            |
+    +-------------------------------+------------+----------------------------------------------+
+    | DOWNSAMPLE_HORIZONTAL_DEFAULT | 0x00000000 | default for horizontal downsampling          |
+    +-------------------------------+------------+----------------------------------------------+
+    | UPSAMPLE_VERTICAL_NEAREST     | 0x00000001 | nearest neighbor for vertical upsampling     |
+    +-------------------------------+------------+----------------------------------------------+
+    | UPSAMPLE_HORIZONTAL_NEAREST   | 0x00000100 | nearest neighbor for horizontal upsampling   |
+    +-------------------------------+------------+----------------------------------------------+
+    | DOWNSAMPLE_VERTICAL_NEAREST   | 0x00010000 | nearest neighbor for vertical downsampling   |
+    +-------------------------------+------------+----------------------------------------------+
+    | DOWNSAMPLE_HORIZONTAL_NEAREST | 0x01000000 | nearest neighbor for horizontal downsampling |
+    +-------------------------------+------------+----------------------------------------------+
+    | UPSAMPLE_VERTICAL_LINEAR      | 0x00000002 | linear for vertical upsampling               |
+    +-------------------------------+------------+----------------------------------------------+
+    | UPSAMPLE_HORIZONTAL_LINEAR    | 0x00000200 | linear for horizontal upsampling             |
+    +-------------------------------+------------+----------------------------------------------+
+    | DOWNSAMPLE_VERTICAL_LINEAR    | 0x00020000 | linear for vertical downsampling             |
+    +-------------------------------+------------+----------------------------------------------+
+    | DOWNSAMPLE_HORIZONTAL_LINEAR  | 0x02000000 | linear for horizontal downsampling           |
+    +-------------------------------+------------+----------------------------------------------+
+    | UPSAMPLE_VERTICAL_LANCZOS     | 0x00000003 | lanczos for vertical upsampling              |
+    +-------------------------------+------------+----------------------------------------------+
+    | UPSAMPLE_HORIZONTAL_LANCZOS   | 0x00000300 | lanczos for horizontal upsampling            |
+    +-------------------------------+------------+----------------------------------------------+
+    | DOWNSAMPLE_VERTICAL_LANCZOS   | 0x00030000 | lanczos for vertical downsampling            |
+    +-------------------------------+------------+----------------------------------------------+
+    | DOWNSAMPLE_HORIZONTAL_LANCZOS | 0x03000000 | lanczos for horizontal downsampling          |
+    +-------------------------------+------------+----------------------------------------------+
+    """
+    _gr.gr_setresamplemethod(c_uint(resample_method))
+
+
+@_require_runtime_version(0, 41, 5, 43)
+def inqresamplemethod():
+    """
+    Inquire the resample method used for gr.drawimage().
+
+    :return: the current resample method
+    """
+    _resample_method = c_uint(0)
+    __gr.gr_inqresamplemethod(byref(_resample_method))
+    return _resample_method.value
+
+
 def wrapper_version():
     """
     Returns the version string of the Python package gr.
@@ -2859,7 +2958,8 @@ def runtime_version():
     """
     Returns the version string of the GR runtime.
     """
-    return str(__gr.gr_version().decode('ascii'))
+    global _RUNTIME_VERSION_STR
+    return _RUNTIME_VERSION_STR
 
 
 def version():
@@ -3054,6 +3154,20 @@ __gr.gr_quiver.argtypes = [c_int, c_int, POINTER(c_double), POINTER(c_double), P
 __gr.gr_shadepoints.argtypes = [c_int, POINTER(c_double), POINTER(c_double), c_int, c_int, c_int]
 __gr.gr_shadelines.argtypes = [c_int, POINTER(c_double), POINTER(c_double), c_int, c_int, c_int]
 
+# detect runtime version and use it for version dependent features
+_RUNTIME_VERSION_STR = str(__gr.gr_version().decode('ascii'))
+try:
+    _RUNTIME_VERSION = version_string_to_tuple(_RUNTIME_VERSION_STR)
+except TypeError:
+    # runtime version is unknown, so disable all version dependent features
+    _RUNTIME_VERSION = (0, 0, 0)
+    warnings.warn('Unable to detect GR runtime version. Some features may not be available.')
+
+if _RUNTIME_VERSION >= (0, 41, 5, 43):
+    __gr.gr_setresamplemethod.argtypes = [c_uint]
+    __gr.gr_setresamplemethod.restype = None
+    __gr.gr_inqresamplemethod.argtypes = [POINTER(c_uint)]
+    __gr.gr_inqresamplemethod.restype = None
 
 precision = __gr.gr_precision()
 
@@ -3340,6 +3454,37 @@ INTERP2_SPLINE = 2
 VOLUME_EMISSION = 0
 VOLUME_ABSORPTION = 1
 VOLUME_MIP = 2
+
+if _RUNTIME_VERSION >= (0, 41, 5, 43):
+    UPSAMPLE_VERTICAL_DEFAULT = 0x00000000
+    UPSAMPLE_HORIZONTAL_DEFAULT = 0x00000000
+    DOWNSAMPLE_VERTICAL_DEFAULT = 0x00000000
+    DOWNSAMPLE_HORIZONTAL_DEFAULT = 0x00000000
+    UPSAMPLE_VERTICAL_NEAREST = 0x00000001
+    UPSAMPLE_HORIZONTAL_NEAREST = 0x00000100
+    DOWNSAMPLE_VERTICAL_NEAREST = 0x00010000
+    DOWNSAMPLE_HORIZONTAL_NEAREST = 0x01000000
+    UPSAMPLE_VERTICAL_LINEAR = 0x00000002
+    UPSAMPLE_HORIZONTAL_LINEAR = 0x00000200
+    DOWNSAMPLE_VERTICAL_LINEAR = 0x00020000
+    DOWNSAMPLE_HORIZONTAL_LINEAR = 0x02000000
+    UPSAMPLE_VERTICAL_LANCZOS = 0x00000003
+    UPSAMPLE_HORIZONTAL_LANCZOS = 0x00000300
+    DOWNSAMPLE_VERTICAL_LANCZOS = 0x00030000
+    DOWNSAMPLE_HORIZONTAL_LANCZOS = 0x03000000
+
+    RESAMPLE_DEFAULT = (
+            UPSAMPLE_VERTICAL_DEFAULT | UPSAMPLE_HORIZONTAL_DEFAULT | DOWNSAMPLE_VERTICAL_DEFAULT | DOWNSAMPLE_HORIZONTAL_DEFAULT
+    )
+    RESAMPLE_NEAREST = (
+            UPSAMPLE_VERTICAL_NEAREST | UPSAMPLE_HORIZONTAL_NEAREST | DOWNSAMPLE_VERTICAL_NEAREST | DOWNSAMPLE_HORIZONTAL_NEAREST
+    )
+    RESAMPLE_LINEAR = (
+            UPSAMPLE_VERTICAL_LINEAR | UPSAMPLE_HORIZONTAL_LINEAR | DOWNSAMPLE_VERTICAL_LINEAR | DOWNSAMPLE_HORIZONTAL_LINEAR
+    )
+    RESAMPLE_LANCZOS = (
+            UPSAMPLE_VERTICAL_LANCZOS | UPSAMPLE_HORIZONTAL_LANCZOS | DOWNSAMPLE_VERTICAL_LANCZOS | DOWNSAMPLE_HORIZONTAL_LANCZOS
+    )
 
 # automatically switch to inline graphics in Jupyter Notebooks
 if 'ipykernel' in sys.modules:
