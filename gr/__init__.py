@@ -75,7 +75,7 @@ def _require_runtime_version(*_minimum_runtime_version):
             'post' + str(c) if i == 3 else str(c)
             for i, c in enumerate(_minimum_runtime_version)
         )
-        _func.__doc__ += "\n\nThis function requires GR runtime version {} or higher.".format(minimum_runtime_version_str)
+        _func.__doc__ += "\n\n    This function requires GR runtime version {} or higher.".format(minimum_runtime_version_str)
 
         @functools.wraps(_func)
         def wrapped_func(_func=_func, _minimum_runtime_version=_minimum_runtime_version, _minimum_runtime_version_str=minimum_runtime_version_str, *args, **kwargs):
@@ -776,6 +776,22 @@ def setmarkersize(size):
 
     """
     __gr.gr_setmarkersize(c_double(size))
+
+
+@_require_runtime_version(0, 41, 5, 47)
+def inqmarkersize():
+    """
+    Inquire the marker size for polymarkers.
+
+    **Parameters:**
+
+    `size` :
+        Scale factor applied to the nominal marker size
+
+    """
+    size = c_double()
+    __gr.gr_inqmarkersize(byref(size))
+    return size.value
 
 
 def setmarkercolorind(color):
@@ -3168,6 +3184,10 @@ if _RUNTIME_VERSION >= (0, 41, 5, 43):
     __gr.gr_setresamplemethod.restype = None
     __gr.gr_inqresamplemethod.argtypes = [POINTER(c_uint)]
     __gr.gr_inqresamplemethod.restype = None
+
+if _RUNTIME_VERSION >= (0, 41, 5, 47):
+    __gr.gr_inqmarkersize.argtypes = [POINTER(c_double)]
+    __gr.gr_inqmarkersize.restype = None
 
 precision = __gr.gr_precision()
 
