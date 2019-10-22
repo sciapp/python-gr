@@ -13,6 +13,7 @@ import sys
 import os
 import tarfile
 import shutil
+import platform
 
 try:
     from io import BytesIO
@@ -129,7 +130,7 @@ class DownloadBinaryDistribution(build_py):
             if '/etc/os-release' in release_file_names:
                 if 'ID=ubuntu' in release_info or 'ID=linuxmint' in release_info:
                     return 'Ubuntu'
-                if 'ID=debian' in release_info:
+                if 'ID=debian' in release_info or 'ID=raspbian' in release_info:
                     return 'Debian'
                 if 'ID=arch' in release_info:
                     return 'ArchLinux'
@@ -141,6 +142,8 @@ class DownloadBinaryDistribution(build_py):
 
     @staticmethod
     def detect_architecture():
+        if 'armv7' in platform.machine():
+            return 'armhf'
         is_64bits = sys.maxsize > 2**32
         if is_64bits:
             return 'x86_64'
