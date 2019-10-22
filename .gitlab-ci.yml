@@ -15,6 +15,18 @@ build:
   artifacts:
     paths:
     - dist/
+    - tests/
+    - tox.ini
+
+install-tox:
+  stage: install
+  image: iffregistry.fz-juelich.de/docker-images/python-testing/debian:latest
+  variables:
+    GIT_STRATEGY: none
+  script:
+  - apt-get update
+  - apt-get install -y git libxt6 libxrender1 libgl1-mesa-glx
+  - tox
 
 check-codestyle:
   stage: build
@@ -123,6 +135,26 @@ install-debian9-python2:
 install-debian9-python3:
   stage: install
   image: debian:9
+  variables:
+    GIT_STRATEGY: none
+  script:
+  - rm -rf install && mkdir install && cd install
+  - apt-get update
+  - apt-get install -y python3-venv python3-pip
+  - python3 -m venv env
+  - env/bin/pip install --upgrade pip
+  - env/bin/pip install ../dist/gr-*.tar.gz
+  - GKS_WSTYPE=png env/bin/python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
+  - env/bin/python -c 'import gr3'
+  artifacts:
+    paths:
+    - install/gks.png
+
+install-debian9-armhf-python3:
+  stage: install
+  image: debian:9
+  tags:
+    - armhf
   variables:
     GIT_STRATEGY: none
   script:

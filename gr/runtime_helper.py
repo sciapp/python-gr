@@ -10,10 +10,10 @@ import sys
 
 def required_runtime_version():
     # TODO: load runtime version from file
-    return '0.41.0'
+    return '0.42.0'
 
 
-def _version_string_to_tuple(version_string):
+def version_string_to_tuple(version_string):
     if not isinstance(version_string, str):
         version_string = version_string.decode('utf-8')
     if version_string.startswith('v'):
@@ -21,7 +21,7 @@ def _version_string_to_tuple(version_string):
     if '-' in version_string:
         version_string = version_string.split('-', 1)[0]
     version_string = version_string.replace('.post', '.')
-    return tuple(int(v) for v in version_string.split('.', 3))
+    return tuple(int(v) for v in version_string.split('.'))
 
 
 def load_runtime(search_dirs=(), silent=False):
@@ -69,8 +69,8 @@ def load_runtime(search_dirs=(), silent=False):
             library.gr_version.argtypes = []
             library.gr_version.restype = ctypes.c_char_p
             library_version_string = library.gr_version()
-            library_version = _version_string_to_tuple(library_version_string)
-            required_version = _version_string_to_tuple(required_runtime_version())
+            library_version = version_string_to_tuple(library_version_string)
+            required_version = version_string_to_tuple(required_runtime_version())
             version_compatible = library_version[0] == required_version[0] and library_version >= required_version
             if version_compatible:
                 return library

@@ -13,6 +13,7 @@ import sys
 import os
 import tarfile
 import shutil
+import platform
 
 try:
     from io import BytesIO
@@ -28,7 +29,10 @@ sys.path.insert(0, os.path.abspath('gr'))
 import runtime_helper
 sys.path.pop(0)
 
-_runtime_version = runtime_helper.required_runtime_version()
+_runtime_version = os.environ.get('GR_VERSION', runtime_helper.required_runtime_version())
+if _runtime_version == 'master':
+    # allow 'master' as alias for 'latest'
+    _runtime_version = 'latest'
 
 
 __author__ = "Florian Rhiem <f.rhiem@fz-juelich.de>, Christian Felder <c.felder@fz-juelich.de>"
@@ -93,10 +97,13 @@ class DownloadBinaryDistribution(build_py):
     @staticmethod
     def get_file_from_mirrors(file_name, version, schema):
         mirrors = [
-            # GitHub enforces HTTPS
-            'https://github.com/sciapp/gr/releases/download/v{version}/'.format(version=version),
             '{schema}://gr-framework.org/downloads/'.format(schema=schema)
         ]
+        if version != 'latest':
+            # GitHub only hosts release builds
+            # GitHub should be preferred
+            # GitHub enforces HTTPS
+            mirrors.insert(0, 'https://github.com/sciapp/gr/releases/download/v{version}/'.format(version=version))
         urls = []
         for mirror in mirrors:
             urls.append(mirror + file_name)
@@ -123,7 +130,7 @@ class DownloadBinaryDistribution(build_py):
             if '/etc/os-release' in release_file_names:
                 if 'ID=ubuntu' in release_info or 'ID=linuxmint' in release_info:
                     return 'Ubuntu'
-                if 'ID=debian' in release_info:
+                if 'ID=debian' in release_info or 'ID=raspbian' in release_info:
                     return 'Debian'
                 if 'ID=arch' in release_info:
                     return 'ArchLinux'
@@ -135,6 +142,8 @@ class DownloadBinaryDistribution(build_py):
 
     @staticmethod
     def detect_architecture():
+        if 'armv7' in platform.machine():
+            return 'armhf'
         is_64bits = sys.maxsize > 2**32
         if is_64bits:
             return 'x86_64'
