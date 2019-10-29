@@ -17,11 +17,11 @@ import gr
 import gr3
 from gr.pygr.base import GRDrawAttributes, GRMeta, GRViewPort, GRVisibility
 from gr.pygr.helper import ColorIndexGenerator, DomainChecker
-from gr.pygr.mlab import plot, oplot, scatter, histogram, imshow, stem, polar, bar
+from gr.pygr.mlab import plot, oplot, scatter, histogram, imshow, stem, polar, bar, polar_histogram
 from gr.pygr.mlab import contour, contourf, surface, wireframe, plot3, trisurf, tricont
 from gr.pygr.mlab import heatmap, hexbin
 from gr.pygr.mlab import legend, title, xlabel, ylabel, xlim, ylim
-from gr.pygr.mlab import figure, hold, subplot
+from gr.pygr.mlab import figure, hold, subplot, polar_histogram, _create_colormap
 from gr import __version__, __revision__
 
 __author__ = """Christian Felder <c.felder@fz-juelich.de>,
