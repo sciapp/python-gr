@@ -2476,7 +2476,7 @@ def setshadow(offsetx, offsety, blur):
 
 def settransparency(alpha):
     """
-    Set the value of the alpha component associated with GR colors
+    Set the value of the alpha component associated with GR colors.
 
     **Parameters:**
 
