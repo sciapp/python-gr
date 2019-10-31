@@ -782,12 +782,6 @@ def setmarkersize(size):
 def inqmarkersize():
     """
     Inquire the marker size for polymarkers.
-
-    **Parameters:**
-
-    `size` :
-        Scale factor applied to the nominal marker size
-
     """
     size = c_double()
     __gr.gr_inqmarkersize(byref(size))
