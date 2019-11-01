@@ -2776,8 +2776,6 @@ def shadepoints(x, y, dims=(1200, 1200), xform=1):
 
     **Parameters:**
 
-    `n` :
-        The number of points
     `x` :
         A pointer to the X coordinates
     `y` :
