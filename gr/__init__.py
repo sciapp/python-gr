@@ -349,7 +349,7 @@ def quiver(nx, ny, x, y, u, v, color):
 
     `nx` :
         The number of points along the x-axis of the grid
-    `nx` :
+    `ny` :
         The number of points along the y-axis of the grid
     `x` :
         A list containing the X coordinates
