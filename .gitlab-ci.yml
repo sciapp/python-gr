@@ -1,5 +1,6 @@
 stages:
 - build
+- test
 - install
 - deploy
 
@@ -41,6 +42,28 @@ check-codestyle:
   # Ignore line length check (E501)
   # Ignore single-line docstring check (D200)
   - env/bin/python -m flake8 --ignore E501,D200 gr/pygr/mlab.py
+
+check-images:
+  stage: test
+  image: ubuntu:18.04
+  variables:
+    GIT_STRATEGY: none
+  script:
+  - rm -rf install && mkdir install && cd install
+  - apt-get update
+  - apt-get install -y python3-venv python3-pip git
+  - python3 -m venv env
+  - env/bin/pip install --upgrade pip
+  - env/bin/pip install ../dist/gr-*.tar.gz
+  - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@iffgit.fz-juelich.de/heuwes/gr-test.git
+  - env/bin/pip install -r gr-test/requirements.txt
+
+  - cd gr-test
+  - ../env/bin/python create_test.py
+  - ../env/bin/python main_test.py
+  #artifacts:
+  #paths:
+  #- gr-test/diffs
 
 install-ubuntu1604-python2:
   stage: install
