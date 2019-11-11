@@ -1,6 +1,5 @@
 stages:
 - build
-- test
 - install
 - deploy
 
@@ -30,7 +29,7 @@ install-tox:
   - tox
 
 check-codestyle:
-  stage: build
+  stage: install
   image: ubuntu:18.04
   script:
   - apt-get update
@@ -44,7 +43,7 @@ check-codestyle:
   - env/bin/python -m flake8 --ignore E501,D200 gr/pygr/mlab.py
 
 check-images:
-  stage: test
+  stage: install
   image: ubuntu:18.04
   dependencies:
   - build
