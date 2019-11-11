@@ -55,16 +55,14 @@ check-images:
   - python3 -m venv env
   - env/bin/pip install --upgrade pip
   - env/bin/pip install dist/gr-*.tar.gz
-  - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@iffgit.fz-juelich.de/heuwes/gr-test.git
-  - env/bin/pip install -r gr-test/requirements.txt
+  - env/bin/pip install git+https://gitlab-ci-token:${CI_JOB_TOKEN}@iffgit.fz-juelich.de/heuwes/gr-test.git
   - source env/bin/activate
 
-  - cd gr-test
-  - python create_test.py
-  - python main_test.py
+  - python -c 'from gr_test import create_files; create_files("TEST")'
+  - gr_compare_folders.py
   artifacts:
     paths:
-    - gr-test/test_result/
+    - test_result/
     when: on_failure
 
 install-ubuntu1604-python2:
