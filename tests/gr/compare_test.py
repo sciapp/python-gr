@@ -24,8 +24,8 @@ def compare(dir, ext, ref_name, test_name):
     result = CompareResult(ref_name, test_name)
 
     if not result.is_equal():
-        out_name = f'{base_path}/{dir}_{ext}_diff.png'
+        out_name = '%s/%s_%s_diff.png' % (base_path, dir, ext)
         result.make_diff_png(out_name)
-        shutil.copy(test_name, f'{base_path}/{dir}.{ext}')
+        shutil.copy(test_name, '%s/%s.%s' % (base_path, dir, ext))
 
     assert result.is_equal()
