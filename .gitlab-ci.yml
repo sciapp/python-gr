@@ -26,6 +26,7 @@ install-tox:
   script:
   - apt-get update
   - apt-get install -y git libxt6 libxrender1 libgl1-mesa-glx
+  - export GR_TEST_BASE_PATH=`pwd`/test_result/
   - tox
   artifacts:
     paths:

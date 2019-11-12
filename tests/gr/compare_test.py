@@ -8,6 +8,10 @@ from gr_test import CompareResult, test_data
 
 
 base_path = os.path.abspath(os.path.dirname(os.path.realpath(__name__)) + '/../../test_result/')
+
+if 'GR_TEST_BASE_PATH' in os.environ:
+    base_path = os.path.abspath(os.environ['GR_TEST_BASE_PATH'])
+
 results_path = os.path.abspath(base_path + '/' + platform.python_version())
 
 def setup_func():
