@@ -26,6 +26,10 @@ install-tox:
   script:
   - apt-get update
   - apt-get install -y git libxt6 libxrender1 libgl1-mesa-glx imagemagick
+  - pip3.7 install cairosvg
+  - echo '#!/bin/bash' > /usr/local/bin/cairosvg
+  - echo 'python3.7 -m cairosvg $@' >> /usr/local/bin/cairosvg
+  - chmod +x /usr/local/bin/cairosvg
   - export GR_TEST_BASE_PATH=`pwd`/test_result/
   - tox
   artifacts:
