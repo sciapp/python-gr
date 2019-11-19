@@ -4,7 +4,7 @@ import platform
 
 from nose import with_setup
 
-from gr_test import CompareResult, test_data
+from gr_test import CompareResult, image_data, video_data
 
 
 base_path = os.path.abspath(os.path.dirname(os.path.realpath(__name__)) + '/../../test_result/')
@@ -26,10 +26,25 @@ def setup_func():
         pass
 
 @with_setup(setup_func)
-def test():
-    test_data.create_files('TEST')
-    for dir, ext, ref_name, test_name in test_data.get_file_pairs():
+def test_images():
+    image_data.create_files('TEST')
+    consistency, pairs = image_data.get_test_data()
+    for x in consistency:
+        yield succeed_if_none, x
+    for dir, ext, ref_name, test_name in pairs:
         yield compare, dir, ext, ref_name, test_name
+
+@with_setup(setup_func)
+def test_video():
+    video_data.create_files('TEST')
+    consistency, pairs = video_data.get_test_data()
+    for x in consistency:
+        yield succeed_if_none, x
+    for dir, ext, ref_name, test_name in pairs:
+        yield compare, dir, ext, ref_name, test_name
+
+def succeed_if_none(x):
+    assert x is None
 
 def compare(dir, ext, ref_name, test_name):
     result = CompareResult(ref_name, test_name)

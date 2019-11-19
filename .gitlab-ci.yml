@@ -25,7 +25,7 @@ install-tox:
     GIT_STRATEGY: none
   script:
   - apt-get update
-  - apt-get install -y git libxt6 libxrender1 libgl1-mesa-glx imagemagick
+  - apt-get install -y git libxt6 libxrender1 libgl1-mesa-glx imagemagick ffmpeg
   - pip3.7 install cairosvg
   - echo '#!/bin/bash' > /usr/local/bin/cairosvg
   - echo `which python3.7` ' -m cairosvg $@' >> /usr/local/bin/cairosvg
