@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 import shutil
 import platform
@@ -49,10 +51,11 @@ def succeed_if_none(x):
 def compare(dir, ext, ref_name, test_name):
     result = CompareResult(ref_name, test_name)
 
+    file_name = os.path.basename(ref_name)
     if not result.is_equal():
-        out_name = '%s/%s_%s_diff.png' % (results_path, dir, ext)
+        out_name = '%s/%s_%s_diff.png' % (results_path, dir, file_name)
         result.make_diff_png(out_name)
-        shutil.copy(test_name, '%s/%s.%s' % (results_path, dir, ext))
+        shutil.copy(test_name, '%s/%s.%s' % (results_path, dir, file_name))
         print("diff png: %s" % out_name)
 
     assert result.is_equal()
