@@ -851,8 +851,11 @@ def polar_histogram(*args, **kwargs):
     - num_bins: Number of bins specified as a positive integer. If no bins are given, the polarhistogram will automatically
       calculate the number of bins
 
-    - bin_limits: a list containing two angle values [min, max]. This option  plots a histogram using the input values
+    - philim: a tuple containing two angle values [min, max]. This option  plots a histogram using the input values
       (theta) that fall between min and max inclusive.
+
+    - rlim: a tuple containing two values between 0 and 1 (min, max). This option plots a histogram with bins starting at
+      min and ending at max
 
     - bin_edges: a list of angles between 0 and 2 * pi which specify the Edges of each bin/bar.
       NOT COMPATIBLE with bin_limits. When used with bin_counts: len(bin_edges) == len(bin_counts) + 1
@@ -865,8 +868,7 @@ def polar_histogram(*args, **kwargs):
 
 
 
-    :param args: a theta list
-    :param kwargs:
+    :param args: a list
 
 
     **Usage examples:**
@@ -964,6 +966,30 @@ def polar_histogram(*args, **kwargs):
         num_bins = len(theta)
         width = 2 * np.pi / num_bins
 
+        if is_colormap:
+            if not is_binedges:
+                angles = np.linspace(0, np.pi * 2, num_bins)
+
+        # Philim for bincounts
+        if _plt.kwargs.get('philim', False) is not False:
+            binlimits = _plt.kwargs['philim']
+            if binlimits[0] is None:
+                binlimits = (0, binlimits[1])
+            if binlimits[1] is None:
+                binlimits = (binlimits[0], 2 * np.pi)
+
+            if not is_binedges:
+                binedges = np.linspace(binlimits[0], binlimits[1], num_bins + 1)
+                is_binedges = True
+                _plt.kwargs['temp_bin_edges'] = binedges
+            else:
+                binedges = [angle for angle in binedges if (binlimits[0] <= angle <= binlimits[1])]
+                if len(binedges) != num_bins + 1:
+                    raise ValueError('The given binedges is not compatible with philim since the number of angles,'
+                                     ' which are in between the philims, does not equal len(bincounts) + 1 ')
+                is_binedges = True
+                _plt.kwargs['temp_bin_edges'] = binedges
+
     # No bin_counts
     else:
 
@@ -976,7 +1002,7 @@ def polar_histogram(*args, **kwargs):
             # Auto generated num_bins
             num_bins = min(int(len(theta) / 2 - 1), 200)
             if is_binedges:
-                num_bins = min(len(binedges) + 1, 200)
+                num_bins = len(binedges) - 1
 
         start = 0
 
@@ -993,19 +1019,28 @@ def polar_histogram(*args, **kwargs):
         else:
             width = 2 * np.pi / num_bins
 
-        # Philim (was bin limits)
+        # Philim
         if _plt.kwargs.get('philim', False) is not False:
-            if is_binedges:
-                raise ValueError('bin_edges and philim are not compatible')
             is_binlimits = True
             binlimits = _plt.kwargs['philim']
             if binlimits[0] is None:
                 binlimits = (0, binlimits[1])
             if binlimits[1] is None:
                 binlimits = (binlimits[0], 2 * np.pi)
+
+            if not is_binedges:
+                if _plt.kwargs.get('num_bins', None) is None:
+                    num_bins = int(num_bins * (binlimits[1] - binlimits[0]) / (np.pi * 2))
+                binedges = np.linspace(binlimits[0], binlimits[1], num_bins)
+                is_binedges = True
+                _plt.kwargs['temp_bin_edges'] = binedges
+            else:
+                binedges = [angle for angle in binedges if (binlimits[0] <= angle <= binlimits[1])]
+                is_binedges = True
+                _plt.kwargs['temp_bin_edges'] = binedges
+                num_bins = len(binedges) - 1
         else:
             is_binlimits = False
-
 
         # grouping the data from given theta
         if is_binedges:
@@ -1015,21 +1050,21 @@ def polar_histogram(*args, **kwargs):
                 for y in range(len(theta)):
                     try:
                         if start < theta[y] <= binedges[x + 1]:
-                            classes[x].append(theta[y])
+
+                            if is_binlimits:
+                                if binlimits[0] <= theta[y] <= binlimits[1]:
+                                    classes[x].append(theta[y])
+                            else:
+                                classes[x].append(theta[y])
                     except Exception:
                         pass
+                if len(classes[x]) == 0:
+                    classes[x].append(None)
         # no Binedges
         else:
             # Optional Bin Limits
             if is_binlimits:
-                remlist = []
-                for x in range(len(theta)):
-                    if not (binlimits[0] <= theta[x] <= binlimits[1]):
-                        remlist.append(x)
-                x = len(remlist) - 1
-                while x >= 0:
-                    theta.pop(remlist[x])
-                    x -= 1
+                theta = [angle for angle in theta if binlimits[0] <= angle <= binlimits[1]]
             interval = 2 * np.pi / num_bins
             for x in range(num_bins):
                 classes.append([])
@@ -1040,19 +1075,14 @@ def polar_histogram(*args, **kwargs):
                 if is_colormap:
                     # angles list for colormap
                     angles.append([start, start + interval])
+                if len(classes[x]) == 0:
+                    classes[x].append(None)
                 start += interval
 
     _plt.kwargs['classes'] = classes
 
     # calc total
     total = 0
-
-    # for x in range(len(classes)):
-    #     for y in range(len(classes[x])):
-    #         if classes[x][0] is None:
-    #             continue
-    #         total += 1
-
     for temp in classes:
         total += len(temp) - temp.count(None)
 
@@ -1062,19 +1092,11 @@ def polar_histogram(*args, **kwargs):
         elif normalization == 'countdensity':
             norm_factor = 1
         binwidths = []
-        # for i in range(len(classes)):
-        #     print(classes)
-        #     try:
-        #         if len(classes[i]) < 1:
-        #             classes.pop(i)
-        #     except IndexError:
-        #         break
 
         classes = [temp for temp in classes if len(temp) > 0]
-
         for i in range(len(binedges) - 1):
             binwidths.append(binedges[i + 1] - binedges[i])
-
+        binwidths.append(binedges[-1] - binedges[-2])
         if normalization == 'countdensity' or normalization == 'pdf':
             bin_value = [len(x) / (norm_factor * binwidths[i]) for (i, x) in enumerate(classes)]
 
@@ -1100,13 +1122,11 @@ def polar_histogram(*args, **kwargs):
         if is_binedges:
             if normalization == 'countdensity':
                 maximum = round(max(bin_value) + 0.49)
-            # elif normalization == 'pdf':
-            #     maximum = int(findMax(classes, normalization) / width)
             else:
                 maximum = int(findMax(classes, normalization))
         else:
             if normalization == 'countdensity':
-                maximum = int(findMax(classes, normalization))  # / width
+                maximum = int(findMax(classes, normalization) / width)
             else:
                 maximum = int(findMax(classes, normalization))
 
@@ -1144,11 +1164,12 @@ def polar_histogram(*args, **kwargs):
         raise ValueError("Incorrect normalization Value")
 
     _plt.kwargs['norm_factor'] = norm_factor
-    print(_plt.kwargs)
     if is_colormap:
 
         # r_lim
-        if _plt.kwargs.get('rlim', False):
+        if _plt.kwargs.get('rlim', None) is not None:
+            if is_bincounts:
+                pass
             r_lim = _plt.kwargs['rlim']
             if r_lim[0] is None:
                 r_lim = (0, r_lim[1])
@@ -1156,7 +1177,6 @@ def polar_histogram(*args, **kwargs):
                 r_lim = (r_lim[0], 1)
         else:
             r_lim = (0, 1)
-
 
         height = 2000
         width = height
@@ -1170,18 +1190,14 @@ def polar_histogram(*args, **kwargs):
         del max_radius
 
         if normalization == 'cumcount' or normalization == 'cdf':
-            # for x in range(len(classes)):
-            #     if classes[x][0] is None:
-            #         cumulative.append(0)
-            #         continue
-            #     length = (len(classes[x]) / norm_factor) / border * 0.8 * center + length
-            #     cumulative.append(length)
-
             for temp in classes:
-                if temp is None:
-                    cumulative.append(0)
+                if temp[0] is None:
+                    if len(cumulative) > 0:
+                        cumulative.append(cumulative[-1])
+                    else:
+                        cumulative.append(0)
                 else:
-                    length += len(bin) / norm_factor / border * 0.8 * center
+                    length += len(temp) / norm_factor / border * 0.8 * center
                     cumulative.append(length)
 
         factor_angle_b = len(colormap[0]) / (2 * np.pi)
@@ -1206,22 +1222,21 @@ def polar_histogram(*args, **kwargs):
                     classes.pop(i)
             for i in range(len(binedges) - 1):
                 binwidths.append(binedges[i + 1] - binedges[i])
+            binwidths.append(binedges[-1] - binedges[-2])
 
             if normalization == 'countdensity' or normalization == 'pdf':
                 bin_value = np.array(
-                    [len(x) / (norm_factor * binwidths[i]) / border * 0.8 * center if x is not None else 0
+                    [len(x) / (norm_factor * binwidths[i]) / border * 0.8 * center if x[0] is not None else 0
                      for (i, x) in enumerate(classes)])
             else:
-                bin_value = np.array([len(x) / norm_factor / border * 0.8 * center if x is not None else 0
+                bin_value = np.array([len(x) / norm_factor / border * 0.8 * center if x[0] is not None else 0
                                       for x in classes])
         # no bin_edges
         else:
-            print(classes)
-            bin_value = np.array([len(x) / norm_factor / border * 0.8 * center if x is not None else 0
+            bin_value = np.array([len(x) / norm_factor / border * 0.8 * center if x[0] is not None else 0
                                   for x in classes])
 
         if not is_binedges:
-
             if normalization == 'cdf' or normalization == 'cumcount':
                 boolmap = np.zeros((height, width))
                 for (angle1, angle2), radius in zip(angles, cumulative):
@@ -1279,7 +1294,6 @@ def polar_histogram(*args, **kwargs):
     _plt.kwargs['border_exp'] = (border, exp)
 
     if is_binedges:
-        _plt.kwargs['binedges'] = binedges
         if _plt.kwargs['normalization'] == 'pdf':
             _plt.kwargs['norm_factor'] = total
 
@@ -2838,7 +2852,6 @@ def _plot_data(**kwargs):
         elif kind == 'bar':
             _plot_bar()
         elif kind == 'polar_histogram':
-            print(_plt.kwargs)
             _plot_polar_histogram()
         elif kind == 'quiver':
             u = z
@@ -3652,6 +3665,8 @@ def _plot_polar_histogram():
     edgecolor = 1
     facecolor = 989
     facealpha = 0.75
+    temp_face = None
+    temp_edge = None
 
     gr.clearws()
     gr.setviewport(0, 1, 0, 1)
@@ -3666,9 +3681,14 @@ def _plot_polar_histogram():
 
     if _plt.kwargs.get('bin_edges', None) is not None:
         is_binedges = True
-        binedges = _plt.kwargs['binedges']
+        binedges = _plt.kwargs['bin_edges']
     else:
         is_binedges = False
+
+    if _plt.kwargs.get('temp_bin_edges', None) is not None:
+        is_binedges = True
+        binedges = _plt.kwargs['temp_bin_edges']
+        del _plt.kwargs['temp_bin_edges']
 
     temp = _plt.kwargs['border_exp']
     border = temp[0]
@@ -3693,6 +3713,7 @@ def _plot_polar_histogram():
         facecolor = _plt.kwargs['face_color']
         if isinstance(facecolor, list):
             if len(facecolor) == 3:
+                temp_face = gr.inqcolor(1004)
                 gr.setcolorrep(1004, facecolor[0], facecolor[1], facecolor[2])
                 facecolor = 1004
             else:
@@ -3709,11 +3730,11 @@ def _plot_polar_histogram():
     # edge_color
     if 'edge_color' in _plt.kwargs:
         edgecolor = _plt.kwargs['edge_color']
-
         if isinstance(edgecolor, list):
             if len(edgecolor) == 3:
-                temp_edgecolor = gr.inqcolor()
-                edgecolor = gr.setcolorrep(1008, edgecolor[0], edgecolor[1], edgecolor[2])
+                temp_edge = gr.inqcolor(1005)
+                gr.setcolorrep(1005, edgecolor[0], edgecolor[1], edgecolor[2])
+                edgecolor = 1005
         elif not isinstance(edgecolor, int):
             raise ValueError('Incorrect Color Value. Either Integer or rgb triplet in a list')
 
@@ -3757,54 +3778,54 @@ def _plot_polar_histogram():
                 gr.setlinewidth(2)
 
                 if is_binedges:
-                    if normalization == 'pdf':
-                        pass
-                    elif normalization == 'countdensity':
+                    if normalization == 'countdensity':
                         norm_factor = 1
-                    binwidths = []
 
-                    # for i in range(len(classes)):
-                    #     if len(classes[i]) < 1:
-                    #         classes.pop(i)
+                    if normalization == 'countdensity' or normalization == 'pdf':
+                        binwidths = []
+                        classes = [temp for temp in classes if len(temp) > 0]
 
-                    classes = [temp for temp in classes if len(temp) > 0]
+                        for i in range(len(binedges) - 1):
+                            binwidths.append(binedges[i + 1] - binedges[i])
+                        binwidths.append(binedges[-1] - binedges[-2])
 
-                    for i in range(len(binedges) - 1):
-                        binwidths.append(binedges[i + 1] - binedges[i])
-
-                    bin_value = [len(x) / (norm_factor * binwidths[i]) if x[0] is not None else 0
-                                 for (i, x) in enumerate(classes)]
+                        bin_value = [len(x) / (norm_factor * binwidths[i]) if x[0] is not None else 0
+                                     for (i, x) in enumerate(classes)]
+                    else:
+                        bin_value = [len(x) / (norm_factor) if x[0] is not None else 0
+                                     for (i, x) in enumerate(classes)]
 
                 else:
                     bin_value = [len(x) / norm_factor if x is not None else 0 for x in classes]
 
                 length = 0
                 mlist = []
-                rectlist = []
-
-                startx = 0
-                starty = 0
 
                 for x in range(len(classes)):
-                    if classes[x] is None:
-                        continue
                     if normalization == 'cumcount' or normalization == 'cdf':
-                        length = len(classes[x]) / norm_factor + length
+                        if classes[x][0] is None:
+                            pass
+                        else:
+                            length = len(classes[x]) / norm_factor + length
+                    elif classes[x][0] is None:
+                        continue
                     elif normalization == 'pdf' or normalization == 'countdensity':
                         length = bin_value[x]
 
                     else:
                         length = len(classes[x]) / norm_factor
+
                     r = (length / border * 0.4) ** (num_bins * 2)
                     liste = moivre(r, (2 * x), num_bins * 2)
                     rect = np.sqrt(liste[0] ** 2 + liste[1] ** 2)
 
                     if is_rlim:
+
                         liste2 = moivre(r, (2 * x + 2), (num_bins * 2))
                         mlist.append(liste)
                         mlist.append(liste2)
-                        r_min_list = moivre((r_min * 0.4) ** (num_bins * 2), (x * 2), num_bins*2)
-                        r_min_list2 = moivre((r_min * 0.4) ** (num_bins * 2), (x * 2 + 2), num_bins*2)
+                        r_min_list = moivre((r_min * 0.4) ** (num_bins * 2), (x * 2), num_bins * 2)
+                        r_min_list2 = moivre((r_min * 0.4) ** (num_bins * 2), (x * 2 + 2), num_bins * 2)
 
                         for kaman in (-1, -2):
                             temporary = abs(np.sqrt(mlist[kaman][0]**2 + mlist[kaman][1]**2))
@@ -3822,8 +3843,6 @@ def _plot_polar_histogram():
 
                         if is_rlim:
 
-                            rectlist.append(rect)
-
                             rect = int(rect * 10000)
                             rect = rect / 10000
 
@@ -3838,32 +3857,25 @@ def _plot_polar_histogram():
                                                binedges[x] * convert,
                                                binedges[x + 1] * convert)
 
+                                    gr.polyline([0.5 + r_min * 0.4 * np.cos(binedges[x]), 0.5 + min(rect, r_max * 0.4) * np.cos(binedges[x])],
+                                                [0.5 + r_min * 0.4 * np.sin(binedges[x]), 0.5 + min(rect, r_max * 0.4) * np.sin(binedges[x])])
 
-                                    if not (binedges[0] == 0 and binedges[len(binedges) - 1] == 2 * np.pi and (
-                                            x == len(binedges) - 1 or x == 0)):
-                                        try:
-                                            gr.polyline([0.5 + r_min_list[0], 0.5 + mlist[2 * x] * np.cos(binedges[x])],
-                                                        [0.5 + r_min_list[1], 0.5 + mlist[2 * x] * np.sin(binedges[x])])
-                                        except Exception:
-                                            pass
+                                    gr.polyline([0.5 + r_min * 0.4 * np.cos(binedges[x + 1]),
+                                                 0.5 + min(rect, r_max * 0.4) * np.cos(binedges[x + 1])],
+                                                [0.5 + r_min * 0.4 * np.sin(binedges[x + 1]),
+                                                 0.5 + min(rect, r_max * 0.4) * np.sin(binedges[x + 1])])
 
-
-                                    if binedges[0] == 0 and binedges[-1] == 2 * np.pi:
-                                        gr.polyline([0.5 + rectlist[0] * np.cos(binedges[0]), 0.5 + r_min_list[0]],
-                                                    [0.5 + rectlist[0] * np.sin(binedges[0]), 0.5 + r_min_list[1]])
-                                    else:
-
-                                        gr.polyline([0.5 + r_min_list[0], 0.5 + mlist[2*x+1] * np.cos(binedges[x])],
-                                                    [0.5 + r_min_list[1], 0.5 + mlist[2*x+1] * np.sin(binedges[x])])
                                 except Exception:
                                     pass
-                            #
-                            # else:
-                            #     try:
-                            #         gr.fillarc(0.5 - rect, 0.5 + rect, 0.5 - rect, 0.5 + rect, binedges[x] * convert,
-                            #                    binedges[x + 1] * convert)
-                            #     except Exception:
-                            #         pass
+                        # no rlim
+                        else:
+
+                            try:
+                                gr.fillarc(0.5 - rect, 0.5 + rect, 0.5 - rect, 0.5 + rect, binedges[x] * convert,
+                                           binedges[x + 1] * convert)
+
+                            except Exception:
+                                pass
 
                     # no binedges
                     else:
@@ -3876,53 +3888,20 @@ def _plot_polar_histogram():
                                            0.5 - min(rect, r_max * 0.4), 0.5 + min(rect, r_max * 0.4),
                                            x * (360 / num_bins),
                                            (x + 1) * (360 / num_bins))
-                                gr.drawarc(0.5 - r_min*0.4, 0.5 + r_min*0.4, 0.5 - r_min*0.4, 0.5 + r_min*0.4, x * (360 / num_bins),
-                                           (x + 1) * (360 / num_bins))
+                                gr.drawarc(0.5 - r_min * 0.4, 0.5 + r_min * 0.4, 0.5 - r_min * 0.4, 0.5 + r_min * 0.4,
+                                           x * (360 / num_bins), (x + 1) * (360 / num_bins))
 
-                                gr.polyline([0.5 + r_min_list[0], 0.5 + mlist[2*x][0]],
-                                            [0.5 + r_min_list[1], 0.5 + mlist[2*x][1]])
+                                gr.polyline([0.5 + r_min_list[0], 0.5 + mlist[2 * x][0]],
+                                            [0.5 + r_min_list[1], 0.5 + mlist[2 * x][1]])
 
                                 gr.polyline([0.5 + r_min_list2[0], 0.5 + mlist[2 * x + 1][0]],
                                             [0.5 + r_min_list2[1], 0.5 + mlist[2 * x + 1][1]])
 
-                        # Normal no rlim
+                        # Normal (no rlim)
                         else:
                             gr.fillarc(0.5 - rect, 0.5 + rect, 0.5 - rect, 0.5 + rect, x * (360 / num_bins),
                                        (x + 1) * (360 / num_bins))
                 del mlist
-                #
-                # if mlist[-1][0] < 0:
-                #     mlist[-1][0] = max(mlist[-1][0], r_max * -0.4)
-                # else:
-                #     mlist[-1][0] = min(mlist[-1][0], r_max * 0.4)
-                #
-                # if mlist[-1][1] < 0:
-                #     mlist[-1][1] = max(mlist[-1][1], r_max * -0.4)
-                # else:
-                #     mlist[-1][1] = min(mlist[-1][1], r_max * 0.4)
-                #
-                #
-                # if mlist[-2][0] < 0:
-                #     mlist[-2][0] = max(mlist[-2][0], r_max * -0.4)
-                # else:
-                #     mlist[-2][0] = min(mlist[-2][0], r_max * 0.4)
-                #
-                # if mlist[-2][1] < 0:
-                #     mlist[-2][1] = max(mlist[-2][1], r_max * -0.4)
-                # else:
-                #     mlist[-2][1] = min(mlist[-2][1], r_max * 0.4)
-
-                # Stairs ?
-
-                # for xz in range(len(classes) * 2):
-                #
-                #     if xz > 1 and xz % 2 == 0:
-                #         y = xz
-                #         gr.polyline([0.5 + mlist[y][0], 0.5 + mlist[y - 1][0]],
-                #                     [0.5 + mlist[y][1], 0.5 + mlist[y - 1][1]])
-                #
-                # gr.polyline([0.5 + mlist[len(mlist) - 1][0], 0.5 + mlist[0][0]],
-                #             [0.5 + mlist[len(mlist) - 1][1], 0.5 + mlist[0][1]])
 
     # No Colormap
     else:
@@ -3932,40 +3911,44 @@ def _plot_polar_histogram():
             elif normalization == 'countdensity':
                 norm_factor = 1
             binwidths = []
-            for i in range(len(classes)):
-                if classes[i] is None:
-                    continue
-                if len(classes[i]) < 1:
-                    classes.pop(i)
+            classes = [bin for bin in classes if len(bin) > 0]
             for i in range(len(binedges) - 1):
                 binwidths.append(binedges[i + 1] - binedges[i])
+            binwidths.append(binedges[-1] - binedges[-2])
 
             if normalization == 'countdensity' or normalization == 'pdf':
                 bin_value = [len(x) / (norm_factor * binwidths[i]) for (i, x) in enumerate(classes)]
 
             else:
-                bin_value = [len(x) / norm_factor if x is not None else 0 for x in classes]
+                bin_value = [len(x) / norm_factor if x[0] is not None else 0 for x in classes]
 
         # No binedges
         else:
-            if normalization == 'countdensity' or normalization == 'pdf':
-                print(norm_factor)
-                bin_value = [len(x) / (norm_factor) if x is not None else 0 for x in classes]
-            else:
-                bin_value = [len(x) / norm_factor if x is not None else 0 for x in classes]
+            if normalization == 'countdensity':
+                bin_value = [len(x) / norm_factor if x[0] is not None else 0 for x in classes]
 
+            elif normalization == 'pdf':
+                bin_value = [len(x) / (norm_factor) if x[0] is not None else 0 for x in classes]
+
+            else:
+                bin_value = [len(x) / norm_factor if x[0] is not None else 0 for x in classes]
+
+        # no stairs
         if _plt.kwargs.get('stairs', False) is False:
 
             mlist = []
 
             for x in range(len(classes)):
-                if classes[x][0] is None:
-                    continue
+
                 if normalization == 'cumcount' or normalization == 'cdf':
-                    length = len(classes[x]) / norm_factor + length
+                    if classes[x][0] is None:
+                        pass
+                    else:
+                        length = len(classes[x]) / norm_factor + length
                 elif normalization == 'pdf' or normalization == 'countdensity':
                     length = bin_value[x]
-
+                elif classes[x][0] is None:
+                    continue
                 else:
                     length = len(classes[x]) / norm_factor
 
@@ -3992,33 +3975,138 @@ def _plot_polar_histogram():
                             mlist[kaman][1] *= factor
                     del temporary
 
-                if is_binedges:
-                    try:
-                        gr.fillarc(0.5 - rect, 0.5 + rect, 0.5 - rect, 0.5 + rect, binedges[x] * convert,
-                                   binedges[x + 1] * convert)
+                    r = length / border * 0.4
+                    if r > r_max * 0.4:
+                        r = r_max * 0.4
 
-                    except Exception:
-                        pass
-                else:
-                    gr.fillarc(0.5 - rect, 0.5 + rect, 0.5 - rect, 0.5 + rect, x * (360 / num_bins),
-                               (x + 1) * (360 / num_bins))
-
-                gr.settransparency(1)
-                gr.setfillintstyle(0)
-                gr.setfillcolorind(edgecolor)
                 if is_binedges:
-                    try:
-                        gr.fillarc(0.5 - rect, 0.5 + rect, 0.5 - rect, 0.5 + rect, binedges[x] * convert,
-                                   binedges[x + 1] * convert)
-                    except Exception:
+
+                    if is_rlim:
+                        try:
+
+                            if r > r_min * 0.4:
+
+                                start_angle = binedges[x]
+                                end_angle = binedges[x + 1]
+
+                                diff_angle = end_angle - start_angle
+                                num_angle = int(diff_angle / (0.2 / convert)) * 1j
+                                phi_array = np.array(
+                                    np.ogrid[start_angle: end_angle:num_angle], dtype=np.float)
+
+                                arc_1_x = [r * np.cos(phi) + 0.5 for phi in phi_array]
+                                arc_1_y = [r * np.sin(phi) + 0.5 for phi in phi_array]
+
+                                arc_2_x = [r_min * 0.4 * np.cos(phi) + 0.5 for phi in phi_array]
+                                arc_2_y = [r_min * 0.4 * np.sin(phi) + 0.5 for phi in phi_array]
+
+                                line_1_x = [0.5 + r_min * 0.4 * np.cos(binedges[x]),
+                                            0.5 + min(rect, r_max * 0.4) * np.cos(binedges[x])]
+                                line_1_y = [0.5 + r_min * 0.4 * np.sin(binedges[x]),
+                                            0.5 + min(rect, r_max * 0.4) * np.sin(binedges[x])]
+
+                                line_2_x = [0.5 + r_min * 0.4 * np.cos(binedges[x + 1]),
+                                            0.5 + min(rect, r_max * 0.4) * np.cos(binedges[x + 1])]
+                                line_2_y = [0.5 + r_min * 0.4 * np.sin(binedges[x + 1]),
+                                            0.5 + min(rect, r_max * 0.4) * np.sin(binedges[x + 1])]
+
+                                gr.setfillintstyle(1)
+                                gr.fillarea(np.hstack((
+                                    line_1_x, arc_1_x, line_2_x[::-1], arc_2_x[::-1],)),
+                                    np.hstack((
+                                        line_1_y, arc_1_y, line_2_y[::-1], arc_2_y[::-1],))
+                                )
+
+                                gr.setfillintstyle(0)
+                                gr.setfillcolorind(edgecolor)
+                                gr.fillarea(np.hstack((
+                                    line_1_x, arc_1_x, line_2_x[::-1], arc_2_x[::-1],)),
+                                    np.hstack((
+                                        line_1_y, arc_1_y, line_2_y[::-1], arc_2_y[::-1],))
+                                )
+
+                        except Exception:
+                            pass
+
                         pass
+
+                    else:
+                        try:
+                            gr.fillarc(0.5 - rect, 0.5 + rect, 0.5 - rect, 0.5 + rect, binedges[x] * convert,
+                                       binedges[x + 1] * convert)
+
+                        except Exception:
+                            pass
+
+                        gr.settransparency(1)
+                        gr.setfillintstyle(0)
+                        gr.setfillcolorind(edgecolor)
+                        try:
+                            gr.fillarc(0.5 - rect, 0.5 + rect, 0.5 - rect, 0.5 + rect, binedges[x] * convert,
+                                       binedges[x + 1] * convert)
+                        except Exception:
+                            pass
+                # no binedges
                 else:
-                    gr.fillarc(0.5 - rect, 0.5 + rect, 0.5 - rect, 0.5 + rect, x * (360 / num_bins),
-                               (x + 1) * (360 / num_bins))
+                    if is_rlim:
+
+                        try:
+
+                            if r > r_min * 0.4:
+
+                                start_angle = x * (360 / num_bins) / convert
+                                end_angle = (x + 1) * (360 / num_bins) / convert
+
+                                diff_angle = end_angle - start_angle
+                                num_angle = int(diff_angle / (0.2 / convert)) * 1j
+                                phi_array = np.array(
+                                    np.ogrid[start_angle: end_angle:num_angle], dtype=np.float)
+
+                                arc_1_x = [r * np.cos(phi) + 0.5 for phi in phi_array]
+                                arc_1_y = [r * np.sin(phi) + 0.5 for phi in phi_array]
+
+                                arc_2_x = [r_min * 0.4 * np.cos(phi) + 0.5 for phi in phi_array]
+                                arc_2_y = [r_min * 0.4 * np.sin(phi) + 0.5 for phi in phi_array]
+
+                                line_1_x = [0.5 + r_min_list[0], 0.5 + mlist[2 * x][0]]
+                                line_1_y = [0.5 + r_min_list[1], 0.5 + mlist[2 * x][1]]
+
+                                line_2_x = [0.5 + r_min_list2[0], 0.5 + mlist[2 * x + 1][0]]
+                                line_2_y = [0.5 + r_min_list2[1], 0.5 + mlist[2 * x + 1][1]]
+
+                                gr.setfillintstyle(1)
+                                gr.fillarea(np.hstack((
+                                    line_1_x, arc_1_x, line_2_x[::-1], arc_2_x[::-1],)),
+                                    np.hstack((
+                                        line_1_y, arc_1_y, line_2_y[::-1], arc_2_y[::-1],))
+                                )
+
+                                gr.setfillintstyle(0)
+                                gr.setfillcolorind(edgecolor)
+                                gr.fillarea(np.hstack((
+                                    line_1_x, arc_1_x, line_2_x[::-1], arc_2_x[::-1],)),
+                                    np.hstack((
+                                        line_1_y, arc_1_y, line_2_y[::-1], arc_2_y[::-1],))
+                                )
+
+                        except Exception:
+                            pass
+
+                    # no rlim
+                    else:
+                        gr.fillarc(0.5 - rect, 0.5 + rect, 0.5 - rect, 0.5 + rect, x * (360 / num_bins),
+                                   (x + 1) * (360 / num_bins))
+
+                        gr.settransparency(1)
+                        gr.setfillintstyle(0)
+                        gr.setfillcolorind(edgecolor)
+
+                        gr.fillarc(0.5 - rect, 0.5 + rect, 0.5 - rect, 0.5 + rect, x * (360 / num_bins),
+                                   (x + 1) * (360 / num_bins))
 
         # stairs
         else:
-            gr.setlinewidth(2)
+            gr.setlinewidth(3)
             gr.setlinecolorind(edgecolor)
 
             # With given bin_edges
@@ -4028,12 +4116,15 @@ def _plot_polar_histogram():
                 rectlist = []
 
                 for x in range(len(classes)):
-                    if classes[x][0] is None:
-                        continue
                     if normalization == 'cumcount' or normalization == 'cdf':
-                        length = len(classes[x]) / norm_factor + length
+                        if classes[x][0] is None:
+                            pass
+                        else:
+                            length = len(classes[x]) / norm_factor + length
                     elif normalization == 'pdf' or normalization == 'countdensity':
                         length = bin_value[x]
+                    elif classes[x][0] is None:
+                        continue
                     else:
                         length = len(classes[x]) / norm_factor
 
@@ -4044,44 +4135,112 @@ def _plot_polar_histogram():
                     mlist.append(liste2)
 
                     rect = np.sqrt(liste[0] ** 2 + liste[1] ** 2)
-                    rectlist.append(rect)
 
-                    try:
-                        gr.drawarc(0.5 - rect, 0.5 + rect, 0.5 - rect, 0.5 + rect, binedges[x] * convert,
-                                   binedges[x + 1] * convert)
-                    except Exception:
+                    if is_rlim:
+
+                        for kaman in (-1, -2):
+                            temporary = abs(np.sqrt(mlist[kaman][0]**2 + mlist[kaman][1]**2))
+                            if temporary > (r_max * 0.4):
+                                factor = abs(r_max * 0.4 / temporary)
+                                mlist[kaman][0] *= factor
+                                mlist[kaman][1] *= factor
+                        del temporary
+
+                        if rect < r_min * 0.4:
+                            rectlist.append(r_min * 0.4)
+                        elif rect > r_max * 0.4:
+                            rectlist.append(r_max * 0.4)
+                        else:
+                            rectlist.append(rect)
+                    else:
+                        rectlist.append(rect)
+
+                    if is_rlim:
+
+                        rect = int(rect * 10000)
+                        rect = rect / 10000
+
+                        if round(rect, 3) > r_min * 0.4:
+                            try:
+                                gr.drawarc(0.5 - min(rect, r_max * 0.4), 0.5 + min(rect, r_max * 0.4),
+                                           0.5 - min(rect, r_max * 0.4), 0.5 + min(rect, r_max * 0.4),
+                                           binedges[x] * convert,
+                                           binedges[x + 1] * convert)
+
+                                gr.drawarc(0.5 - r_min * 0.4, 0.5 + r_min * 0.4, 0.5 - r_min * 0.4, 0.5 + r_min * 0.4,
+                                           binedges[x] * convert,
+                                           binedges[x + 1] * convert)
+
+                            except Exception:
+                                pass
+                    else:
+                        try:
+                            gr.drawarc(0.5 - rect, 0.5 + rect, 0.5 - rect, 0.5 + rect, binedges[x] * convert,
+                                       binedges[x + 1] * convert)
+                        except Exception:
+                            pass
+
+                if is_rlim:
+                    startx = max(rectlist[0] * np.cos(binedges[0]), r_min * 0.4 * np.cos(binedges[0]))
+                    starty = max(rectlist[0] * np.sin(binedges[0]), r_min * 0.4 * np.sin(binedges[0]))
+
+                    for x in range(len(binedges)):
+
+                        if not (binedges[0] == 0 and binedges[len(binedges) - 1] == 2 * np.pi and (
+                                x == len(binedges) - 1 or x == 0)):
+                            try:
+                                gr.polyline([0.5 + startx, 0.5 + rectlist[x] * np.cos(binedges[x])],
+                                            [0.5 + starty, 0.5 + rectlist[x] * np.sin(binedges[x])])
+                            except Exception:
+                                pass
+                        try:
+                            startx = (rectlist[x] * np.cos(binedges[x + 1]))
+                            starty = (rectlist[x] * np.sin(binedges[x + 1]))
+                        except Exception:
+                            pass
+
+                    gr.polyline([0.5 + r_min * 0.4 * np.cos(binedges[0]),
+                                 0.5 + rectlist[0] * np.cos(binedges[0])],
+                                [0.5 + r_min * 0.4 * np.sin(binedges[0]),
+                                 0.5 + rectlist[0] * np.sin(binedges[0])])
+
+                    gr.polyline([0.5 + r_min * 0.4 * np.cos(binedges[-1]),
+                                 0.5 + rectlist[-1] * np.cos(binedges[-1])],
+                                [0.5 + r_min * 0.4 * np.sin(binedges[-1]),
+                                 0.5 + rectlist[-1] * np.sin(binedges[-1])])
+                # no rlim
+                else:
+                    startx = 0
+                    starty = 0
+                    for x in range(len(binedges)):
                         pass
-
-                startx = 0
-                starty = 0
-                for x in range(len(binedges)):
-                    if not (binedges[0] == 0 and binedges[len(binedges) - 1] == 2 * np.pi and (
-                            x == len(binedges) - 1 or x == 0)):
                         try:
                             gr.polyline([0.5 + startx, 0.5 + rectlist[x] * np.cos(binedges[x])],
                                         [0.5 + starty, 0.5 + rectlist[x] * np.sin(binedges[x])])
+                            startx = (rectlist[x] * np.cos(binedges[x + 1]))
+                            starty = (rectlist[x] * np.sin(binedges[x + 1]))
                         except Exception:
                             pass
-                    try:
-                        startx = (rectlist[x] * np.cos(binedges[x + 1]))
-                        starty = (rectlist[x] * np.sin(binedges[x + 1]))
-                    except Exception:
-                        pass
-                if binedges[0] == 0 and binedges[-1] == 2 * np.pi:
-                    gr.polyline([0.5 + rectlist[0] * np.cos(binedges[0]), 0.5 + startx],
-                                [0.5 + rectlist[0] * np.sin(binedges[0]), 0.5 + starty])
-                else:
-                    gr.polyline([0.5 + rectlist[-1] * np.cos(binedges[-1]), 0.5],
-                                [0.5 + rectlist[-1] * np.sin(binedges[-1]), 0.5])
 
+                    if binedges[0] == 0 and binedges[-1] == 2 * np.pi:
+                        gr.polyline([0.5 + rectlist[0] * np.cos(binedges[0]), 0.5 + startx],
+                                    [0.5 + rectlist[0] * np.sin(binedges[0]), 0.5 + starty])
+                    else:
+                        gr.polyline([0.5 + rectlist[-1] * np.cos(binedges[-1]), 0.5],
+                                    [0.5 + rectlist[-1] * np.sin(binedges[-1]), 0.5])
+
+            # Normal stairs (no bin_edges)
             else:
-                # Normal stairs
                 mlist = []
                 for x in range(len(classes)):
-                    if classes[x][0] is None:
-                        continue
+
                     if normalization == 'cumcount' or normalization == 'cdf':
-                        length = length + len(classes[x]) / norm_factor
+                        if classes[x][0] is None:
+                            pass
+                        else:
+                            length = length + len(classes[x]) / norm_factor
+                    elif classes[x][0] is None:
+                        continue
                     else:
                         length = len(classes[x]) / norm_factor
 
@@ -4116,18 +4275,58 @@ def _plot_polar_histogram():
                             gr.drawarc(0.5 - r_min * 0.4, 0.5 + r_min * 0.4, 0.5 - r_min * 0.4, 0.5 + r_min * 0.4,
                                        x * (360 / num_bins),
                                        (x + 1) * (360 / num_bins))
-
+                    # no rlim
                     else:
                         gr.drawarc(0.5 - rect, 0.5 + rect, 0.5 - rect, 0.5 + rect, x * (360 / num_bins),
-                               (x + 1) * (360 / num_bins))
+                                   (x + 1) * (360 / num_bins))
+                if is_rlim:
+                    for x in range(len(classes) * 2):
+                        if x > 1 and x % 2 == 0:
+                            rect1 = np.sqrt(mlist[x][0]**2 + mlist[x][1]**2)
+                            rect1 = round(int(rect1 * 10000) / 10000, 3)
+                            rect2 = np.sqrt(mlist[x - 1][0]**2 + mlist[x - 1][1]**2)
+                            rect2 = round(int(rect2 * 10000) / 10000, 3)
 
-                for x in range(len(classes) * 2):
-                    if x > 1 and x % 2 == 0:
-                        y = x
-                        gr.polyline([0.5 + mlist[y][0], 0.5 + mlist[y - 1][0]],
-                                    [0.5 + mlist[y][1], 0.5 + mlist[y - 1][1]])
-                gr.polyline([0.5 + mlist[len(mlist) - 1][0], 0.5 + mlist[0][0]],
-                            [0.5 + mlist[len(mlist) - 1][1], 0.5 + mlist[0][1]])
+                            if rect1 < (r_min * 0.4) and rect2 < (r_min * 0.4):
+                                continue
+                            if rect1 < r_min * 0.4:
+                                mlist[x][0] = r_min * 0.4 * np.cos(np.pi / len(classes) * x)
+                                mlist[x][1] = r_min * 0.4 * np.sin(np.pi / len(classes) * x)
+
+                            if rect2 < r_min * 0.4:
+                                mlist[x - 1][0] = r_min * 0.4 * np.cos(np.pi / len(classes) * x)
+                                mlist[x - 1][1] = r_min * 0.4 * np.sin(np.pi / len(classes) * x)
+
+                            gr.polyline([0.5 + mlist[x][0], 0.5 + mlist[x - 1][0]],
+                                        [0.5 + mlist[x][1], 0.5 + mlist[x - 1][1]])
+
+                    mlist[-1][0] = max(mlist[-1][0], r_min * 0.4 * np.cos(0))
+                    mlist[-1][1] = max(mlist[-1][1], r_min * 0.4 * np.sin(0))
+                    mlist[0][0] = max(mlist[0][0], r_min * 0.4 * np.cos(0))
+                    mlist[0][1] = max(mlist[0][1], r_min * 0.4 * np.sin(0))
+
+                    gr.polyline([0.5 + mlist[-1][0], 0.5 + mlist[0][0]],
+                                [0.5 + mlist[-1][1], 0.5 + mlist[0][1]])
+
+                else:
+                    for x in range(len(classes) * 2):
+                        if x > 1 and x % 2 == 0:
+                            gr.polyline([0.5 + mlist[x][0], 0.5 + mlist[x - 1][0]],
+                                        [0.5 + mlist[x][1], 0.5 + mlist[x - 1][1]])
+                    gr.polyline([0.5 + mlist[-1][0], 0.5 + mlist[0][0]],
+                                [0.5 + mlist[-1][1], 0.5 + mlist[0][1]])
+
+    if temp_edge is not None:
+        red = (temp_edge % 256) / 255
+        green = ((temp_edge >> 8) % 256) / 255
+        blue = ((temp_edge >> 16) % 256) / 255
+        gr.setcolorrep(1004, red, green, blue)
+
+    if temp_face is not None:
+        red = (temp_face % 256) / 255
+        green = ((temp_face >> 8) % 256) / 255
+        blue = ((temp_face >> 16) % 256) / 255
+        gr.setcolorrep(1004, red, green, blue)
 
     gr.updatews()
 
@@ -4281,15 +4480,3 @@ def _plot_args(args, fmt='xys'):
                 c = args.pop(0)
         parsed_args.append((x, y, z, c, spec))
     return parsed_args
-
-if __name__ == '__main__':
-    # theta = [0.1, 1.1, 5.4, 3.4, 2.3, 4.5, 3.2, 3.4, 5.6, 2.3, 2.1, 3.5, 0.6, 6.1]
-    theta = [0.1, 1.1, 1, 2.1, 4, 2, 5.6, 5.4, 3.4, 2.3, 4.5, 3.2, 3.3, 3.4, 5.6, 2.3, 2.1, 3.5, 0.6, 6.1]
-    pi = np.pi
-    # random_theta = np.random.rand(1, 10000) * 2 * np.pi
-    # theta = random_theta
-    col = (1, 1, 500)
-    rlim(0.1, 0.75)
-    # philim(0, 3)
-    polar_histogram(theta, colormap=col, draw_edges=True, edge_color=222, bin_edges=[0, pi/3, pi*1.33, pi*2])
-    input()
