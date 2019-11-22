@@ -6,8 +6,9 @@ import platform
 
 from nose import with_setup
 
-from gr_test import CompareResult, image_data, video_data
-
+from gr_test import CompareResult
+from gr_test import python_image as image_data
+from gr_test import python_video as video_data
 base_path = os.path.abspath(os.path.dirname(os.path.realpath(__name__)) + '/../../test_result/')
 
 if 'GR_TEST_BASE_PATH' in os.environ:
