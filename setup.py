@@ -134,6 +134,8 @@ class DownloadBinaryDistribution(build_py):
                     return 'Debian'
                 if 'ID=arch' in release_info:
                     return 'ArchLinux'
+                if 'ID="opensuse-tumbleweed"' in release_info:
+                    return 'CentOS'
             if '/etc/redhat-release' in release_file_names:
                 if 'release 7' in release_info:
                     return 'CentOS'
