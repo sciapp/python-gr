@@ -946,12 +946,12 @@ def polar_histogram(*args, **kwargs):
         raise ValueError('List is empty')
     for obj in theta:
         if isinstance(obj, float):
-            is_bincounts = False
+            has_theta = True
             break
         elif isinstance(obj, int):
-            is_bincounts = True
+            has_theta = False
 
-    if is_bincounts:
+    if not has_theta:
         if is_binedges:
             if len(binedges) is not len(theta) + 1:
                 raise ValueError('Number bin_edges must be number of Bincounts + 1')
@@ -968,10 +968,10 @@ def polar_histogram(*args, **kwargs):
 
         if is_colormap:
             if not is_binedges:
-                angles = np.linspace(0, np.pi * 2, num_bins)
+                angles = np.linspace(0, np.pi * 2, num_bins + 1)
 
         # Philim for bincounts
-        if _plt.kwargs.get('philim', False) is not False:
+        if _plt.kwargs.get('philim', None) is not None:
             binlimits = _plt.kwargs['philim']
             if binlimits[0] is None:
                 binlimits = (0, binlimits[1])
@@ -994,7 +994,7 @@ def polar_histogram(*args, **kwargs):
     else:
 
         # Number of bins
-        if 'num_bins' in _plt.kwargs:
+        if _plt.kwargs.get('num_bins', None) is not None:
             num_bins = _plt.kwargs['num_bins']
             if num_bins < 1:
                 raise ValueError('Number of num_bins must be 1 or larger')
@@ -1020,7 +1020,7 @@ def polar_histogram(*args, **kwargs):
             width = 2 * np.pi / num_bins
 
         # Philim
-        if _plt.kwargs.get('philim', False) is not False:
+        if _plt.kwargs.get('philim', None) is not None:
             is_binlimits = True
             binlimits = _plt.kwargs['philim']
             if binlimits[0] is None:
@@ -1030,8 +1030,9 @@ def polar_histogram(*args, **kwargs):
 
             if not is_binedges:
                 if _plt.kwargs.get('num_bins', None) is None:
-                    num_bins = int(num_bins * (binlimits[1] - binlimits[0]) / (np.pi * 2))
-                binedges = np.linspace(binlimits[0], binlimits[1], num_bins)
+                    num_bins = max(int(num_bins * (binlimits[1] - binlimits[0]) / (np.pi * 2)), 3)
+
+                binedges = np.linspace(binlimits[0], binlimits[1], num_bins + 1)
                 is_binedges = True
                 _plt.kwargs['temp_bin_edges'] = binedges
             else:
@@ -1168,7 +1169,7 @@ def polar_histogram(*args, **kwargs):
 
         # r_lim
         if _plt.kwargs.get('rlim', None) is not None:
-            if is_bincounts:
+            if not has_theta:
                 pass
             r_lim = _plt.kwargs['rlim']
             if r_lim[0] is None:
@@ -1290,7 +1291,7 @@ def polar_histogram(*args, **kwargs):
         lineardata[np.logical_not(boolmap.flatten())] = 0
         _plt.kwargs['temp_colormap'] = (height, width, lineardata)
 
-    _plt.kwargs['num_bins'] = num_bins
+    # _plt.kwargs['num_bins'] = num_bins
     _plt.kwargs['border_exp'] = (border, exp)
 
     if is_binedges:
@@ -3698,7 +3699,7 @@ def _plot_polar_histogram():
 
     gr.settransparency(0.8)
 
-    num_bins = _plt.kwargs['num_bins']
+    num_bins = len(classes)
 
     if _plt.kwargs.get('rlim', None) is not None:
         r_min = _plt.kwargs['rlim']
@@ -3775,7 +3776,7 @@ def _plot_polar_histogram():
         if 'draw_edges' in _plt.kwargs:
             if _plt.kwargs['draw_edges'] is True:
                 gr.setlinecolorind(edgecolor)
-                gr.setlinewidth(2)
+                gr.setlinewidth(1.5)
 
                 if is_binedges:
                     if normalization == 'countdensity':
@@ -4106,7 +4107,7 @@ def _plot_polar_histogram():
 
         # stairs
         else:
-            gr.setlinewidth(3)
+            gr.setlinewidth(2.3)
             gr.setlinecolorind(edgecolor)
 
             # With given bin_edges
@@ -4124,7 +4125,7 @@ def _plot_polar_histogram():
                     elif normalization == 'pdf' or normalization == 'countdensity':
                         length = bin_value[x]
                     elif classes[x][0] is None:
-                        continue
+                        length = 0
                     else:
                         length = len(classes[x]) / norm_factor
 
@@ -4231,6 +4232,7 @@ def _plot_polar_histogram():
 
             # Normal stairs (no bin_edges)
             else:
+
                 mlist = []
                 for x in range(len(classes)):
 
@@ -4240,7 +4242,7 @@ def _plot_polar_histogram():
                         else:
                             length = length + len(classes[x]) / norm_factor
                     elif classes[x][0] is None:
-                        continue
+                        length = 0
                     else:
                         length = len(classes[x]) / norm_factor
 
