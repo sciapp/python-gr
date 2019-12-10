@@ -864,9 +864,8 @@ def polar_histogram(*args, **kwargs):
 
     - colormap: A triple tuple used to create a Colormap. (x, y, size). x = index for the first Colormap. Y for the second.
       size for the size of the colormap. each component must be given! At least (None, None, None)
-    * draw_edges: Boolean, draws the edges of each bin when using a colormap.
 
-
+    - draw_edges: Boolean, draws the edges of each bin when using a colormap. Only works with a colormap
 
     :param args: a list
 
@@ -891,7 +890,7 @@ def polar_histogram(*args, **kwargs):
     _plt.kwargs['ax'] = True
     _plt.args = _plot_args(args, fmt='xys')
 
-    def findMax(classes, normalization):
+    def find_max(classes, normalization):
         if normalization == 'cumcount':
             sum = 0
             for x in range(len(classes)):
@@ -1104,12 +1103,12 @@ def polar_histogram(*args, **kwargs):
     exp = 0
     if normalization == 'probability' or normalization == 'pdf':
         if normalization == 'probability':
-            maximum = findMax(classes, normalization) / total
+            maximum = find_max(classes, normalization) / total
         elif normalization == 'pdf':
             if is_binedges:
                 maximum = max(bin_value)
             else:
-                maximum = findMax(classes, normalization) / (total * width)
+                maximum = find_max(classes, normalization) / (total * width)
         exp = round(np.log10(maximum) + 0.5)
         border = round((maximum * (10 ** (abs(exp) + 1))) / (10 ** (round(abs(exp) + 1))))
         while border < maximum or border * 10 ** (abs(exp) + 2) % 4 != 0:
@@ -1124,12 +1123,12 @@ def polar_histogram(*args, **kwargs):
             if normalization == 'countdensity':
                 maximum = round(max(bin_value) + 0.49)
             else:
-                maximum = int(findMax(classes, normalization))
+                maximum = int(find_max(classes, normalization))
         else:
             if normalization == 'countdensity':
-                maximum = int(findMax(classes, normalization) / width)
+                maximum = int(find_max(classes, normalization) / width)
             else:
-                maximum = int(findMax(classes, normalization))
+                maximum = int(find_max(classes, normalization))
 
         border = maximum
         outer = True
