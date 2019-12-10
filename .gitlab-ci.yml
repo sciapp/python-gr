@@ -51,29 +51,6 @@ check-codestyle:
   # Ignore single-line docstring check (D200)
   - env/bin/python -m flake8 --ignore E501,D200 gr/pygr/mlab.py
 
-# check-images:
-#   stage: install
-#   image: ubuntu:18.04
-#   dependencies:
-#   - build
-#   variables:
-#     GIT_STRATEGY: none
-#   script:
-#   - apt-get update
-#   - apt-get install -y python3-venv python3-pip git
-#   - python3 -m venv env
-#   - env/bin/pip install --upgrade pip
-#   - env/bin/pip install dist/gr-*.tar.gz
-#   - env/bin/pip install git+https://gitlab-ci-token:${CI_JOB_TOKEN}@iffgit.fz-juelich.de/heuwes/gr-test.git
-#   - source env/bin/activate
-#
-#   - python3 -c 'from gr_test import create_files; create_files("TEST")'
-#   - gr_compare_folders.py
-#   artifacts:
-#     paths:
-#     - test_result/
-#     when: on_failure
-#
 install-ubuntu1604-python2:
   stage: install
   image: ubuntu:16.04
