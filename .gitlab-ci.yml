@@ -20,16 +20,10 @@ build:
 
 install-tox:
   stage: install
-  image: iffregistry.fz-juelich.de/docker-images/python-testing/debian:latest
+  image: iffregistry.fz-juelich.de/scientific-it-systems/gr-test/python-testing
   variables:
     GIT_STRATEGY: none
   script:
-  - apt-get update
-  - apt-get install -y git libxt6 libxrender1 libgl1-mesa-glx imagemagick ffmpeg
-  - pip3.7 install cairosvg
-  - echo '#!/bin/bash' > /usr/local/bin/cairosvg
-  - echo `which python3.7` ' -m cairosvg $@' >> /usr/local/bin/cairosvg
-  - chmod +x /usr/local/bin/cairosvg
   - export GR_TEST_BASE_PATH=`pwd`/test_result/
   - tox
   artifacts:
