@@ -2766,7 +2766,7 @@ def interp2(x, y, z, xq, yq, method, extrapval, flatten=True):
 
 def shadepoints(x, y, dims=(1200, 1200), xform=1):
     """
-    Display a point set as an aggregated and rasterized image.
+    Display a point set as an aggregated and rasterized image using the current GR colormap.
 
     **Parameters:**
 
@@ -2807,7 +2807,7 @@ def shadepoints(x, y, dims=(1200, 1200), xform=1):
 
 def shadelines(x, y, dims=(1200, 1200), xform=1):
     """
-    Display a line set as an aggregated and rasterized image.
+    Display a line set as an aggregated and rasterized image using the current GR colormap.
 
     **Parameters:**
 
