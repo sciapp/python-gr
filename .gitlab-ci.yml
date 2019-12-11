@@ -23,6 +23,8 @@ install-tox:
   image: iffregistry.fz-juelich.de/scientific-it-systems/gr-test/python-testing
   variables:
     GIT_STRATEGY: none
+  needs:
+    - build
   script:
   - export GR_TEST_BASE_PATH=`pwd`/test_result/
   - tox
@@ -32,7 +34,7 @@ install-tox:
     when: on_failure
 
 check-codestyle:
-  stage: install
+  stage: build
   image: ubuntu:18.04
   script:
   - apt-get update
