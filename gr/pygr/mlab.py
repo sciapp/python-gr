@@ -887,6 +887,11 @@ def polar_histogram(*args, **kwargs):
     """
     global _plt
 
+    if _plt.kwargs.get('ax', False) is False:
+        temp_ax = False
+    else:
+        temp_ax = True
+
     _plt.kwargs['ax'] = True
     _plt.args = _plot_args(args, fmt='xys')
 
@@ -1298,6 +1303,8 @@ def polar_histogram(*args, **kwargs):
             _plt.kwargs['norm_factor'] = total
 
     _plot_data(kind='polar_histogram')
+    _plt.kwargs['ax'] = temp_ax
+    del temp_ax
 
 
 @_close_gks_on_error
@@ -3671,6 +3678,7 @@ def _plot_polar_histogram():
     gr.clearws()
     gr.setviewport(0, 1, 0, 1)
     gr.setlinewidth(1)
+    gr.setwindow(0, 1, 0, 1)
 
     convert = 180 / np.pi
     norm_factor = _plt.kwargs['norm_factor']
