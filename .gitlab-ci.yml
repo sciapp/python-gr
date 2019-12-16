@@ -20,13 +20,18 @@ build:
 
 install-tox:
   stage: install
-  image: iffregistry.fz-juelich.de/docker-images/python-testing/debian:latest
+  image: iffregistry.fz-juelich.de/scientific-it-systems/gr-test/python-testing
   variables:
     GIT_STRATEGY: none
+  needs:
+    - build
   script:
-  - apt-get update
-  - apt-get install -y git libxt6 libxrender1 libgl1-mesa-glx
+  - export GR_TEST_BASE_PATH=`pwd`/test_result/
   - tox
+  artifacts:
+    paths:
+    - test_result/
+    when: on_failure
 
 check-codestyle:
   stage: build
