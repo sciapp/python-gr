@@ -55,8 +55,8 @@ class GRWidget(QWidget):
         super(GRWidget, self).__init__(*args, **kwargs)
         self._sizex, self._sizey = 1., 1.
         self._dwidth, self._dheight = self.width(), self.height()
-        self._mwidth = self.widthMM() * 0.001
-        self._mheight = self.heightMM() * 0.001
+        self._mwidth = self._dwidth * 2.54 / self.physicalDpiX() / 100.
+        self._mheight = self._dheight * 2.54 / self.physicalDpiY() / 100.
         self._keepRatio = False
         self._bgColor = QtCore.Qt.white
         os.environ["GKS_WSTYPE"] = "381" # GKS Qt Plugin
@@ -74,8 +74,8 @@ class GRWidget(QWidget):
 
     def resizeEvent(self, event):
         self._dwidth, self._dheight = self.width(), self.height()
-        self._mwidth = self.widthMM() * 0.001
-        self._mheight = self.heightMM() * 0.001
+        self._mwidth = self._dwidth * 2.54 / self.physicalDpiX() / 100.
+        self._mheight = self._dheight * 2.54 / self.physicalDpiY() / 100.
         if self._mwidth > self._mheight:
             self._sizex = 1.
             if self.keepRatio:
