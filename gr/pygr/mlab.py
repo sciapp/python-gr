@@ -824,6 +824,7 @@ def polar_histogram(*args, **kwargs):
     It can also receive:
 
     - normalization: type of normalization in which the histogram will be displayed
+
         + count: the default normalization.  The height of each bar is the number of observations in each bin.
         + probability: The height of each bar is the relative number of observations,
           (number of observations in bin/total number of observations).
@@ -1295,7 +1296,6 @@ def polar_histogram(*args, **kwargs):
         lineardata[np.logical_not(boolmap.flatten())] = 0
         _plt.kwargs['temp_colormap'] = (height, width, lineardata)
 
-    # _plt.kwargs['num_bins'] = num_bins
     _plt.kwargs['border_exp'] = (border, exp)
 
     if is_binedges:
@@ -3675,8 +3675,19 @@ def _plot_polar_histogram():
     temp_face = None
     temp_edge = None
 
-    gr.clearws()
-    gr.setviewport(0, 1, 0, 1)
+    vp = _plt.kwargs['subplot']
+    if vp[1] - vp[0] > 0.99 and vp[3] - vp[2] > 0.99:
+        pass
+    else:
+        _set_viewport('polar_histogram', vp)
+        vp = gr.inqviewport()
+        vp[3] = vp[2] + vp[1] - vp[0]
+        temp_add = (vp[1] - vp[0]) * 0.25
+        vp[1] -= temp_add
+        vp[3] -= temp_add
+
+    vp[3] = vp[2] + vp[1] - vp[0]
+    gr.setviewport(vp[0], vp[1], vp[2], vp[3])
     gr.setlinewidth(1)
     gr.setwindow(0, 1, 0, 1)
 
@@ -3748,26 +3759,30 @@ def _plot_polar_histogram():
 
     # drawing the circles + x-Axis numbers
     gr.settextalign(1, 1)
+    window_width = (vp[1] - vp[0])
+    center_x = window_width / 2 + vp[0]
+    center_y = (vp[3] - vp[2]) / 2 + vp[2]
+
     for x in range(4):
         gr.drawarc((0.1 + x * 0.1), (0.9 - 0.1 * x), (0.1 + x * 0.1), (0.9 - 0.1 * x), 0, 360)
         if normalization == 'count' or normalization == 'cumcount':
-            gr.text(0.51, 0.5 + (x + 1) * 0.1, str(int((x + 1) * border / 4)))
+            gr.text(center_x * 1.02, center_y + (x + 1) * window_width * 0.8 / 2 / 4, str(int((x + 1) * border / 4)))
         else:
             if normalization == 'probability':
-                gr.text(0.51, 0.5 + (x + 1) * 0.1,
+                gr.text(center_x * 1.02, center_y + (x + 1) * window_width * 0.8 / 2 / 4,
                         str(round(((x + 1) * border / 4) * 10 ** (exp + 2 + int(num_bins / 25))) / 10 ** (
                             exp + 2 + int(num_bins / 25))))
             else:
-                gr.text(0.51, 0.5 + (x + 1) * 0.1,
+                gr.text(center_x * 1.02, center_y + (x + 1) * window_width * 0.8 / 2 / 4,
                         str(round(((x + 1) * border / 4) * 10 ** (exp + 3)) / 10 ** (exp + 3)))
 
-    # drawinng lines
+    # drawinng lines + angle
     number = 0
     gr.settextalign(2, 3)
     for x in range(12):
         liste = moivre(0.4 ** 12, x, 12)
         gr.polyline([0.5, 0.5 + (1 * liste[0])], [0.5, 0.5 + (1 * liste[1])])
-        gr.text(0.5 + (liste[0]) * 1.1, 0.5 + liste[1] * 1.1, str(number))
+        gr.text(center_x + (liste[0]) * window_width * 1.15, center_y + liste[1] * window_width * 1.15, str(number))
         number += 30
 
     gr.settransparency(facealpha)
