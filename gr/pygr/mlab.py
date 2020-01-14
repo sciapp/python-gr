@@ -3677,16 +3677,38 @@ def _plot_polar_histogram():
 
     vp = _plt.kwargs['subplot']
     if vp[1] - vp[0] > 0.99 and vp[3] - vp[2] > 0.99:
-        pass
+        if 'title' in _plt.kwargs:
+            gr.savestate()
+            gr.settextalign(gr.TEXT_HALIGN_CENTER, gr.TEXT_VALIGN_TOP)
+            gr.textext(0.5 * (vp[0] + vp[1]), 0.95, _plt.kwargs['title'])
+            gr.restorestate()
+
+        vp = [0.1, 0.9, 0.1, 0.9]
+
     else:
+        vp[3] = vp[2] + vp[1] - vp[0]
         _set_viewport('polar_histogram', vp)
         vp = gr.inqviewport()
         vp[3] = vp[2] + vp[1] - vp[0]
         temp_add = (vp[1] - vp[0]) * 0.25
-        vp[1] -= temp_add
-        vp[3] -= temp_add
 
-    vp[3] = vp[2] + vp[1] - vp[0]
+        if 'title' in _plt.kwargs:
+            factor = 0.3
+            vp[0] += temp_add * 2 * factor
+            vp[1] -= temp_add * 2 * factor
+            gr.savestate()
+            gr.settextalign(gr.TEXT_HALIGN_CENTER, gr.TEXT_VALIGN_TOP)
+            gr.textext(0.5 * (vp[0] + vp[1]), vp[3] - temp_add * 4 * 0.25, _plt.kwargs['title'])
+            gr.restorestate()
+
+            vp[3] -= temp_add * 4 * factor
+            del factor
+        else:
+            vp[1] -= temp_add
+            vp[3] -= temp_add
+
+        del temp_add
+
     gr.setviewport(vp[0], vp[1], vp[2], vp[3])
     gr.setlinewidth(1)
     gr.setwindow(0, 1, 0, 1)
