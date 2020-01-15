@@ -810,6 +810,503 @@ def bar(y, *args, **kwargs):
     _plot_data(kind='bar')
 
 
+def polar_histogram(*args, **kwargs):
+    """
+    Draw a polar histogram plot.
+
+    This function uses certain input values to display a polar histogram.
+
+    It must receive only one of the following:
+
+    - theta: a list containing angles between 0 and 2 * pi
+    - bin_counts: a list containing integer values for the height of bins
+
+    It can also receive:
+
+    - normalization: type of normalization in which the histogram will be displayed
+
+        + count: the default normalization.  The height of each bar is the number of observations in each bin.
+        + probability: The height of each bar is the relative number of observations,
+          (number of observations in bin/total number of observations).
+          The sum of the bar heights is 1.
+        + countdensity: The height of each bar is the number of observations in bin/width of bin.
+        + pdf: Probability density function estimate. The height of each bar is,
+          (number of observations in the bin)/(total number of observations * width of bin).
+          The area of each bar is the relative number of observations. The sum of the bar areas is 1
+        + cumcount: The height of each bar is the cumulative number of observations in each bin and all previous bins.
+          The height of the last bar is numel (theta).
+        + cdf: Cumulative density function estimate. The height of each bar is equal to the cumulative relative
+          number of observations in the bin and all previous bins. The height of the last bar is 1.
+
+    - stairs: Boolean, display the histogram outline only
+
+    - face_alpha: float value between 0 and 1 inclusive. Transparency of histogram bars. A value of 1 means fully opaque
+      and 0 means completely transparent (invisible). Default is 0.75
+
+    - face_color: Histogram bar color. Either an integer between 0 and 1008 or a list with three floats between 0 and 1
+      representing an RGB Triplet
+
+    - edge_color: Histogram bar edgecolor. Either an integer between 0 and 1008 or a list with three floats
+      between 0 and 1 representing an RGB Triplet
+
+    - num_bins: Number of bins specified as a positive integer. If no bins are given, the polarhistogram will automatically
+      calculate the number of bins
+
+    - philim: a tuple containing two angle values [min, max]. This option  plots a histogram using the input values
+      (theta) that fall between min and max inclusive.
+
+    - rlim: a tuple containing two values between 0 and 1 (min, max). This option plots a histogram with bins starting at
+      min and ending at max
+
+    - bin_edges: a list of angles between 0 and 2 * pi which specify the Edges of each bin/bar.
+      NOT COMPATIBLE with bin_limits. When used with bin_counts: len(bin_edges) == len(bin_counts) + 1
+
+    - bin_width: Width across the top of bins, specified as a float less than 2 * pi
+
+    - colormap: A triple tuple used to create a Colormap. (x, y, size). x = index for the first Colormap. Y for the second.
+      size for the size of the colormap. each component must be given! At least (None, None, None)
+
+    - draw_edges: Boolean, draws the edges of each bin when using a colormap. Only works with a colormap
+
+    :param args: a list
+
+
+    **Usage examples:**
+
+    >>> # create a theta list
+    >>> theta = [0, 0.6, 1, 1.3, np.pi/2, np.pi, np.pi*2, np.pi*2]
+    >>> polar_histogram(theta)
+    >>> # create bin_counts
+    >>> bc = [1, 2, 6, 9]
+    >>> polar_histogram(theta, bin_counts=bc)
+    >>> #create bin_edges
+    >>> be = [1, 2, np.pi*1.3, np.pi]
+    >>> polar_histogram(theta, bin_edges=be)
+    >>> polar_histogram(theta, normalization='cdf')
+    >>> polar_histogram(theta, colormap=(0,0,1000))
+
+    """
+    global _plt
+
+    if _plt.kwargs.get('ax', False) is False:
+        temp_ax = False
+    else:
+        temp_ax = True
+
+    _plt.kwargs['ax'] = True
+    _plt.args = _plot_args(args, fmt='xys')
+
+    def find_max(classes, normalization):
+        if normalization == 'cumcount':
+            sum = 0
+            for x in range(len(classes)):
+                sum += len(classes[x])
+            return sum
+
+        else:
+            max = len(classes[0])
+            for x in range(len(classes)):
+                if max < len(classes[x]):
+                    max = len(classes[x])
+            return max
+
+    _plt.kwargs.update(kwargs)
+    classes = []
+    gr.setlinecolorind(1)
+    angles = []
+
+    # Color Map
+    if _plt.kwargs.get('colormap') is not None:
+        is_colormap = True
+        colormap = _plt.kwargs['colormap']
+        if isinstance(colormap, tuple):
+            colormap = _create_colormap(colormap)
+    else:
+        is_colormap = False
+
+    if _plt.kwargs.get('draw_edges') is True and not is_colormap:
+        raise ValueError('draw_edges only usable with a colormap')
+
+    # bin_edges
+    if _plt.kwargs.get('bin_edges', None) is not None:
+        binedges = _plt.kwargs['bin_edges']
+        is_binedges = True
+    else:
+        is_binedges = False
+
+    # normalization
+    if _plt.kwargs.get('normalization') is not None:
+        normalization = _plt.kwargs['normalization']
+    else:
+        normalization = 'count'
+        _plt.kwargs['normalization'] = 'count'
+
+    # Bincounts or theta
+    if _plt.kwargs.get('theta') is not None:
+        theta = _plt.kwargs['theta']
+    else:
+        theta = args[0]
+    # theta check
+    if len(theta) == 0:
+        raise ValueError('List is empty')
+    for obj in theta:
+        if isinstance(obj, float):
+            has_theta = True
+            break
+        elif isinstance(obj, int):
+            has_theta = False
+
+    if not has_theta:
+        if is_binedges:
+            if len(binedges) is not len(theta) + 1:
+                raise ValueError('Number bin_edges must be number of Bincounts + 1')
+
+        for x in range(len(theta)):
+            classes.append([])
+            if theta[x] == 0:
+                classes[x].append(None)
+                continue
+            for y in range(theta[x]):
+                classes[x].append(y)
+        num_bins = len(theta)
+        width = 2 * np.pi / num_bins
+
+        if is_colormap:
+            if not is_binedges:
+                angles = np.linspace(0, np.pi * 2, num_bins + 1)
+
+        # Philim for bincounts
+        if _plt.kwargs.get('philim', None) is not None:
+            binlimits = _plt.kwargs['philim']
+            if binlimits[0] is None:
+                binlimits = (0, binlimits[1])
+            if binlimits[1] is None:
+                binlimits = (binlimits[0], 2 * np.pi)
+
+            if not is_binedges:
+                binedges = np.linspace(binlimits[0], binlimits[1], num_bins + 1)
+                is_binedges = True
+                _plt.kwargs['temp_bin_edges'] = binedges
+            else:
+                binedges = [angle for angle in binedges if (binlimits[0] <= angle <= binlimits[1])]
+                if len(binedges) != num_bins + 1:
+                    raise ValueError('The given binedges is not compatible with philim since the number of angles,'
+                                     ' which are in between the philims, does not equal len(bincounts) + 1 ')
+                is_binedges = True
+                _plt.kwargs['temp_bin_edges'] = binedges
+
+    # No bin_counts
+    else:
+
+        # Number of bins
+        if _plt.kwargs.get('num_bins', None) is not None:
+            num_bins = _plt.kwargs['num_bins']
+            if num_bins < 1:
+                raise ValueError('Number of num_bins must be 1 or larger')
+        else:
+            # Auto generated num_bins
+            num_bins = min(int(len(theta) / 2 - 1), 200)
+            if is_binedges:
+                num_bins = len(binedges) - 1
+
+        start = 0
+
+        # Bin Width --> will overwrite the number of bins but it will not exceed 200
+
+        if _plt.kwargs.get('bin_width') is not None:
+            width = _plt.kwargs['bin_width']
+            if not width < np.pi * 2 or not width > 0:
+                raise ValueError('bin_width not correct! Must be between 0 and 2*pi')
+            num_bins = int(2 * np.pi / width)
+            if num_bins > 200:
+                num_bins = 200
+                width = 2 * np.pi / num_bins
+        else:
+            width = 2 * np.pi / num_bins
+
+        # Philim
+        if _plt.kwargs.get('philim', None) is not None:
+            is_binlimits = True
+            binlimits = _plt.kwargs['philim']
+            if binlimits[0] is None:
+                binlimits = (0, binlimits[1])
+            if binlimits[1] is None:
+                binlimits = (binlimits[0], 2 * np.pi)
+
+            if not is_binedges:
+                if _plt.kwargs.get('num_bins', None) is None:
+                    num_bins = max(int(num_bins * (binlimits[1] - binlimits[0]) / (np.pi * 2)), 3)
+
+                binedges = np.linspace(binlimits[0], binlimits[1], num_bins + 1)
+                is_binedges = True
+                _plt.kwargs['temp_bin_edges'] = binedges
+            else:
+                binedges = [angle for angle in binedges if (binlimits[0] <= angle <= binlimits[1])]
+                is_binedges = True
+                _plt.kwargs['temp_bin_edges'] = binedges
+                num_bins = len(binedges) - 1
+        else:
+            is_binlimits = False
+
+        # grouping the data from given theta
+        if is_binedges:
+            for x in range(len(binedges)):
+                start = binedges[x]
+                classes.append([])
+                for y in range(len(theta)):
+                    try:
+                        if start < theta[y] <= binedges[x + 1]:
+
+                            if is_binlimits:
+                                if binlimits[0] <= theta[y] <= binlimits[1]:
+                                    classes[x].append(theta[y])
+                            else:
+                                classes[x].append(theta[y])
+                    except Exception:
+                        pass
+                if len(classes[x]) == 0:
+                    classes[x].append(None)
+        # no Binedges
+        else:
+            # Optional Bin Limits
+            if is_binlimits:
+                theta = [angle for angle in theta if binlimits[0] <= angle <= binlimits[1]]
+            interval = 2 * np.pi / num_bins
+            for x in range(num_bins):
+                classes.append([])
+                for y in range(len(theta)):
+                    if start <= theta[y] < (start + interval):
+                        classes[x].append(theta[y])
+
+                if is_colormap:
+                    # angles list for colormap
+                    angles.append([start, start + interval])
+                if len(classes[x]) == 0:
+                    classes[x].append(None)
+                start += interval
+
+    _plt.kwargs['classes'] = classes
+
+    # calc total
+    total = 0
+    for temp in classes:
+        total += len(temp) - temp.count(None)
+
+    if is_binedges:
+        if normalization == 'pdf':
+            norm_factor = total
+        elif normalization == 'countdensity':
+            norm_factor = 1
+        binwidths = []
+
+        classes = [temp for temp in classes if len(temp) > 0]
+        for i in range(len(binedges) - 1):
+            binwidths.append(binedges[i + 1] - binedges[i])
+        binwidths.append(binedges[-1] - binedges[-2])
+        if normalization == 'countdensity' or normalization == 'pdf':
+            bin_value = [len(x) / (norm_factor * binwidths[i]) for (i, x) in enumerate(classes)]
+
+    exp = 0
+    if normalization == 'probability' or normalization == 'pdf':
+        if normalization == 'probability':
+            maximum = find_max(classes, normalization) / total
+        elif normalization == 'pdf':
+            if is_binedges:
+                maximum = max(bin_value)
+            else:
+                maximum = find_max(classes, normalization) / (total * width)
+        exp = round(np.log10(maximum) + 0.5)
+        border = round((maximum * (10 ** (abs(exp) + 1))) / (10 ** (round(abs(exp) + 1))))
+        while border < maximum or border * 10 ** (abs(exp) + 2) % 4 != 0:
+            border += 10 ** (exp - 1)
+
+    elif normalization == 'cdf':
+        border = 1
+
+    else:
+        # interval for x-Axis
+        if is_binedges:
+            if normalization == 'countdensity':
+                maximum = round(max(bin_value) + 0.49)
+            else:
+                maximum = int(find_max(classes, normalization))
+        else:
+            if normalization == 'countdensity':
+                maximum = int(find_max(classes, normalization) / width)
+            else:
+                maximum = int(find_max(classes, normalization))
+
+        border = maximum
+        outer = True
+        e = 1
+
+        while True and outer:
+            if border <= 40:
+                while border % 4 != 0:
+                    border += 1
+                break
+            else:
+                for x in range(9):
+                    border += x * 10 ** (e - 1)
+                    if border % 4 == 0:
+                        outer = False
+                        break
+                e += 1
+
+    # calc colormap image
+    if normalization == 'probability':
+        norm_factor = total
+    elif normalization == 'countdensity':
+        norm_factor = width
+    elif normalization == 'pdf':
+        norm_factor = total * width
+    elif normalization == 'cdf':
+        norm_factor = total
+    elif normalization == 'count':
+        norm_factor = 1
+    elif normalization == 'cumcount':
+        norm_factor = 1
+    else:
+        raise ValueError("Incorrect normalization Value")
+
+    _plt.kwargs['norm_factor'] = norm_factor
+    if is_colormap:
+
+        # r_lim
+        if _plt.kwargs.get('rlim', None) is not None:
+            if not has_theta:
+                pass
+            r_lim = _plt.kwargs['rlim']
+            if r_lim[0] is None:
+                r_lim = (0, r_lim[1])
+            if r_lim[1] is None:
+                r_lim = (r_lim[0], 1)
+        else:
+            r_lim = (0, 1)
+
+        height = 2000
+        width = height
+        center = width / 2
+        cumulative = []
+        length = 0
+
+        max_radius = center * 0.8
+        r_min = r_lim[0] * max_radius
+        r_max = r_lim[1] * max_radius
+        del max_radius
+
+        if normalization == 'cumcount' or normalization == 'cdf':
+            for temp in classes:
+                if temp[0] is None:
+                    if len(cumulative) > 0:
+                        cumulative.append(cumulative[-1])
+                    else:
+                        cumulative.append(0)
+                else:
+                    length += len(temp) / norm_factor / border * 0.8 * center
+                    cumulative.append(length)
+
+        factor_angle_b = len(colormap[0]) / (2 * np.pi)
+        Y, X = np.ogrid[:height, :width]
+        radiusc = np.sqrt((X - center) ** 2 + (Y - center) ** 2)
+        angle_c = np.arctan2(Y - center, X - center)
+        angle_c[angle_c < 0] += 2 * np.pi
+        angle_b = angle_c * factor_angle_b
+        factor_radiusb2 = (len(colormap) - 1) / (center * 2 ** (1 / 2))
+        radiusb2 = radiusc * factor_radiusb2
+        colormap = np.array(colormap)
+        lineardata = colormap[radiusb2.astype(np.int), angle_b.astype(np.int)].flatten()
+
+        if is_binedges:
+            if normalization == 'pdf':
+                norm_factor = total
+            if normalization == 'countdensity':
+                norm_factor = 1
+            binwidths = []
+            for i in range(len(classes)):
+                if len(classes[i]) < 1:
+                    classes.pop(i)
+            for i in range(len(binedges) - 1):
+                binwidths.append(binedges[i + 1] - binedges[i])
+            binwidths.append(binedges[-1] - binedges[-2])
+
+            if normalization == 'countdensity' or normalization == 'pdf':
+                bin_value = np.array(
+                    [len(x) / (norm_factor * binwidths[i]) / border * 0.8 * center if x[0] is not None else 0
+                     for (i, x) in enumerate(classes)])
+            else:
+                bin_value = np.array([len(x) / norm_factor / border * 0.8 * center if x[0] is not None else 0
+                                      for x in classes])
+        # no bin_edges
+        else:
+            bin_value = np.array([len(x) / norm_factor / border * 0.8 * center if x[0] is not None else 0
+                                  for x in classes])
+
+        if not is_binedges:
+            if normalization == 'cdf' or normalization == 'cumcount':
+                boolmap = np.zeros((height, width))
+                for (angle1, angle2), radius in zip(angles, cumulative):
+                    tempmap = angle1 <= angle_c
+                    tempmap = np.logical_and(angle_c <= angle2, tempmap)
+                    tempmap = np.logical_and(radiusc <= radius, tempmap)
+                    tempmap = np.logical_and(radiusc <= r_max, tempmap)
+                    tempmap = np.logical_and(r_min <= radiusc, tempmap)
+                    boolmap = np.logical_or(tempmap, boolmap)
+
+            else:
+                boolmap = np.zeros((height, width))
+                for (angle1, angle2), radius in zip(angles, bin_value):
+                    tempmap = angle1 <= angle_c
+                    tempmap = np.logical_and(angle_c <= angle2, tempmap)
+                    tempmap = np.logical_and(radiusc <= radius, tempmap)
+                    tempmap = np.logical_and(radiusc <= r_max, tempmap)
+                    tempmap = np.logical_and(r_min <= radiusc, tempmap)
+                    boolmap = np.logical_or(tempmap, boolmap)
+
+        # Binedges
+        else:
+            angles = []
+            for i in range(len(binedges) - 1):
+                angles.append([])
+                angles[i].append(binedges[i])
+                angles[i].append(binedges[i + 1])
+
+            if normalization == 'cdf' or normalization == 'cumcount':
+
+                boolmap = np.zeros((height, width))
+                for (angle1, angle2), radius in zip(angles, cumulative):
+                    tempmap = angle1 <= angle_c
+                    tempmap = np.logical_and(angle_c <= angle2, tempmap)
+                    tempmap = np.logical_and(radiusc <= radius, tempmap)
+                    tempmap = np.logical_and(radiusc <= r_max, tempmap)
+                    tempmap = np.logical_and(r_min <= radiusc, tempmap)
+                    boolmap = np.logical_or(tempmap, boolmap)
+
+            else:
+
+                boolmap = np.zeros((height, width))
+                for (angle1, angle2), radius in zip(angles, bin_value):
+                    tempmap = angle1 <= angle_c
+                    tempmap = np.logical_and(angle_c <= angle2, tempmap)
+                    tempmap = np.logical_and(radiusc <= radius, tempmap)
+                    tempmap = np.logical_and(radiusc <= r_max, tempmap)
+                    tempmap = np.logical_and(r_min <= radiusc, tempmap)
+                    boolmap = np.logical_or(tempmap, boolmap)
+
+        lineardata[np.logical_not(boolmap.flatten())] = 0
+        _plt.kwargs['temp_colormap'] = (height, width, lineardata)
+
+    _plt.kwargs['border_exp'] = (border, exp)
+
+    if is_binedges:
+        if _plt.kwargs['normalization'] == 'pdf':
+            _plt.kwargs['norm_factor'] = total
+
+    _plot_data(kind='polar_histogram')
+    _plt.kwargs['ax'] = temp_ax
+    del temp_ax
+
+
 @_close_gks_on_error
 def plot3(*args, **kwargs):
     """
@@ -1699,6 +2196,15 @@ def _set_colormap():
         return
     if isinstance(colormap, dict):
         positions, colors = zip(*sorted(list(colormap.items())))
+    if isinstance(colormap, tuple):
+
+        if isinstance(colormap[0], int):
+            gr.setcolormap(colormap[0])
+        elif isinstance(colormap[1], int):
+            gr.setcolormap(colormap[1])
+        else:
+            gr.setcolormap(1)
+        return
     else:
         positions = None
         colors = colormap
@@ -2352,6 +2858,8 @@ def _plot_data(**kwargs):
                 gr.polymarker(x, y)
         elif kind == 'bar':
             _plot_bar()
+        elif kind == 'polar_histogram':
+            _plot_polar_histogram()
         elif kind == 'quiver':
             u = z
             v = c
@@ -3068,6 +3576,805 @@ def _plot_bar():
             else:
                 gr.setlinewidth(edgewidth)
             gr.drawrect((x - 0.5 * bar_width), (x + 0.5 * bar_width), 0, y)
+
+
+def _create_colormap(tup):
+
+    if len(tup) != 3:
+        raise ValueError('colormap must be a triple tuple!')
+
+    if tup[2] is None:
+        size = 700
+    else:
+        size = tup[2]
+
+    if tup[0] is None and tup[1] is None:
+        gr.setcolormap(0)
+        COLORMAP_Y = np.array(_colormap() * 255, dtype=int)
+        COLORMAP_X = np.zeros((256, 4))
+        factor = 1
+
+    elif tup[0] is not None and tup[1] is None:
+        if isinstance(tup[0], int):
+            gr.setcolormap(tup[0])
+        elif isinstance(tup[0], str):
+            gr.setcolormap(gr.COLORMAPS[tup[0]])
+        else:
+            raise ValueError('Invalid colormap parameter')
+
+        COLORMAP_X = np.array(_colormap() * 255, dtype=int)
+        COLORMAP_Y = np.zeros((256, 4))
+        factor = 1
+
+    elif tup[0] is None and tup[1] is not None:
+        if isinstance(tup[1], int):
+            gr.setcolormap(tup[1])
+        elif isinstance(tup[1], str):
+            gr.setcolormap(gr.COLORMAPS[tup[1]])
+        else:
+            raise ValueError('Invalid colormap parameter')
+        COLORMAP_X = np.zeros((256, 4))
+        COLORMAP_Y = np.array(_colormap() * 255, dtype=int)
+        factor = 1
+
+    else:
+        if isinstance(tup[0], int):
+            gr.setcolormap(tup[0])
+        elif isinstance(tup[0], str):
+            gr.setcolormap(gr.COLORMAPS[tup[0]])
+        else:
+            raise ValueError('Invalid colormap parameter')
+        COLORMAP_X = np.array(_colormap() * 255, dtype=int)
+
+        if isinstance(tup[1], int):
+            gr.setcolormap(tup[1])
+        elif isinstance(tup[1], str):
+            gr.setcolormap(gr.COLORMAPS[tup[1]])
+        else:
+            raise ValueError('Invalid colormap parameter')
+        COLORMAP_Y = np.array(_colormap() * 255, dtype=int)
+        factor = 2
+
+    size_range = range(256)
+    lins_float = np.linspace(0, 255, num=size)
+
+    r1 = np.array(np.interp(lins_float, size_range, COLORMAP_X[size_range, 0])).reshape(1, -1)
+    r2 = np.array(np.interp(lins_float, size_range, COLORMAP_Y[size_range, 0])).reshape(-1, 1)
+    r12 = np.array((r1 + r2) / factor, dtype=np.int)
+
+    g1 = np.array(np.interp(lins_float, size_range, COLORMAP_X[size_range, 1])).reshape(1, -1)
+    g2 = np.array(np.interp(lins_float, size_range, COLORMAP_Y[size_range, 1])).reshape(-1, 1)
+    g12 = np.left_shift(np.array((g1 + g2) / factor, dtype=np.int), 8)
+
+    b1 = np.array(np.interp(lins_float, size_range, COLORMAP_X[size_range, 2])).reshape(1, -1)
+    b2 = np.array(np.interp(lins_float, size_range, COLORMAP_Y[size_range, 2])).reshape(-1, 1)
+    b12 = np.left_shift(np.array((b1 + b2) / factor, dtype=np.int), 16)
+
+    a1 = np.array(np.interp(lins_float, size_range, COLORMAP_X[size_range, 3])).reshape(1, -1)
+    a2 = np.array(np.interp(lins_float, size_range, COLORMAP_Y[size_range, 3])).reshape(-1, 1)
+    a12 = np.left_shift(np.array((a1 + a2) / factor, dtype=np.int), 24)
+
+    pixmap = np.array(r12 | g12 | b12 | a12)
+
+    return np.ascontiguousarray(pixmap)
+
+
+def _plot_polar_histogram():
+    def moivre(r, x, n):
+        list1 = [1, 0]
+        if n != 0:
+            list1[0] = r ** (1 / n) * (np.cos((2 * x * np.pi) / n))
+            list1[1] = r ** (1 / n) * (np.sin((2 * x * np.pi) / n))
+        return list1
+
+    global _plt
+
+    edgecolor = 1
+    facecolor = 989
+    facealpha = 0.75
+    temp_face = None
+    temp_edge = None
+
+    vp = _plt.kwargs['subplot']
+    if vp[1] - vp[0] > 0.99 and vp[3] - vp[2] > 0.99:
+        if 'title' in _plt.kwargs:
+            gr.savestate()
+            gr.settextalign(gr.TEXT_HALIGN_CENTER, gr.TEXT_VALIGN_TOP)
+            gr.textext(0.5 * (vp[0] + vp[1]), 0.95, _plt.kwargs['title'])
+            gr.restorestate()
+
+        vp = [0.1, 0.9, 0.1, 0.9]
+
+    else:
+        vp[3] = vp[2] + vp[1] - vp[0]
+        _set_viewport('polar_histogram', vp)
+        vp = gr.inqviewport()
+        vp[3] = vp[2] + vp[1] - vp[0]
+        temp_add = (vp[1] - vp[0]) * 0.25
+
+        if 'title' in _plt.kwargs:
+            factor = 0.3
+            vp[0] += temp_add * 2 * factor
+            vp[1] -= temp_add * 2 * factor
+            gr.savestate()
+            gr.settextalign(gr.TEXT_HALIGN_CENTER, gr.TEXT_VALIGN_TOP)
+            gr.textext(0.5 * (vp[0] + vp[1]), vp[3] - temp_add * 4 * 0.25, _plt.kwargs['title'])
+            gr.restorestate()
+
+            vp[3] -= temp_add * 4 * factor
+            del factor
+        else:
+            vp[1] -= temp_add
+            vp[3] -= temp_add
+
+        del temp_add
+
+    gr.setviewport(vp[0], vp[1], vp[2], vp[3])
+    gr.setlinewidth(1)
+    gr.setwindow(0, 1, 0, 1)
+
+    convert = 180 / np.pi
+    norm_factor = _plt.kwargs['norm_factor']
+    normalization = _plt.kwargs['normalization']
+
+    classes = _plt.kwargs['classes']
+    del _plt.kwargs['classes']
+
+    if _plt.kwargs.get('bin_edges', None) is not None:
+        is_binedges = True
+        binedges = _plt.kwargs['bin_edges']
+    else:
+        is_binedges = False
+
+    if _plt.kwargs.get('temp_bin_edges', None) is not None:
+        is_binedges = True
+        binedges = _plt.kwargs['temp_bin_edges']
+        del _plt.kwargs['temp_bin_edges']
+
+    temp = _plt.kwargs['border_exp']
+    border = temp[0]
+    exp = temp[1]
+    del temp
+    del _plt.kwargs['border_exp']
+
+    gr.settransparency(0.8)
+
+    num_bins = len(classes)
+
+    if _plt.kwargs.get('rlim', None) is not None:
+        r_min = _plt.kwargs['rlim']
+        r_max = r_min[1]
+        r_min = r_min[0]
+        is_rlim = True
+    else:
+        is_rlim = False
+
+    # face_color either a number or an rgb triplet [x,y,z]
+    if 'face_color' in _plt.kwargs:
+        facecolor = _plt.kwargs['face_color']
+        if isinstance(facecolor, list):
+            if len(facecolor) == 3:
+                temp_face = gr.inqcolor(1004)
+                gr.setcolorrep(1004, facecolor[0], facecolor[1], facecolor[2])
+                facecolor = 1004
+            else:
+                raise ValueError('RGB Triplet not correct')
+        elif not isinstance(facecolor, int):
+            raise ValueError('face_color not correct')
+
+    # face_alpha
+    if 'face_alpha' in _plt.kwargs:
+        facealpha = _plt.kwargs['face_alpha']
+        if not (0 <= facealpha <= 1):
+            raise ValueError('face_alpha not correct')
+
+    # edge_color
+    if 'edge_color' in _plt.kwargs:
+        edgecolor = _plt.kwargs['edge_color']
+        if isinstance(edgecolor, list):
+            if len(edgecolor) == 3:
+                temp_edge = gr.inqcolor(1005)
+                gr.setcolorrep(1005, edgecolor[0], edgecolor[1], edgecolor[2])
+                edgecolor = 1005
+        elif not isinstance(edgecolor, int):
+            raise ValueError('Incorrect Color Value. Either Integer or rgb triplet in a list')
+
+    # drawing the circles + x-Axis numbers
+    gr.settextalign(1, 1)
+    window_width = (vp[1] - vp[0])
+    center_x = window_width / 2 + vp[0]
+    center_y = (vp[3] - vp[2]) / 2 + vp[2]
+
+    for x in range(4):
+        gr.drawarc((0.1 + x * 0.1), (0.9 - 0.1 * x), (0.1 + x * 0.1), (0.9 - 0.1 * x), 0, 360)
+        if normalization == 'count' or normalization == 'cumcount':
+            gr.text(center_x * 1.02, center_y + (x + 1) * window_width * 0.8 / 2 / 4, str(int((x + 1) * border / 4)))
+        else:
+            if normalization == 'probability':
+                gr.text(center_x * 1.02, center_y + (x + 1) * window_width * 0.8 / 2 / 4,
+                        str(round(((x + 1) * border / 4) * 10 ** (exp + 2 + int(num_bins / 25))) / 10 ** (
+                            exp + 2 + int(num_bins / 25))))
+            else:
+                gr.text(center_x * 1.02, center_y + (x + 1) * window_width * 0.8 / 2 / 4,
+                        str(round(((x + 1) * border / 4) * 10 ** (exp + 3)) / 10 ** (exp + 3)))
+
+    # drawinng lines + angle
+    number = 0
+    gr.settextalign(2, 3)
+    for x in range(12):
+        liste = moivre(0.4 ** 12, x, 12)
+        gr.polyline([0.5, 0.5 + (1 * liste[0])], [0.5, 0.5 + (1 * liste[1])])
+        gr.text(center_x + (liste[0]) * window_width * 1.15, center_y + liste[1] * window_width * 1.15, str(number))
+        number += 30
+
+    gr.settransparency(facealpha)
+    length = 0
+
+    # colormap
+    if 'temp_colormap' in _plt.kwargs:
+        triple = _plt.kwargs['temp_colormap']
+        del _plt.kwargs['temp_colormap']
+        gr.drawimage(0, 1, 1, 0, triple[0], triple[1], triple[2])
+
+        # draw_edges for Colormap: if draw_edges is given, the edges will be drawn
+        if 'draw_edges' in _plt.kwargs:
+            if _plt.kwargs['draw_edges'] is True:
+                gr.setlinecolorind(edgecolor)
+                gr.setlinewidth(1.5)
+
+                if is_binedges:
+                    if normalization == 'countdensity':
+                        norm_factor = 1
+
+                    if normalization == 'countdensity' or normalization == 'pdf':
+                        binwidths = []
+                        classes = [temp for temp in classes if len(temp) > 0]
+
+                        for i in range(len(binedges) - 1):
+                            binwidths.append(binedges[i + 1] - binedges[i])
+                        binwidths.append(binedges[-1] - binedges[-2])
+
+                        bin_value = [len(x) / (norm_factor * binwidths[i]) if x[0] is not None else 0
+                                     for (i, x) in enumerate(classes)]
+                    else:
+                        bin_value = [len(x) / (norm_factor) if x[0] is not None else 0
+                                     for (i, x) in enumerate(classes)]
+
+                else:
+                    bin_value = [len(x) / norm_factor if x is not None else 0 for x in classes]
+
+                length = 0
+                mlist = []
+
+                for x in range(len(classes)):
+                    if normalization == 'cumcount' or normalization == 'cdf':
+                        if classes[x][0] is None:
+                            pass
+                        else:
+                            length = len(classes[x]) / norm_factor + length
+                    elif classes[x][0] is None:
+                        continue
+                    elif normalization == 'pdf' or normalization == 'countdensity':
+                        length = bin_value[x]
+
+                    else:
+                        length = len(classes[x]) / norm_factor
+
+                    r = (length / border * 0.4) ** (num_bins * 2)
+                    liste = moivre(r, (2 * x), num_bins * 2)
+                    rect = np.sqrt(liste[0] ** 2 + liste[1] ** 2)
+
+                    if is_rlim:
+
+                        liste2 = moivre(r, (2 * x + 2), (num_bins * 2))
+                        mlist.append(liste)
+                        mlist.append(liste2)
+                        r_min_list = moivre((r_min * 0.4) ** (num_bins * 2), (x * 2), num_bins * 2)
+                        r_min_list2 = moivre((r_min * 0.4) ** (num_bins * 2), (x * 2 + 2), num_bins * 2)
+
+                        for kaman in (-1, -2):
+                            temporary = abs(np.sqrt(mlist[kaman][0]**2 + mlist[kaman][1]**2))
+                            if temporary > (r_max * 0.4):
+                                factor = abs(r_max * 0.4 / temporary)
+                                mlist[kaman][0] *= factor
+                                mlist[kaman][1] *= factor
+                        del temporary
+
+                    gr.settransparency(1)
+                    gr.setfillintstyle(0)
+                    gr.setfillcolorind(edgecolor)
+
+                    if is_binedges:
+
+                        if is_rlim:
+
+                            rect = int(rect * 10000)
+                            rect = rect / 10000
+
+                            if round(rect, 3) > r_min * 0.4:
+                                try:
+                                    gr.drawarc(0.5 - min(rect, r_max * 0.4), 0.5 + min(rect, r_max * 0.4),
+                                               0.5 - min(rect, r_max * 0.4), 0.5 + min(rect, r_max * 0.4),
+                                               binedges[x] * convert,
+                                               binedges[x + 1] * convert)
+
+                                    gr.drawarc(0.5 - r_min * 0.4, 0.5 + r_min * 0.4, 0.5 - r_min * 0.4, 0.5 + r_min * 0.4,
+                                               binedges[x] * convert,
+                                               binedges[x + 1] * convert)
+
+                                    gr.polyline([0.5 + r_min * 0.4 * np.cos(binedges[x]), 0.5 + min(rect, r_max * 0.4) * np.cos(binedges[x])],
+                                                [0.5 + r_min * 0.4 * np.sin(binedges[x]), 0.5 + min(rect, r_max * 0.4) * np.sin(binedges[x])])
+
+                                    gr.polyline([0.5 + r_min * 0.4 * np.cos(binedges[x + 1]),
+                                                 0.5 + min(rect, r_max * 0.4) * np.cos(binedges[x + 1])],
+                                                [0.5 + r_min * 0.4 * np.sin(binedges[x + 1]),
+                                                 0.5 + min(rect, r_max * 0.4) * np.sin(binedges[x + 1])])
+
+                                except Exception:
+                                    pass
+                        # no rlim
+                        else:
+
+                            try:
+                                gr.fillarc(0.5 - rect, 0.5 + rect, 0.5 - rect, 0.5 + rect, binedges[x] * convert,
+                                           binedges[x + 1] * convert)
+
+                            except Exception:
+                                pass
+
+                    # no binedges
+                    else:
+                        if is_rlim:
+                            rect = int(rect * 10000)
+                            rect = rect / 10000
+
+                            if round(rect, 3) > r_min * 0.4:
+                                gr.drawarc(0.5 - min(rect, r_max * 0.4), 0.5 + min(rect, r_max * 0.4),
+                                           0.5 - min(rect, r_max * 0.4), 0.5 + min(rect, r_max * 0.4),
+                                           x * (360 / num_bins),
+                                           (x + 1) * (360 / num_bins))
+                                gr.drawarc(0.5 - r_min * 0.4, 0.5 + r_min * 0.4, 0.5 - r_min * 0.4, 0.5 + r_min * 0.4,
+                                           x * (360 / num_bins), (x + 1) * (360 / num_bins))
+
+                                gr.polyline([0.5 + r_min_list[0], 0.5 + mlist[2 * x][0]],
+                                            [0.5 + r_min_list[1], 0.5 + mlist[2 * x][1]])
+
+                                gr.polyline([0.5 + r_min_list2[0], 0.5 + mlist[2 * x + 1][0]],
+                                            [0.5 + r_min_list2[1], 0.5 + mlist[2 * x + 1][1]])
+
+                        # Normal (no rlim)
+                        else:
+                            gr.fillarc(0.5 - rect, 0.5 + rect, 0.5 - rect, 0.5 + rect, x * (360 / num_bins),
+                                       (x + 1) * (360 / num_bins))
+                del mlist
+
+    # No Colormap
+    else:
+        if is_binedges:
+            if normalization == 'pdf':
+                pass
+            elif normalization == 'countdensity':
+                norm_factor = 1
+            binwidths = []
+            classes = [bin for bin in classes if len(bin) > 0]
+            for i in range(len(binedges) - 1):
+                binwidths.append(binedges[i + 1] - binedges[i])
+            binwidths.append(binedges[-1] - binedges[-2])
+
+            if normalization == 'countdensity' or normalization == 'pdf':
+                bin_value = [len(x) / (norm_factor * binwidths[i]) for (i, x) in enumerate(classes)]
+
+            else:
+                bin_value = [len(x) / norm_factor if x[0] is not None else 0 for x in classes]
+
+        # No binedges
+        else:
+            if normalization == 'countdensity':
+                bin_value = [len(x) / norm_factor if x[0] is not None else 0 for x in classes]
+
+            elif normalization == 'pdf':
+                bin_value = [len(x) / (norm_factor) if x[0] is not None else 0 for x in classes]
+
+            else:
+                bin_value = [len(x) / norm_factor if x[0] is not None else 0 for x in classes]
+
+        # no stairs
+        if _plt.kwargs.get('stairs', False) is False:
+
+            mlist = []
+
+            for x in range(len(classes)):
+
+                if normalization == 'cumcount' or normalization == 'cdf':
+                    if classes[x][0] is None:
+                        pass
+                    else:
+                        length = len(classes[x]) / norm_factor + length
+                elif normalization == 'pdf' or normalization == 'countdensity':
+                    length = bin_value[x]
+                elif classes[x][0] is None:
+                    continue
+                else:
+                    length = len(classes[x]) / norm_factor
+
+                r = (length / border * 0.4) ** (num_bins * 2)
+                liste = moivre(r, (2 * x), num_bins * 2)
+                rect = np.sqrt(liste[0] ** 2 + liste[1] ** 2)
+
+                gr.setfillcolorind(facecolor)
+                gr.settransparency(facealpha)
+                gr.setfillintstyle(1)
+
+                if is_rlim:
+                    liste2 = moivre(r, (2 * x + 2), (num_bins * 2))
+                    mlist.append(liste)
+                    mlist.append(liste2)
+                    r_min_list = moivre((r_min * 0.4) ** (num_bins * 2), (x * 2), num_bins * 2)
+                    r_min_list2 = moivre((r_min * 0.4) ** (num_bins * 2), (x * 2 + 2), num_bins * 2)
+
+                    for kaman in (-1, -2):
+                        temporary = abs(np.sqrt(mlist[kaman][0] ** 2 + mlist[kaman][1] ** 2))
+                        if temporary > (r_max * 0.4):
+                            factor = abs(r_max * 0.4 / temporary)
+                            mlist[kaman][0] *= factor
+                            mlist[kaman][1] *= factor
+                    del temporary
+
+                    r = length / border * 0.4
+                    if r > r_max * 0.4:
+                        r = r_max * 0.4
+
+                if is_binedges:
+
+                    if is_rlim:
+                        try:
+
+                            if r > r_min * 0.4:
+
+                                start_angle = binedges[x]
+                                end_angle = binedges[x + 1]
+
+                                diff_angle = end_angle - start_angle
+                                num_angle = int(diff_angle / (0.2 / convert)) * 1j
+                                phi_array = np.array(
+                                    np.ogrid[start_angle: end_angle:num_angle], dtype=np.float)
+
+                                arc_1_x = [r * np.cos(phi) + 0.5 for phi in phi_array]
+                                arc_1_y = [r * np.sin(phi) + 0.5 for phi in phi_array]
+
+                                arc_2_x = [r_min * 0.4 * np.cos(phi) + 0.5 for phi in phi_array]
+                                arc_2_y = [r_min * 0.4 * np.sin(phi) + 0.5 for phi in phi_array]
+
+                                line_1_x = [0.5 + r_min * 0.4 * np.cos(binedges[x]),
+                                            0.5 + min(rect, r_max * 0.4) * np.cos(binedges[x])]
+                                line_1_y = [0.5 + r_min * 0.4 * np.sin(binedges[x]),
+                                            0.5 + min(rect, r_max * 0.4) * np.sin(binedges[x])]
+
+                                line_2_x = [0.5 + r_min * 0.4 * np.cos(binedges[x + 1]),
+                                            0.5 + min(rect, r_max * 0.4) * np.cos(binedges[x + 1])]
+                                line_2_y = [0.5 + r_min * 0.4 * np.sin(binedges[x + 1]),
+                                            0.5 + min(rect, r_max * 0.4) * np.sin(binedges[x + 1])]
+
+                                gr.setfillintstyle(1)
+                                gr.fillarea(np.hstack((
+                                    line_1_x, arc_1_x, line_2_x[::-1], arc_2_x[::-1],)),
+                                    np.hstack((
+                                        line_1_y, arc_1_y, line_2_y[::-1], arc_2_y[::-1],))
+                                )
+
+                                gr.setfillintstyle(0)
+                                gr.setfillcolorind(edgecolor)
+                                gr.fillarea(np.hstack((
+                                    line_1_x, arc_1_x, line_2_x[::-1], arc_2_x[::-1],)),
+                                    np.hstack((
+                                        line_1_y, arc_1_y, line_2_y[::-1], arc_2_y[::-1],))
+                                )
+
+                        except Exception:
+                            pass
+
+                        pass
+
+                    else:
+                        try:
+                            gr.fillarc(0.5 - rect, 0.5 + rect, 0.5 - rect, 0.5 + rect, binedges[x] * convert,
+                                       binedges[x + 1] * convert)
+
+                        except Exception:
+                            pass
+
+                        gr.settransparency(1)
+                        gr.setfillintstyle(0)
+                        gr.setfillcolorind(edgecolor)
+                        try:
+                            gr.fillarc(0.5 - rect, 0.5 + rect, 0.5 - rect, 0.5 + rect, binedges[x] * convert,
+                                       binedges[x + 1] * convert)
+                        except Exception:
+                            pass
+                # no binedges
+                else:
+                    if is_rlim:
+
+                        try:
+
+                            if r > r_min * 0.4:
+
+                                start_angle = x * (360 / num_bins) / convert
+                                end_angle = (x + 1) * (360 / num_bins) / convert
+
+                                diff_angle = end_angle - start_angle
+                                num_angle = int(diff_angle / (0.2 / convert)) * 1j
+                                phi_array = np.array(
+                                    np.ogrid[start_angle: end_angle:num_angle], dtype=np.float)
+
+                                arc_1_x = [r * np.cos(phi) + 0.5 for phi in phi_array]
+                                arc_1_y = [r * np.sin(phi) + 0.5 for phi in phi_array]
+
+                                arc_2_x = [r_min * 0.4 * np.cos(phi) + 0.5 for phi in phi_array]
+                                arc_2_y = [r_min * 0.4 * np.sin(phi) + 0.5 for phi in phi_array]
+
+                                line_1_x = [0.5 + r_min_list[0], 0.5 + mlist[2 * x][0]]
+                                line_1_y = [0.5 + r_min_list[1], 0.5 + mlist[2 * x][1]]
+
+                                line_2_x = [0.5 + r_min_list2[0], 0.5 + mlist[2 * x + 1][0]]
+                                line_2_y = [0.5 + r_min_list2[1], 0.5 + mlist[2 * x + 1][1]]
+
+                                gr.setfillintstyle(1)
+                                gr.fillarea(np.hstack((
+                                    line_1_x, arc_1_x, line_2_x[::-1], arc_2_x[::-1],)),
+                                    np.hstack((
+                                        line_1_y, arc_1_y, line_2_y[::-1], arc_2_y[::-1],))
+                                )
+
+                                gr.setfillintstyle(0)
+                                gr.setfillcolorind(edgecolor)
+                                gr.fillarea(np.hstack((
+                                    line_1_x, arc_1_x, line_2_x[::-1], arc_2_x[::-1],)),
+                                    np.hstack((
+                                        line_1_y, arc_1_y, line_2_y[::-1], arc_2_y[::-1],))
+                                )
+
+                        except Exception:
+                            pass
+
+                    # no rlim
+                    else:
+                        gr.fillarc(0.5 - rect, 0.5 + rect, 0.5 - rect, 0.5 + rect, x * (360 / num_bins),
+                                   (x + 1) * (360 / num_bins))
+
+                        gr.settransparency(1)
+                        gr.setfillintstyle(0)
+                        gr.setfillcolorind(edgecolor)
+
+                        gr.fillarc(0.5 - rect, 0.5 + rect, 0.5 - rect, 0.5 + rect, x * (360 / num_bins),
+                                   (x + 1) * (360 / num_bins))
+
+        # stairs
+        else:
+            gr.setlinewidth(2.3)
+            gr.setlinecolorind(edgecolor)
+
+            # With given bin_edges
+            if is_binedges:
+
+                mlist = []
+                rectlist = []
+
+                for x in range(len(classes)):
+                    if normalization == 'cumcount' or normalization == 'cdf':
+                        if classes[x][0] is None:
+                            pass
+                        else:
+                            length = len(classes[x]) / norm_factor + length
+                    elif normalization == 'pdf' or normalization == 'countdensity':
+                        length = bin_value[x]
+                    elif classes[x][0] is None:
+                        length = 0
+                    else:
+                        length = len(classes[x]) / norm_factor
+
+                    r = (length / border * 0.4) ** (num_bins * 2)
+                    liste = moivre(r, (2 * x), num_bins * 2)
+                    liste2 = moivre(r, (2 * x + 2), (num_bins * 2))
+                    mlist.append(liste)
+                    mlist.append(liste2)
+
+                    rect = np.sqrt(liste[0] ** 2 + liste[1] ** 2)
+
+                    if is_rlim:
+
+                        for kaman in (-1, -2):
+                            temporary = abs(np.sqrt(mlist[kaman][0]**2 + mlist[kaman][1]**2))
+                            if temporary > (r_max * 0.4):
+                                factor = abs(r_max * 0.4 / temporary)
+                                mlist[kaman][0] *= factor
+                                mlist[kaman][1] *= factor
+                        del temporary
+
+                        if rect < r_min * 0.4:
+                            rectlist.append(r_min * 0.4)
+                        elif rect > r_max * 0.4:
+                            rectlist.append(r_max * 0.4)
+                        else:
+                            rectlist.append(rect)
+                    else:
+                        rectlist.append(rect)
+
+                    if is_rlim:
+
+                        rect = int(rect * 10000)
+                        rect = rect / 10000
+
+                        if round(rect, 3) > r_min * 0.4:
+                            try:
+                                gr.drawarc(0.5 - min(rect, r_max * 0.4), 0.5 + min(rect, r_max * 0.4),
+                                           0.5 - min(rect, r_max * 0.4), 0.5 + min(rect, r_max * 0.4),
+                                           binedges[x] * convert,
+                                           binedges[x + 1] * convert)
+
+                                gr.drawarc(0.5 - r_min * 0.4, 0.5 + r_min * 0.4, 0.5 - r_min * 0.4, 0.5 + r_min * 0.4,
+                                           binedges[x] * convert,
+                                           binedges[x + 1] * convert)
+
+                            except Exception:
+                                pass
+                    else:
+                        try:
+                            gr.drawarc(0.5 - rect, 0.5 + rect, 0.5 - rect, 0.5 + rect, binedges[x] * convert,
+                                       binedges[x + 1] * convert)
+                        except Exception:
+                            pass
+
+                if is_rlim:
+                    startx = max(rectlist[0] * np.cos(binedges[0]), r_min * 0.4 * np.cos(binedges[0]))
+                    starty = max(rectlist[0] * np.sin(binedges[0]), r_min * 0.4 * np.sin(binedges[0]))
+
+                    for x in range(len(binedges)):
+
+                        if not (binedges[0] == 0 and binedges[len(binedges) - 1] == 2 * np.pi and (
+                                x == len(binedges) - 1 or x == 0)):
+                            try:
+                                gr.polyline([0.5 + startx, 0.5 + rectlist[x] * np.cos(binedges[x])],
+                                            [0.5 + starty, 0.5 + rectlist[x] * np.sin(binedges[x])])
+                            except Exception:
+                                pass
+                        try:
+                            startx = (rectlist[x] * np.cos(binedges[x + 1]))
+                            starty = (rectlist[x] * np.sin(binedges[x + 1]))
+                        except Exception:
+                            pass
+
+                    gr.polyline([0.5 + r_min * 0.4 * np.cos(binedges[0]),
+                                 0.5 + rectlist[0] * np.cos(binedges[0])],
+                                [0.5 + r_min * 0.4 * np.sin(binedges[0]),
+                                 0.5 + rectlist[0] * np.sin(binedges[0])])
+
+                    gr.polyline([0.5 + r_min * 0.4 * np.cos(binedges[-1]),
+                                 0.5 + rectlist[-1] * np.cos(binedges[-1])],
+                                [0.5 + r_min * 0.4 * np.sin(binedges[-1]),
+                                 0.5 + rectlist[-1] * np.sin(binedges[-1])])
+                # no rlim
+                else:
+                    startx = 0
+                    starty = 0
+                    for x in range(len(binedges)):
+                        pass
+                        try:
+                            gr.polyline([0.5 + startx, 0.5 + rectlist[x] * np.cos(binedges[x])],
+                                        [0.5 + starty, 0.5 + rectlist[x] * np.sin(binedges[x])])
+                            startx = (rectlist[x] * np.cos(binedges[x + 1]))
+                            starty = (rectlist[x] * np.sin(binedges[x + 1]))
+                        except Exception:
+                            pass
+
+                    if binedges[0] == 0 and binedges[-1] == 2 * np.pi:
+                        gr.polyline([0.5 + rectlist[0] * np.cos(binedges[0]), 0.5 + startx],
+                                    [0.5 + rectlist[0] * np.sin(binedges[0]), 0.5 + starty])
+                    else:
+                        gr.polyline([0.5 + rectlist[-1] * np.cos(binedges[-1]), 0.5],
+                                    [0.5 + rectlist[-1] * np.sin(binedges[-1]), 0.5])
+
+            # Normal stairs (no bin_edges)
+            else:
+
+                mlist = []
+                for x in range(len(classes)):
+
+                    if normalization == 'cumcount' or normalization == 'cdf':
+                        if classes[x][0] is None:
+                            pass
+                        else:
+                            length = length + len(classes[x]) / norm_factor
+                    elif classes[x][0] is None:
+                        length = 0
+                    else:
+                        length = len(classes[x]) / norm_factor
+
+                    r = (length / border * 0.4) ** (num_bins * 2)
+                    liste = moivre(r, (2 * x), num_bins * 2)
+                    liste2 = moivre(r, (2 * x + 2), (num_bins * 2))
+                    mlist.append(liste)
+                    mlist.append(liste2)
+
+                    rect = np.sqrt(liste[0] ** 2 + liste[1] ** 2)
+
+                    gr.setfillcolorind(edgecolor)
+
+                    if is_rlim:
+
+                        for kaman in (-1, -2):
+                            temporary = abs(np.sqrt(mlist[kaman][0] ** 2 + mlist[kaman][1] ** 2))
+                            if temporary > (r_max * 0.4):
+                                factor = abs(r_max * 0.4 / temporary)
+                                mlist[kaman][0] *= factor
+                                mlist[kaman][1] *= factor
+                        del temporary
+
+                        rect = int(rect * 10000)
+                        rect = rect / 10000
+
+                        if round(rect, 3) > r_min * 0.4:
+                            gr.drawarc(0.5 - min(rect, r_max * 0.4), 0.5 + min(rect, r_max * 0.4),
+                                       0.5 - min(rect, r_max * 0.4), 0.5 + min(rect, r_max * 0.4),
+                                       x * (360 / num_bins),
+                                       (x + 1) * (360 / num_bins))
+                            gr.drawarc(0.5 - r_min * 0.4, 0.5 + r_min * 0.4, 0.5 - r_min * 0.4, 0.5 + r_min * 0.4,
+                                       x * (360 / num_bins),
+                                       (x + 1) * (360 / num_bins))
+                    # no rlim
+                    else:
+                        gr.drawarc(0.5 - rect, 0.5 + rect, 0.5 - rect, 0.5 + rect, x * (360 / num_bins),
+                                   (x + 1) * (360 / num_bins))
+                if is_rlim:
+                    for x in range(len(classes) * 2):
+                        if x > 1 and x % 2 == 0:
+                            rect1 = np.sqrt(mlist[x][0]**2 + mlist[x][1]**2)
+                            rect1 = round(int(rect1 * 10000) / 10000, 3)
+                            rect2 = np.sqrt(mlist[x - 1][0]**2 + mlist[x - 1][1]**2)
+                            rect2 = round(int(rect2 * 10000) / 10000, 3)
+
+                            if rect1 < (r_min * 0.4) and rect2 < (r_min * 0.4):
+                                continue
+                            if rect1 < r_min * 0.4:
+                                mlist[x][0] = r_min * 0.4 * np.cos(np.pi / len(classes) * x)
+                                mlist[x][1] = r_min * 0.4 * np.sin(np.pi / len(classes) * x)
+
+                            if rect2 < r_min * 0.4:
+                                mlist[x - 1][0] = r_min * 0.4 * np.cos(np.pi / len(classes) * x)
+                                mlist[x - 1][1] = r_min * 0.4 * np.sin(np.pi / len(classes) * x)
+
+                            gr.polyline([0.5 + mlist[x][0], 0.5 + mlist[x - 1][0]],
+                                        [0.5 + mlist[x][1], 0.5 + mlist[x - 1][1]])
+
+                    mlist[-1][0] = max(mlist[-1][0], r_min * 0.4 * np.cos(0))
+                    mlist[-1][1] = max(mlist[-1][1], r_min * 0.4 * np.sin(0))
+                    mlist[0][0] = max(mlist[0][0], r_min * 0.4 * np.cos(0))
+                    mlist[0][1] = max(mlist[0][1], r_min * 0.4 * np.sin(0))
+
+                    gr.polyline([0.5 + mlist[-1][0], 0.5 + mlist[0][0]],
+                                [0.5 + mlist[-1][1], 0.5 + mlist[0][1]])
+
+                else:
+                    for x in range(len(classes) * 2):
+                        if x > 1 and x % 2 == 0:
+                            gr.polyline([0.5 + mlist[x][0], 0.5 + mlist[x - 1][0]],
+                                        [0.5 + mlist[x][1], 0.5 + mlist[x - 1][1]])
+                    gr.polyline([0.5 + mlist[-1][0], 0.5 + mlist[0][0]],
+                                [0.5 + mlist[-1][1], 0.5 + mlist[0][1]])
+
+    if temp_edge is not None:
+        red = (temp_edge % 256) / 255
+        green = ((temp_edge >> 8) % 256) / 255
+        blue = ((temp_edge >> 16) % 256) / 255
+        gr.setcolorrep(1004, red, green, blue)
+
+    if temp_face is not None:
+        red = (temp_face % 256) / 255
+        green = ((temp_face >> 8) % 256) / 255
+        blue = ((temp_face >> 16) % 256) / 255
+        gr.setcolorrep(1004, red, green, blue)
+
+    gr.updatews()
 
 
 def _plot_args(args, fmt='xys'):
