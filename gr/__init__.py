@@ -78,12 +78,12 @@ def _require_runtime_version(*_minimum_runtime_version):
         _func.__doc__ += "\n\n    This function requires GR runtime version {} or higher.".format(minimum_runtime_version_str)
 
         @functools.wraps(_func)
-        def wrapped_func(_func=_func, _minimum_runtime_version=_minimum_runtime_version, _minimum_runtime_version_str=minimum_runtime_version_str, *args, **kwargs):
+        def wrapped_func(*args, **kwargs):
             global _RUNTIME_VERSION
             if _RUNTIME_VERSION == (0, 0, 0):
-                raise RuntimeError("This function requires GR runtime version {} or higher, but the runtime version could not be detected.".format(_minimum_runtime_version_str))
+                raise RuntimeError("This function requires GR runtime version {} or higher, but the runtime version could not be detected.".format(minimum_runtime_version_str))
             if _RUNTIME_VERSION < _minimum_runtime_version:
-                raise RuntimeError("This function requires GR runtime version {} or higher.".format(_minimum_runtime_version_str))
+                raise RuntimeError("This function requires GR runtime version {} or higher.".format(minimum_runtime_version_str))
             return _func(*args, **kwargs)
 
         return wrapped_func
