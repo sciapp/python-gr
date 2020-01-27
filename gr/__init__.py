@@ -2939,7 +2939,7 @@ def setresamplemethod(resample_method):
     | DOWNSAMPLE_HORIZONTAL_LANCZOS | 0x03000000 | lanczos for horizontal downsampling          |
     +-------------------------------+------------+----------------------------------------------+
     """
-    _gr.gr_setresamplemethod(c_uint(resample_method))
+    __gr.gr_setresamplemethod(c_uint(resample_method))
 
 
 @_require_runtime_version(0, 41, 5, 43)
