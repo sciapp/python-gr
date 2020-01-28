@@ -63,7 +63,7 @@ def plot(*args, **kwargs):
     >>> # Plot x and y
     >>> mlab.plot(x, y)
     >>> # Plot x and a callable
-    >>> mlab.plot(x, lambda x: x: x**3 + x**2 + x)
+    >>> mlab.plot(x, lambda x: x**3 + x**2 + x)
     >>> # Plot y, using its indices for the x values
     >>> mlab.plot(y)
     """
