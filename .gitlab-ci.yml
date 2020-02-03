@@ -387,19 +387,17 @@ deploy-to-aur:
                 && echo "aur.archlinux.org $AUR_HOST_KEY" >> ~/.ssh/known_hosts)
   - if [[ -n "${CI_COMMIT_TAG}" ]]; then
       if echo "$CI_COMMIT_TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
-        git clone "ssh://aur@aur.archlinux.org/python-gr-framework.git"
-        cd "python-gr-framework"
-        sed -i -e "/^pkgver=/c\pkgver=\"${CI_COMMIT_TAG#v}\"" -e "/^pkgrel=/c\pkgrel=\"1\"" PKGBUILD
-        makepkg --printsrcinfo > .SRCINFO
-        git commit -a -m "Update to version ${CI_COMMIT_TAG#v}"
-        git push
-      fi
+        git clone "ssh://aur@aur.archlinux.org/python-gr-framework.git";
+        cd "python-gr-framework";
+        sed -i -e "/^pkgver=/c\pkgver=\"${CI_COMMIT_TAG#v}\"" -e "/^pkgrel=/c\pkgrel=\"1\"" PKGBUILD;
+        makepkg --printsrcinfo > .SRCINFO;
+        git commit -a -m "Update to version ${CI_COMMIT_TAG#v}";
+      fi;
     else
-      PKGVERS="$(git describe --long --tags | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g')"
-      git clone "ssh://aur@aur.archlinux.org/python-gr-framework-git.git"
-      cd "python-gr-framework-git"
-      sed -i -e "/^pkgver=/c\pkgver=\"${PKGVERS}\"" -e "/^pkgrel=/c\pkgrel=\"1\"" PKGBUILD
-      makepkg --printsrcinfo > .SRCINFO
-      git commit -a -m "Update to version ${PKGVERS}"
-      git push
+      PKGVERS="$(git describe --long --tags | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g')";
+      git clone "ssh://aur@aur.archlinux.org/python-gr-framework-git.git";
+      cd "python-gr-framework-git";
+      sed -i -e "/^pkgver=/c\pkgver=\"${PKGVERS}\"" -e "/^pkgrel=/c\pkgrel=\"1\"" PKGBUILD;
+      makepkg --printsrcinfo > .SRCINFO;
+      git commit -a -m "Update to version ${PKGVERS}";
     fi
