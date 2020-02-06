@@ -395,7 +395,7 @@ def contour(*args, **kwargs):
     or more of the following:
 
     - x values, y values and z values, or
-    - N x values, M y values and z values on a NxM grid, or
+    - N x values, M y values and z values on a MxN grid, or
     - N x values, M y values and a callable to determine z values
 
     If a series of points is passed to this function, their values will be
@@ -416,7 +416,7 @@ def contour(*args, **kwargs):
     >>> # Create example grid data
     >>> x = np.linspace(-2, 2, 40)
     >>> y = np.linspace(0, np.pi, 20)
-    >>> z = np.sin(x[:, np.newaxis]) + np.cos(y[np.newaxis, :])
+    >>> z = np.sin(x[np.newaxis, :]) + np.cos(y[:, np.newaxis])
     >>> # Draw the contour plot
     >>> mlab.contour(x, y, z, levels=10)
     >>> # Draw the contour plot using a callable
@@ -438,7 +438,7 @@ def contourf(*args, **kwargs):
     receive one or more of the following:
 
     - x values, y values and z values, or
-    - N x values, M y values and z values on a NxM grid, or
+    - N x values, M y values and z values on a MxN grid, or
     - N x values, M y values and a callable to determine z values
 
     If a series of points is passed to this function, their values will be
@@ -459,7 +459,7 @@ def contourf(*args, **kwargs):
     >>> # Create example grid data
     >>> x = np.linspace(-2, 2, 40)
     >>> y = np.linspace(0, np.pi, 20)
-    >>> z = np.sin(x[:, np.newaxis]) + np.cos(y[np.newaxis, :])
+    >>> z = np.sin(x[np.newaxis, :]) + np.cos(y[:, np.newaxis])
     >>> # Draw the filled contour plot
     >>> mlab.contourf(x, y, z, levels=10)
     >>> # Draw the filled contour plot using a callable
@@ -521,7 +521,7 @@ def heatmap(data, **kwargs):
     >>> # Create example data
     >>> x = np.linspace(-2, 2, 40)
     >>> y = np.linspace(0, np.pi, 20)
-    >>> z = np.sin(x[np.newaxis, :]) + np.cos(y[:, np.newaxis])
+    >>> z = np.sin(x[:, np.newaxis]) + np.cos(y[np.newaxis, :])
     >>> # Draw the heatmap
     >>> mlab.heatmap(z[::-1, :], xlim=(-2, 2), ylim=(0, np.pi))
     """
@@ -558,7 +558,7 @@ def polar_heatmap(data, **kwargs):
     >>> # Create example data
     >>> x = np.linspace(-2, 2, 100)
     >>> y = np.linspace(0, np.pi, 200)
-    >>> z = np.sin(x[np.newaxis, :]) + np.cos(y[:, np.newaxis])
+    >>> z = np.sin(x[:, np.newaxis]) + np.cos(y[np.newaxis, :])
     >>> # Draw the heatmap
     >>> mlab.polar_heatmap(z, rlim=(1, 10), philim=(0, np.pi / 2))
     """
@@ -627,7 +627,7 @@ def wireframe(*args, **kwargs):
     or more of the following:
 
     - x values, y values and z values, or
-    - N x values, M y values and z values on a NxM grid, or
+    - N x values, M y values and z values on a MxN grid, or
     - N x values, M y values and a callable to determine z values
 
     If a series of points is passed to this function, their values will be
@@ -647,7 +647,7 @@ def wireframe(*args, **kwargs):
     >>> # Create example grid data
     >>> x = np.linspace(-2, 2, 40)
     >>> y = np.linspace(0, np.pi, 20)
-    >>> z = np.sin(x[:, np.newaxis]) + np.cos(y[np.newaxis, :])
+    >>> z = np.sin(x[np.newaxis, :]) + np.cos(y[:, np.newaxis])
     >>> # Draw the wireframe plot
     >>> mlab.wireframe(x, y, z)
     >>> # Draw the wireframe plot using a callable
@@ -669,7 +669,7 @@ def surface(*args, **kwargs):
     more of the following:
 
     - x values, y values and z values, or
-    - N x values, M y values and z values on a NxM grid, or
+    - N x values, M y values and z values on a MxN grid, or
     - N x values, M y values and a callable to determine z values
 
     If a series of points is passed to this function, their values will be
@@ -689,7 +689,7 @@ def surface(*args, **kwargs):
     >>> # Create example grid data
     >>> x = np.linspace(-2, 2, 40)
     >>> y = np.linspace(0, np.pi, 20)
-    >>> z = np.sin(x[:, np.newaxis]) + np.cos(y[np.newaxis, :])
+    >>> z = np.sin(x[np.newaxis, :]) + np.cos(y[:, np.newaxis])
     >>> # Draw the surface plot
     >>> mlab.surface(x, y, z)
     >>> # Draw the surface plot using a callable
@@ -4410,8 +4410,8 @@ def _plot_args(args, fmt='xys'):
                     a.shape = [len(a), 1]
                 if a.dtype == complex:
                     raise TypeError()
-                x = np.arange(1, a.shape[0] + 1)
-                y = np.arange(1, a.shape[1] + 1)
+                x = np.arange(1, a.shape[1] + 1)
+                y = np.arange(1, a.shape[0] + 1)
                 z = a.astype(np.float64)
                 args.pop(0)
             except TypeError:
@@ -4448,13 +4448,13 @@ def _plot_args(args, fmt='xys'):
                             if fmt == 'xyzc':
                                 z = _convert_to_array(args[1], xvalues=xy, always_flatten=True)
                                 if z.shape != x.shape or z.shape != y.shape:
-                                    z.shape = (len(x), len(y))
+                                    z.shape = (len(y), len(x))
                             else:
                                 z = _convert_to_array(args[1], xvalues=x)
                         if len(args) >= 3:
                             if fmt == 'xyzc':
                                 c = _convert_to_array(args[2], xvalues=xy, always_flatten=True)
-                                c.shape = (len(x), len(y))
+                                c.shape = (len(y), len(x))
                             else:
                                 c = _convert_to_array(args[2], xvalues=x)
                     except TypeError:
@@ -4476,29 +4476,29 @@ def _plot_args(args, fmt='xys'):
                 y = y[:len(x)]
         else:
             if fmt == 'xyzc':
-                if z.shape[0] > len(x):
-                    z = z[:len(x), :]
-                elif z.shape[0] < len(x):
-                    x = x[:z.shape[0]]
-                if len(z.shape) > 1 and z.shape[1] > len(y):
-                    z = z[:, len(y)]
-                elif len(z.shape) > 1 and z.shape[1] < len(y):
-                    y = y[:z.shape[1]]
+                if z.shape[0] > len(y):
+                    z = z[:len(y), :]
+                elif z.shape[0] < len(y):
+                    y = y[:z.shape[0]]
+                if len(z.shape) > 1 and z.shape[1] > len(x):
+                    z = z[:, len(x)]
+                elif len(z.shape) > 1 and z.shape[1] < len(x):
+                    x = x[:z.shape[1]]
                 if c is not None:
-                    if c.shape[0] > len(x):
-                        c = c[:len(x), :]
-                    elif c.shape[0] < len(x):
-                        x = x[:c.shape[0]]
+                    if c.shape[0] > len(y):
+                        c = c[:len(y), :]
+                    elif c.shape[0] < len(y):
+                        y = y[:c.shape[0]]
                         z = z[:c.shape[0], 0]
-                    if c.shape[1] > len(y):
-                        c = c[:, len(y)]
-                    elif c.shape[1] < len(y):
-                        y = y[:c.shape[1]]
+                    if c.shape[1] > len(x):
+                        c = c[:, len(x)]
+                    elif c.shape[1] < len(x):
+                        x = x[:c.shape[1]]
                         z = z[:, :c.shape[1]]
                 if z is not None:
-                    z = np.ascontiguousarray(z.T)
+                    z = np.ascontiguousarray(z)
                 if c is not None:
-                    c = np.ascontiguousarray(c.T)
+                    c = np.ascontiguousarray(c)
             else:
                 if len(x) > len(y):
                     x = x[:len(y)]
