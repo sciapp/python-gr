@@ -18,8 +18,12 @@
 Name:          python-gr-local
 %else
 # use fixedversion for builds on build.opensuse.org - needed for deb builds.
+%if 0%{?mlz}
+%define fixedversion %{version}
+%else
 %define fixedversion fixed
 %define compression gz
+%endif
 Name:          python-gr
 %endif
 
