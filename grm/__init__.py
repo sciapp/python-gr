@@ -1,20 +1,21 @@
-# -*- coding: utf-8 -*-
 """
-This is a procedural interface to the GR plotting library,
+This is a procedural interface to the GRM plotting part of the GR framework,
 which may be imported directly, e.g.:
 
-import gr
+import grm
 """
 
-from ctypes import c_int, c_double, c_char_p, c_void_p, c_uint8, c_uint
-from ctypes import byref, POINTER, addressof, CDLL, CFUNCTYPE
+from ctypes import c_int, c_char_p, c_void_p, c_uint
 from ctypes import create_string_buffer, cast
 from gr.runtime_helper import load_runtime
-from gr import _require_runtime_version, _RUNTIME_VERSION, char
+from gr import _require_runtime_version, _RUNTIME_VERSION
 
-_grm = load_runtime(lib_name='libGRM')
+_grm = load_runtime(lib_name="libGRM")
 if _grm is None:
-    raise ImportError('Failed to load GRM runtime!')
+    raise ImportError("Failed to load GRM runtime!")
+
+def _encode_str_to_char_p(string):
+    return cast(create_string_buffer(string.encode("utf-8")), c_char_p)
 
 @_require_runtime_version(0, 47, 0)
 def plot(args_container):
@@ -35,12 +36,14 @@ def clear():
     """
     return _grm.grm_clear()
 
+
 @_require_runtime_version(0, 47, 0)
 def max_plotid():
     """
     Returns the index of the highest active plot
     """
     return _grm.grm_max_plotid()
+
 
 @_require_runtime_version(0, 47, 0)
 def merge(args_container):
@@ -51,17 +54,20 @@ def merge(args_container):
         raise TypeError("The given parameter is not a valid ArgumentContainer")
     return _grm.grm_merge(args_container.ptr)
 
+
 @_require_runtime_version(0, 47, 0)
 def merge_extended(args_container, hold, identificator):
     """
     ???
     """
-    if not isinstance(args_container, args._ArgumentContainer) or \
-        not isinstance(hold, int) or \
-        not isinstance(identificator, str):
+    if (
+            not isinstance(args_container, args._ArgumentContainer)
+            or not isinstance(hold, int)
+            or not isinstance(identificator, str)
+    ):
         raise TypeError("The given parameters do not match the types required.")
 
-    return _grm.grm_merge_extended(args_container.ptr, c_int(hold), char(identificator))
+    return _grm.grm_merge_extended(args_container.ptr, c_int(hold), _encode_str_to_char_p(identificator))
 
 
 @_require_runtime_version(0, 47, 0)
@@ -73,6 +79,7 @@ def merge_hold(args_container):
         raise TypeError("The given parameter is not a valid ArgumentContainer.")
     return _grm.grm_merge_hold(args_container.ptr)
 
+
 @_require_runtime_version(0, 47, 0)
 def merge_named(args_container, identificator):
     """
@@ -83,18 +90,20 @@ def merge_named(args_container, identificator):
     if not isinstance(identificator, str):
         raise TypeError("The given identificator is not a valid string.")
 
-    return _grm.grm.merge_named(args_container.ptr, char(identificator))
+    return _grm.grm.merge_named(args_container.ptr, _encode_str_to_char_p(identificator))
+
 
 @_require_runtime_version(0, 47, 0)
-def switch(id):
+def switch(plot_id):
     """
     Switches the default plot id
     """
-    if not isinstance(id, int):
+    if not isinstance(plot_id, int):
         raise TypeError("Given parameter is not a valid integer!")
-    if id < 0:
+    if plot_id < 0:
         raise TypeError("Given parameter is not unsigned.")
-    return _grm.grm_switch(c_uint(id))
+    return _grm.grm_switch(c_uint(plot_id))
+
 
 @_require_runtime_version(0, 47, 0)
 def finalize():
@@ -102,6 +111,7 @@ def finalize():
     Finalizes the grm framework and frees resources
     """
     _grm.grm_finalize()
+
 
 if _RUNTIME_VERSION >= (0, 47, 0, 0):
     _grm.grm_plot.argtypes = [c_void_p]
@@ -116,14 +126,14 @@ if _RUNTIME_VERSION >= (0, 47, 0, 0):
     _grm.grm_merge.argtypes = [c_void_p]
     _grm.grm_merge.restype = c_int
 
-    _grm.grm_merge_extended = [c_void_p, c_int, c_char_p]
-    _grm.grm_merge_extended = c_int
+    _grm.grm_merge_extended.argtypes = [c_void_p, c_int, c_char_p]
+    _grm.grm_merge_extended.restype = c_int
 
-    _grm.grm_merge_hold = [c_void_p]
-    _grm.grm_merge_hold = c_int
+    _grm.grm_merge_hold.argtypes = [c_void_p]
+    _grm.grm_merge_hold.restype = c_int
 
-    _grm.grm_merge_named = [c_void_p, c_char_p]
-    _grm.grm_merge_named = c_int
+    _grm.grm_merge_named.argtypes = [c_void_p, c_char_p]
+    _grm.grm_merge_named.restype = c_int
 
     _grm.grm_switch.argtypes = [c_uint]
     _grm.grm_switch.restype = c_int
@@ -136,6 +146,16 @@ from . import event
 from . import interaction
 
 __all__ = [
-    'args', 'event', 'interaction',
-    'plot', 'clear', 'max_plotid', 'merge', 'merge_extended', 'merge_hold', 'merge_named', 'switch', 'finalize'
+    "args",
+    "event",
+    "interaction",
+    "plot",
+    "clear",
+    "max_plotid",
+    "merge",
+    "merge_extended",
+    "merge_hold",
+    "merge_named",
+    "switch",
+    "finalize",
 ]

@@ -1,14 +1,13 @@
 import numpy as np
-from numpy import array, ndarray, float64, int32, empty, prod
-from ctypes import c_int, c_double, c_char_p, c_void_p, c_uint8, c_uint
-from ctypes import byref, POINTER, addressof, CDLL, CFUNCTYPE
-from ctypes import create_string_buffer, cast
-from gr import _require_runtime_version, _RUNTIME_VERSION, char
+from ctypes import c_int, c_double, c_char_p, c_void_p
+from ctypes import POINTER, create_string_buffer
+from gr import _require_runtime_version, _RUNTIME_VERSION
 
-from . import _grm
+from . import _grm, _encode_str_to_char_p
+
 
 class _ArgumentContainer:
-    def __init__(self, ptr, params = None):
+    def __init__(self, ptr, params=None):
         self._ptr = ptr
         self._bufs = {}
         self._is_child = False
@@ -16,25 +15,41 @@ class _ArgumentContainer:
             self.update(params)
 
     def update(self, params):
+        """
+        Updates the argument container with the given dictionary params, by calling self.push(k, v) on each item
+        """
         for k, v in params.items():
             self[k] = v
 
     @property
     def ptr(self):
+        """
+        Returns the internal pointer of the argument container. Should not be modified or otherwise dealt with,
+        primarily for use of internal classes
+        """
         if self._ptr is None:
             raise ValueError("Pointer already dead!")
         return self._ptr
 
     def clear(self):
+        """
+        Clears the argument container and frees all resources held by bufs
+        """
         _grm.grm_args_clear(self.ptr)
         self._bufs = {}
 
     def remove(self, name):
-        _grm.grm_args_remove(self.ptr, char(name))
+        """
+        Removes the given key `name` from the argument container, and frees the ressource held by it.
+        """
+        _grm.grm_args_remove(self.ptr, _encode_str_to_char_p(name))
         del self._bufs[name]
 
     def contains(self, name):
-        return _grm.grm_args_contains(self.ptr, char(name)) == 1
+        """
+        Returns true, if the given key `name` is set in the container
+        """
+        return _grm.grm_args_contains(self.ptr, _encode_str_to_char_p(name)) == 1
 
     def __setitem__(self, key, value):
         self.push(key, value)
@@ -47,7 +62,7 @@ class _ArgumentContainer:
 
     def delete(self):
         """
-        De-Initialises a argument container
+        De-Initialises a argument container (e.g. clear and destroy)
         """
         if not self._is_child:
             _grm.grm_args_delete(self.ptr)
@@ -78,66 +93,90 @@ class _ArgumentContainer:
         if not isinstance(name, str):
             raise TypeError("Name must be a string!")
 
-        if isinstance(values, int) or isinstance(values, float) or isinstance(values, str) or isinstance(values, dict) or isinstance(values, _ArgumentContainer):
+        if isinstance(values, (int, float, str, dict, _ArgumentContainer)):
             values = [values]
 
-        if not isinstance(values, list):
+        if not isinstance(values, (list, np.ndarray)):
             raise TypeError("Values must be int/int-array, float/float-array or string/string-array")
-
-        length = c_int(len(values))
-
-        typ = None
-        for x in values:
-            if typ is None:
-                typ = type(x)
-            elif typ == type(x):
-                pass
-            elif typ == int and isinstance(x, float):
-                typ = float
-            elif typ == float and isinstance(x, int):
-                pass
-            else:
-                raise TypeError("All values in the array must be of the same type!")
 
         values_orig = values
 
-        if typ == int:
-            type_spec = create_string_buffer(b'nI')
-            values = (c_int * len(values))(*values)
-            self._bufs[name] = values
-        elif typ == float:
-            type_spec = create_string_buffer(b'nD')
-            values = (c_double * len(values))(*values)
-            self._bufs[name] = values
-        elif typ == str:
-            type_spec = create_string_buffer(b'nS')
-            values = (c_char_p * len(values))(*[char(x) for x in values])
-            self._bufs[name] = values
-        elif typ == _ArgumentContainer:
-            values_orig = [ new(x) if isinstance(x, dict) else x for x in values_orig]
-            for x in values_orig:
-                x._is_child = True
+        if isinstance(values, np.ndarray):
+            if values.ndim != 1:
+                raise TypeError("The numpy ndarray must be one-dimensional")
 
-            type_spec = create_string_buffer(b'nA')
-            values = (c_void_p * len(values_orig))(*[x.ptr for x in values_orig])
-
-            self._bufs[name] = (values, values_orig) # This also stores the ArgumentContainers, so if 'self' is destructed, they loose a reference, and can be destructed, too.
+            if values.dtype.name == "float64":
+                type_spec = create_string_buffer(b"nD")
+                values = values.ctypes.data_as(POINTER(c_double))
+            elif values.dtype.name == "int32":
+                type_spec = create_string_buffer(b"nI")
+                values = values.ctypes.data_as(POINTER(c_int))
+            else:
+                raise TypeError("The given ndarray does not have the correct type.")
+            self._bufs[name] = values
         else:
-            raise TypeError("Unsupported type: " + typ)
-        args = (self.ptr, char(name), type_spec, length, values)
+            typ = None
+            for x in values:
+                if typ is None:
+                    typ = type(x)
+                elif typ == type(x):
+                    pass
+                elif typ == int and isinstance(x, float):
+                    typ = float
+                elif typ == float and isinstance(x, int):
+                    pass
+                elif typ == dict and isinstance(x, _ArgumentContainer):
+                    pass
+                elif typ == _ArgumentContainer and isinstance(x, dict):
+                    typ = dict
+                else:
+                    raise TypeError("All values in the array must be of the same type!")
 
-        print(args)
-        result = _grm.grm_args_push(*args)
+            if typ == int:
+                type_spec = create_string_buffer(b"nI")
+                values = (c_int * len(values))(*values)
+                self._bufs[name] = values
+            elif typ == float:
+                type_spec = create_string_buffer(b"nD")
+                values = (c_double * len(values))(*values)
+                self._bufs[name] = values
+            elif typ == str:
+                type_spec = create_string_buffer(b"nS")
+                values = (c_char_p * len(values))(*[_encode_str_to_char_p(x) for x in values])
+                self._bufs[name] = values
+            elif typ == _ArgumentContainer or typ == dict:
+                values_orig = [new(x) if isinstance(x, dict) else x for x in values_orig]
+                for x in values_orig:
+                    if x._is_child:
+                        raise ValueError("This ArgumentContainer is already a child of another!")
+                    x._is_child = True
+
+                type_spec = create_string_buffer(b"nA")
+                values = (c_void_p * len(values_orig))(*[x.ptr for x in values_orig])
+
+                self._bufs[name] = (
+                    values,
+                    values_orig,
+                )  # This also stores the ArgumentContainers, so if 'self' is destructed, they loose a reference, and can be destructed, too.
+            else:
+                raise TypeError("Unsupported type: " + repr(typ))
+        length = c_int(len(values_orig))
+
+        result = _grm.grm_args_push(self.ptr, _encode_str_to_char_p(name), type_spec, length, values)
         if result == 0:
-            return False # TODO: Exceptions?
+            return False  # TODO: Exceptions?
         return True
 
     def __del__(self):
+        """
+        Destructor to optionally free resources and destroy the c container, if not already done
+        """
         if self._ptr is not None:
             self.delete()
 
+
 @_require_runtime_version(0, 47, 0)
-def new(params = None):
+def new(params=None):
     """
     Initialises a new argument container
     """
@@ -164,4 +203,4 @@ if _RUNTIME_VERSION >= (0, 47, 0, 0):
     _grm.grm_args_delete.restype = None
 
 
-__all__ = ['new']
+__all__ = ["new"]
