@@ -1,3 +1,9 @@
+"""
+This module gives access to the ArgumentContainers exposed by GRM.
+
+It is used to pass plotting data, settings and other data to GRM.
+"""
+
 import numpy as np
 from ctypes import c_int, c_double, c_char_p, c_void_p
 from ctypes import POINTER, create_string_buffer
@@ -8,6 +14,12 @@ from . import _grm, _encode_str_to_char_p
 
 class _ArgumentContainer:
     def __init__(self, ptr, params=None):
+        """
+        Initialize the class using the given pointer and optional params to insert directly
+
+        :param c_void_p ptr: The pointer returned by grm_args_new
+        :param dict params: The data to set after init
+        """
         self._ptr = ptr
         self._bufs = {}
         self._is_child = False
@@ -16,7 +28,9 @@ class _ArgumentContainer:
 
     def update(self, params):
         """
-        Updates the argument container with the given dictionary params, by calling self.push(k, v) on each item
+        Update the argument container with the given dictionary params, by calling self.push(k, v) on each item.
+
+        :param dict params: The data to set. On each element, self[k] = v is called, inserting the element.
         """
         for k, v in params.items():
             self[k] = v
@@ -24,8 +38,7 @@ class _ArgumentContainer:
     @property
     def ptr(self):
         """
-        Returns the internal pointer of the argument container. Should not be modified or otherwise dealt with,
-        primarily for use of internal classes
+        Return the internal pointer of the argument container. Should not be modified or otherwise dealt with, primarily for use of internal classes.
         """
         if self._ptr is None:
             raise ValueError("Pointer already dead!")
@@ -33,21 +46,26 @@ class _ArgumentContainer:
 
     def clear(self):
         """
-        Clears the argument container and frees all resources held by bufs
+        Clear the argument container and frees all resources held by bufs.
         """
         _grm.grm_args_clear(self.ptr)
         self._bufs = {}
 
     def remove(self, name):
         """
-        Removes the given key `name` from the argument container, and frees the ressource held by it.
+        Remove the given key `name` from the argument container, and frees the ressource held by it.
+
+        :param str name: The key to remove from the container. `name in self` should be false after that.
         """
         _grm.grm_args_remove(self.ptr, _encode_str_to_char_p(name))
         del self._bufs[name]
 
     def contains(self, name):
         """
-        Returns true, if the given key `name` is set in the container
+        If the key `name` is contained in the argument, then return true.
+
+        :param str name: the key to check for.
+        :rtype: bool
         """
         return _grm.grm_args_contains(self.ptr, _encode_str_to_char_p(name)) == 1
 
@@ -62,7 +80,7 @@ class _ArgumentContainer:
 
     def delete(self):
         """
-        De-Initialises a argument container (e.g. clear and destroy)
+        De-Initialises a argument container (e.g. clear and destroy).
         """
         if not self._is_child:
             _grm.grm_args_delete(self.ptr)
@@ -84,11 +102,17 @@ class _ArgumentContainer:
     def push(self, name, values):
         """
         Pushes the argument with name to the argument container args_ptr, which should have been created using args_new.
-        values is either:
-            int, int-array
-            float, float-array,
-            string, string-array,
-            arg container, arg container-array
+
+        This function also silently overwrites entries with the same name.
+        You can always mix int values and float values, but they will then all be converted to floats.
+        One-dimensional numpy.ndarray with either Float64 or Int32 can also be passed.
+        :param str name: The key of the key-value-pair to insert.
+        :param Union[int, float, str, _ArgumentContainer, dict, List[Union[int, float]], List[Union[_ArgumentContainer, dict]], List[str]] The value(s) to insert.
+        :rtype: bool
+
+        Raises:
+            TypeError: This error is raised if name or values (or the child elements of values) are of no correct type.
+            ValueError: This error is raised if one of the _ArgumentContainer elements is already a child of another.
         """
         if not isinstance(name, str):
             raise TypeError("Name must be a string!")
@@ -97,7 +121,9 @@ class _ArgumentContainer:
             values = [values]
 
         if not isinstance(values, (list, np.ndarray)):
-            raise TypeError("Values must be int/int-array, float/float-array or string/string-array")
+            raise TypeError(
+                "Values must be int/int-array, float/float-array or string/string-array or dict/dict-array, _ArgumentContainer/_ArgumentContainer-array"
+            )
 
         values_orig = values
 
@@ -169,7 +195,7 @@ class _ArgumentContainer:
 
     def __del__(self):
         """
-        Destructor to optionally free resources and destroy the c container, if not already done
+        Destructor to optionally free resources and destroy the c container, if not already done.
         """
         if self._ptr is not None:
             self.delete()
@@ -178,7 +204,10 @@ class _ArgumentContainer:
 @_require_runtime_version(0, 47, 0)
 def new(params=None):
     """
-    Initialises a new argument container
+    Initialises a new argument container.
+
+    :param dict The parameters to initialise the container with
+    :rtype: _ArgumentContainer
     """
     return _ArgumentContainer(_grm.grm_args_new(), params)
 

@@ -3,11 +3,11 @@ import numpy as np
 
 
 def new_plot_callback(event):
-    print("Got new plot event, plot_id: %s" % event.contents.new_plot_event.plot_id, file=sys.stderr)
+    print("Got new plot event, plot_id: %s" % event.plot_id, file=sys.stderr)
 
 
 def size_callback(event):
-    print("Got size event, size: (%s, %s)" % (event.contents.size_event.width, event.contents.size_event.width))
+    print("Got size event, size: (%s, %s)" % (event.width, event.width))
 
 
 n = 1000

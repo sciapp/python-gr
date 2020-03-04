@@ -93,7 +93,7 @@ check-codestyle:
   # Check against PEP8 and PEP257
   # Ignore line length check (E501)
   # Ignore single-line docstring check (D200)
-  - env/bin/python -m flake8 --ignore E501,D200 gr/pygr/mlab.py
+  - env/bin/python -m flake8 --ignore E501,D200 gr/pygr/mlab.py grm/*
 
 install-ubuntu1604-python2:
   stage: install

@@ -1,3 +1,6 @@
+"""
+This module provides functions to manage callbacks for the events which can happen in grm.
+"""
 from ctypes import c_int, c_char_p
 from ctypes import POINTER, CFUNCTYPE
 from ctypes import Union, Structure
@@ -7,6 +10,10 @@ from . import _grm
 
 
 class EventType(object):
+    """
+    This class contains the event types which are passed to register/unregister.
+    """
+
     NEW_PLOT = 0
     UPDATE_PLOT = 1
     SIZE = 2
@@ -14,18 +21,52 @@ class EventType(object):
 
 
 class EVENT_NEW_PLOT(Structure):
+    """
+    This class is used to carry event data for the new plot event.
+
+    Instances of this class have the following members:
+
+    * ``type`` (type: c_int): The event type (should be EventType.NEW_PLOT)
+    * ``plot_id`` (type: c_int): The plot id which has a new size
+    """
     _fields_ = [("type", c_int), ("plot_id", c_int)]
 
 
 class EVENT_UPDATE_PLOT(Structure):
+    """
+    This class is used to carry event data for the update plot event.
+
+    Instances of this class have the following members:
+
+    * ``type`` (type: c_int): The event type (should be EventType.UPDATE_PLOT)
+    * ``plot_id`` (type: c_int): The plot id which has a new size
+    """
     _fields_ = [("type", c_int), ("plot_id", c_int)]
 
 
 class EVENT_SIZE(Structure):
+    """
+    This class is used to carry event data for the size event.
+
+    Instances of this class have the following members:
+
+    * ``type`` (type: c_int): The event type (should be EventType.SIZE)
+    * ``plot_id`` (type: c_int): The plot id which has a new size
+    * ``width`` (type: c_int): The new width
+    * ``height`` (type: c_int): The new height
+    """
     _fields_ = [("type", c_int), ("plot_id", c_int), ("width", c_int), ("height", c_int)]
 
 
 class EVENT_MERGE_END(Structure):
+    """
+    This class is used to carry event data for the merge end event.
+
+    Instances of this class have the following members:
+
+    * ``type`` (type: c_int): The event type (should be EventType.MERGE_END)
+    * ``identificator`` (type: c_char_p): The optional identificator which was given using merge_named or merge_extended
+    """
     _field_ = [("type", c_int), ("identificator", c_char_p)]
 
 
@@ -45,14 +86,35 @@ _registered_events = [None, None, None, None]  # One dict for each eventtype
 @_require_runtime_version(0, 47, 0)
 def register(event_type, callback):
     """
-    Registers a callback for the specified event type
+    Register a callback for the specified event type.
+
+    This eventually replaces an already set callback.
+    The callback receives a class specific to the event type, one of:
+     - EVENT_NEW_PLOT,
+     - EVENT_UPDATE_PLOT,
+     - EVENT_SIZE or
+     - EVENT_MERGE_END
     """
     if not isinstance(event_type, int) or event_type < 0 or event_type > EventType.MERGE_END:
         raise TypeError("event_type must be a value out of EventType!")
 
     if callback == _registered_events[event_type]:
         raise ValueError("The specified callback is already registered")
-    c_func = _event_callback_t(callback)
+
+    if event_type == EventType.NEW_PLOT:
+        def i_callback(ev):
+            callback(ev.contents.new_plot_event)
+    elif event_type == EventType.UPDATE_PLOT:
+        def i_callback(ev):
+            callback(ev.contents.update_plot_event)
+    elif event_type == EventType.SIZE:
+        def i_callback(ev):
+            callback(ev.contents.size_event)
+    else:
+        def i_callback(ev):
+            callback(ev.contents.merge_end_event)
+
+    c_func = _event_callback_t(i_callback)
     _registered_events[event_type] = c_func
     return _grm.grm_register(c_int(event_type), c_func)
 
@@ -60,7 +122,7 @@ def register(event_type, callback):
 @_require_runtime_version(0, 47, 0)
 def unregister(event_type):
     """
-    Deregisters the callback for the given event type
+    Deregister the callback for the given event type.
     """
     if not isinstance(event_type, int) or event_type < 0 or event_type > EventType.MERGE_END:
         raise TypeError("event_type must be a value out of EventType!")
@@ -76,4 +138,4 @@ if _RUNTIME_VERSION >= (0, 47, 0, 0):
     _grm.grm_unregister.argtypes = [c_int]
     _grm.grm_unregister.restype = c_int
 
-__all__ = ["register", "unregister", "EventType"]
+__all__ = ["register", "unregister", "EventType", "EVENT_NEW_PLOT", "EVENT_UPDATE_PLOT", "EVENT_SIZE", "EVENT_MERGE_END"]
