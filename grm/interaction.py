@@ -19,27 +19,26 @@ def input(args_container):
     All coordinates are integers and workstation coordinates
     It supports the following operation modes with the arguments needed:
         reset_ranges:
-         * 'x' mouse cursor x
-         * 'y' mouse cursor y
-         * 'key' the pressed key, f.e. 'r' for the right button
+         * ``x`` mouse cursor x
+         * ``y`` mouse cursor y
+         * ``key`` the pressed key, f.e. 'r' for the right button
         zoom:
-         * 'x' start point x
-         * 'y' start point y
+         * ``x`` start point x
+         * ``y`` start point y
          * one of:
-            - 'angle_delta': mouse wheel rotation angle in eights of a degree
-            - 'factor': zoom factor
-        box zoom:
-         Zooms the subplot to the selection made
-         * 'x1': fixed corner x
-         * 'y1': fixed corner y
-         * 'x2': other corner x
-         * 'y2': other corner y
-         * 'keep_aspect_ratio': if 1, the aspect ratio of the window is preserved
+            - ``angle_delta``: mouse wheel rotation angle in eights of a degree
+            - ``factor``: zoom factor
+        box zoom (Zooms the subplot to the selection made):
+         * ``x1``: fixed corner x
+         * ``y1``: fixed corner y
+         * ``x2``: other corner x
+         * ``y2``: other corner y
+         * ``keep_aspect_ratio``: if 1, the aspect ratio of the window is preserved
         pan:
-         * 'x': start point x
-         * 'y': start point y
-         * 'xshift': shift in x direction
-         * 'yshift': shift in y direction
+         * ``x``: start point x
+         * ``y``: start point y
+         * ``xshift``: shift in x direction
+         * ``yshift``: shift in y direction
     """
     if not isinstance(args_container, args._ArgumentContainer):
         raise TypeError("args_container must be an ArgumentContainer!")
