@@ -29,6 +29,7 @@ class EVENT_NEW_PLOT(Structure):
     * ``type`` (type: c_int): The event type (should be EventType.NEW_PLOT)
     * ``plot_id`` (type: c_int): The plot id which has a new size
     """
+
     _fields_ = [("type", c_int), ("plot_id", c_int)]
 
 
@@ -41,6 +42,7 @@ class EVENT_UPDATE_PLOT(Structure):
     * ``type`` (type: c_int): The event type (should be EventType.UPDATE_PLOT)
     * ``plot_id`` (type: c_int): The plot id which has a new size
     """
+
     _fields_ = [("type", c_int), ("plot_id", c_int)]
 
 
@@ -55,6 +57,7 @@ class EVENT_SIZE(Structure):
     * ``width`` (type: c_int): The new width
     * ``height`` (type: c_int): The new height
     """
+
     _fields_ = [("type", c_int), ("plot_id", c_int), ("width", c_int), ("height", c_int)]
 
 
@@ -67,6 +70,7 @@ class EVENT_MERGE_END(Structure):
     * ``type`` (type: c_int): The event type (should be EventType.MERGE_END)
     * ``identificator`` (type: c_char_p): The optional identificator which was given using merge_named or merge_extended
     """
+
     _field_ = [("type", c_int), ("identificator", c_char_p)]
 
 

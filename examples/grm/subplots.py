@@ -24,9 +24,9 @@ args = grm.args.new({"subplots": subplots})
 
 print("plotting data...")
 
-grm.plot(args)
+grm.plot.plot(args)
 print("Press any key to continue...")
 sys.stdin.read(1)
 
 del args
-grm.finalize()
+grm.plot.finalize()

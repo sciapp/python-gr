@@ -10,7 +10,7 @@ print("filling argument container...")
 args = grm.args.new({"x": x_vals, "y": sin_y_vals})
 
 print("plotting sin...")
-grm.plot(args)
+grm.plot.plot(args)
 print("Press any key to continue...")
 sys.stdin.read(1)
 
@@ -18,17 +18,17 @@ args.clear()
 args.update({"x": x_vals, "y": cos_y_vals})
 
 print("plotting cos...")
-grm.plot(args)
+grm.plot.plot(args)
 print("Press any key to continue...")
 sys.stdin.read(1)
 
-grm.switch(1)
+grm.plot.switch(1)
 
 args.clear()
 args.update({"x": x_vals, "y": sin_y_vals})
 
 print("plotting sin...")
-grm.plot(args)
+grm.plot.plot(args)
 print("Press any key to continue...")
 sys.stdin.read(1)
 
@@ -36,9 +36,9 @@ args.clear()
 args.update({"x": x_vals, "y": cos_y_vals, "id": ":.2"})
 
 print("plotting sin AND cos...")
-grm.plot(args)
+grm.plot.plot(args)
 print("Press any key to continue...")
 sys.stdin.read(1)
 
 del args
-grm.finalize()
+grm.plot.finalize()

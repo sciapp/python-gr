@@ -15,7 +15,7 @@ from . import _grm, _encode_str_to_char_p
 class _ArgumentContainer:
     def __init__(self, ptr, params=None):
         """
-        Initialize the class using the given pointer and optional params to insert directly
+        Initialize the class using the given pointer and optional params to insert directly.
 
         :param c_void_p ptr: The pointer returned by grm_args_new
         :param dict params: The data to set after init
@@ -204,7 +204,7 @@ class _ArgumentContainer:
 @_require_runtime_version(0, 47, 0)
 def new(params=None):
     """
-    Initialises a new argument container.
+    Initialise a new argument container.
 
     :param dict The parameters to initialise the container with
     :rtype: _ArgumentContainer

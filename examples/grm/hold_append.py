@@ -16,11 +16,11 @@ args = grm.args.new(
         "hold_plots": 1,  # Do not delete contents of the default plot automatically
     }
 )
-grm.merge(args)
+grm.plot.merge(args)
 args["series"] = series[0]
 
 print("plotting data...")
-grm.plot(args)
+grm.plot.plot(args)
 print("Press any key to continue...")
 sys.stdin.read(1)
 args2 = args
@@ -29,17 +29,17 @@ args2 = args
 args = grm.args.new({"size": [800.0, 800.0], "plot_id": 0})  # Avoid creating a new plot
 
 print("plotting data...")
-grm.plot(args)
+grm.plot.plot(args)
 print("Press any key to continue...")
 sys.stdin.read(1)
 
 del args
 args = grm.args.new({"series": series[1]})
-grm.merge(args)
+grm.plot.merge(args)
 # This call will create a new plot with id `1`
 print("plotting data...")
-grm.switch(1)
-grm.plot(None)
+grm.plot.switch(1)
+grm.plot.plot(None)
 print("Press any key to continue...")
 sys.stdin.read(1)
 #

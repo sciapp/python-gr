@@ -14,7 +14,7 @@ def test_consecutive_plots():
     for i in range(0, 2):
         args["x"] = plots[i][0]
         args["y"] = plots[i][1]
-        grm.plot(args)
+        grm.plot.plot(args)
         print("Press any key to continue...")
         sys.stdin.read(1)
 
@@ -32,7 +32,7 @@ def test_line():
 
     print("plotting data...")
 
-    grm.plot(args)
+    grm.plot.plot(args)
 
     print("Press any key to continue...")
     sys.stdin.read(1)
@@ -56,7 +56,7 @@ def test_contourf():
 
     print("plotting data...")
 
-    grm.plot(args)
+    grm.plot.plot(args)
 
     print("Press any key to continue...")
     sys.stdin.read(1)
@@ -66,4 +66,4 @@ if __name__ == "__main__":
     test_line()
     test_consecutive_plots()
     test_contourf()
-    grm.finalize()
+    grm.plot.finalize()

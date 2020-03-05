@@ -29,7 +29,7 @@ grm.event.register(grm.event.EventType.SIZE, size_callback)
 
 print("plotting data...")
 
-grm.plot(args)
+grm.plot.plot(args)
 
 print("Press any key to continue...")
 sys.stdin.read(1)
@@ -38,7 +38,7 @@ args["size"] = [1000.0, 1000.0]
 
 print("plotting data...")
 
-grm.plot(args)
+grm.plot.plot(args)
 
 print("Press any key to continue...")
 sys.stdin.read(1)
@@ -47,11 +47,11 @@ args["size"] = [1000.0, 1000.0]
 
 print("plotting data...")
 
-grm.switch(1)
-grm.plot(args)
+grm.plot.switch(1)
+grm.plot.plot(args)
 
 print("Press any key to continue...")
 sys.stdin.read(1)
 
 del args
-grm.finalize()
+grm.plot.finalize()
