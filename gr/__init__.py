@@ -71,10 +71,13 @@ def _require_runtime_version(*_minimum_runtime_version):
     :return: the wrapped function with a version check
     """
     def require_runtime_version_decorator(_func, _minimum_runtime_version=_minimum_runtime_version):
+        # remove extraneous 0s from version
+        while _minimum_runtime_version[-1] == 0:
+            _minimum_runtime_version = _minimum_runtime_version[:-1]
+
         minimum_runtime_version_str = '.'.join(
             'post' + str(c) if i == 3 else str(c)
             for i, c in enumerate(_minimum_runtime_version)
-            if not (i == 3 and c == 0)
         )
         _func.__doc__ += "\n\n    This function requires GR runtime version {} or higher.".format(minimum_runtime_version_str)
 
@@ -3160,6 +3163,274 @@ def inqbordercolorind():
     return coli.value
 
 
+@_require_runtime_version(0, 46, 0, 76)
+def setprojectiontype(projection_type):
+    """
+    Set the projection type with this flag.
+
+    `projection_type` :
+        Projection type
+
+    The available options are:
+
+    +------------------------+---+--------------+
+    |PROJECTION_DEFAULT      |  0|default       |
+    +------------------------+---+--------------+
+    |PROJECTION_ORTHOGRAPHIC |  1|orthographic  |
+    +------------------------+---+--------------+
+    |PROJECTION_PERSPECTIVE  |  2|perspective   |
+    +------------------------+---+--------------+
+
+    """
+    __gr.gr_setprojectiontype(c_int(projection_type))
+
+
+@_require_runtime_version(0, 46, 0, 76)
+def inqprojectiontype():
+    """
+    Return the projection type.
+    """
+    projection_type = c_int()
+    __gr.gr_inqprojectiontype(byref(projection_type))
+    return projection_type.value
+
+
+@_require_runtime_version(0, 46, 0, 76)
+def setperspectiveprojection(near_plane, far_plane, fov):
+    """
+    Set the far and near clipping planes and the vertical field of view.
+
+    **Parameters:**
+
+    `near_plane` :
+        distance to near clipping plane
+    `far_plane` :
+        distance to far clipping plane
+    `fov` :
+        vertical field of view, must be between 0 and 180 degrees
+
+    Switches projection type to perspective.
+    """
+    __gr.gr_setperspectiveprojection(c_double(near_plane), c_double(far_plane), c_double(fov))
+
+
+@_require_runtime_version(0, 46, 0, 76)
+def setorthographicprojection(left, right, bottom, top, near_plane, far_plane):
+    """
+    Set parameters for orthographic transformation.
+
+    **Parameters:**
+
+    `left` :
+        xmin of the volume in world coordinates
+    `right` :
+        xmax of volume in world coordinates
+    `bottom` :
+        ymin of volume in world coordinates
+    `top` :
+        ymax of volume in world coordinates
+    `near_plane` :
+        distance to near clipping plane
+    `far_plane` :
+        distance to far clipping plane
+
+    Switches projection type to orthographic.
+    """
+    __gr.gr_setorthographicprojection(c_double(left), c_double(right), c_double(bottom), c_double(top), c_double(near_plane), c_double(far_plane))
+
+
+@_require_runtime_version(0, 46, 0, 76)
+def settransformationparameters(camera_position_x, camera_position_y, camera_position_z, up_vector_x, up_vector_y, up_vector_z, focus_point_x, focus_point_y, focus_point_z):
+    """
+    Method to set the camera position, the upward facing direction and the focus point of the shown volume.
+
+    **Parameters:**
+
+    `camera_position_x` :
+        x component of the camera position in world coordinates
+    `camera_position_y` :
+        y component of the camera position in world coordinates
+    `camera_position_z` :
+        z component of the camera position in world coordinates
+    `up_vector_x` :
+        x component of the up vector
+    `up_vector_y` :
+        y component of the up vector
+    `up_vector_z` :
+        z component of the up vector
+    `focus_point_x` :
+        x component of focus-point inside volume
+    `focus_point_y` :
+        y component of focus-point inside volume
+    `focus_point_z` :
+        z component of focus-point inside volume
+    """
+    __gr.gr_settransformationparameters(c_double(camera_position_x), c_double(camera_position_y), c_double(camera_position_z), c_double(up_vector_x), c_double(up_vector_y), c_double(up_vector_z), c_double(focus_point_x), c_double(focus_point_y), c_double(focus_point_z))
+
+
+@_require_runtime_version(0, 46, 0, 76)
+def inqtransformationparameters():
+    """
+    Return the camera position, up vector and focus point.
+    """
+    camera_position_x = c_double()
+    camera_position_y = c_double()
+    camera_position_z = c_double()
+    up_vector_x = c_double()
+    up_vector_y = c_double()
+    up_vector_z = c_double()
+    focus_point_x = c_double()
+    focus_point_y = c_double()
+    focus_point_z = c_double()
+    __gr.gr_inqtransformationparameters(byref(camera_position_x), byref(camera_position_y), byref(camera_position_z), byref(up_vector_x), byref(up_vector_y), byref(up_vector_z), byref(focus_point_x), byref(focus_point_y), byref(focus_point_z))
+    return [camera_position_x.value, camera_position_y.value, camera_position_z.value, up_vector_x.value, up_vector_y.value, up_vector_z.value, focus_point_x.value, focus_point_y.value, focus_point_z.value]
+
+
+@_require_runtime_version(0, 46, 0, 76)
+def inqorthographicprojection():
+    """
+    Return the parameters for the orthographic projection.
+    """
+    left = c_double()
+    right = c_double()
+    bottom = c_double()
+    top = c_double()
+    near_plane = c_double()
+    far_plane = c_double()
+    __gr.gr_inqorthographicprojection(byref(left), byref(right), byref(bottom), byref(top), byref(near_plane), byref(far_plane))
+    return [left.value, right.value, bottom.value, top.value, near_plane.value, far_plane.value]
+
+
+@_require_runtime_version(0, 46, 0, 76)
+def inqperspectiveprojection():
+    """
+    Return the parameters for the perspective projection.
+    """
+    near_plane = c_double()
+    far_plane = c_double()
+    fovy = c_double()
+    __gr.gr_inqperspectiveprojection(byref(near_plane), byref(far_plane), byref(fovy))
+    return [near_plane.value, far_plane.value, fovy.value]
+
+
+@_require_runtime_version(0, 46, 0, 76)
+def camerainteraction(start_mouse_position_x, start_mouse_position_y, end_mouse_position_x, end_mouse_position_y):
+    """
+    Interface for interaction with the rotation of the model. For this a virtual Arcball is used.
+
+    **Parameters:**
+
+    `start_mouse_position_x` :
+        x component of the start mouse position
+    `start_mouse_position_y` :
+        y component of the start mouse position
+    `end_mouse_position_x` :
+        x component of the end mouse position
+    `end_mouse_position_y` :
+        y component of the end mouse position
+
+    """
+    __gr.gr_camerainteraction(c_double(start_mouse_position_x), c_double(start_mouse_position_y), c_double(end_mouse_position_x), c_double(end_mouse_position_y))
+
+
+@_require_runtime_version(0, 46, 0, 76)
+def setwindow3d(x_min, x_max, y_min, y_max, z_min, z_max):
+    """
+    Set the three dimensional window. Only used for perspective and orthographic projection.
+
+    **Parameters:**
+
+    `xmin` :
+        min x-value
+    `xmax` :
+        max x-value
+    `ymin` :
+        min y-value
+    `ymax` :
+        max y-value
+    `zmin` :
+        min z-value
+    `zmax` :
+        max z-value
+    """
+    __gr.gr_setwindow3d(c_double(x_min), c_double(x_max), c_double(y_min), c_double(y_max), c_double(z_min), c_double(z_max))
+
+
+@_require_runtime_version(0, 46, 0, 76)
+def inqwindow3d():
+    """
+    Return the three dimensional window.
+    """
+    xmin = c_double()
+    xmax = c_double()
+    ymin = c_double()
+    ymax = c_double()
+    zmin = c_double()
+    zmax = c_double()
+    __gr.gr_inqwindow3d(byref(xmin), byref(xmax), byref(ymin), byref(ymax), byref(zmin), byref(zmax))
+    return [xmin.value, xmax.value, ymin.value, ymax.value, zmin.value, zmax.value]
+
+
+@_require_runtime_version(0, 48, 0, 0)
+def setscalefactors3d(x_axis_scale, y_axis_scale, z_axis_scale):
+    """
+    Set the scaling factor for each axis.
+
+    The scaling factors must not be zero.
+
+    **Parameters:**
+
+    `x_axis_scale` :
+        x axis scaling factor
+    `y_axis_scale` :
+        y axis scaling factor
+    `z_axis_scale` :
+        z axis scaling factor
+    """
+    __gr.gr_setscalefactors3d(c_double(x_axis_scale), c_double(y_axis_scale), c_double(z_axis_scale))
+
+
+@_require_runtime_version(0, 48, 0, 0)
+def inqscalefactors3d():
+    """
+    Return the scaling factor for each axis.
+    """
+    x_axis_scale = c_double()
+    y_axis_scale = c_double()
+    z_axis_scale = c_double()
+    __gr.gr_inqscalefactors3d(byref(x_axis_scale), byref(y_axis_scale), byref(z_axis_scale))
+    return [x_axis_scale.value, y_axis_scale.value, z_axis_scale.value]
+
+
+@_require_runtime_version(0, 48, 0, 0)
+def transformationinterfaceforrepl(phi, theta, fov, camera_distance):
+    """
+    This is an interface for REPL based languages to enable an easier way to
+    rotate around an object.
+
+    The center of the 3d window is used as the focus point and the camera is
+    positioned relative to it, using spherical coordinates. This function can
+    therefore also be used if the user prefers spherical coordinates to setting
+    the direct camera position, but with reduced functionality in comparison
+    to gr.settransformationparameters, gr.setperspectiveprojection and
+    gr.setorthographicprojection.
+
+    **Parameters:**
+
+    `phi` :
+        azimuthal angle of the spherical coordinates
+    `theta` :
+        polar angle of the spherical coordinates
+    `fov` :
+        vertical field of view
+        (0 or NaN for orthographic projection)
+    `camera distance` :
+        distance between the camera and the focus point
+        (0 or NaN for the radius of the object's smallest bounding sphere)
+    """
+    __gr.gr_transformationinterfaceforrepl(c_double(phi), c_double(theta), c_double(fov), c_double(camera_distance))
+
+
 def wrapper_version():
     """
     Returns the version string of the Python package gr.
@@ -3397,6 +3668,39 @@ if _RUNTIME_VERSION >= (0, 45, 0, 0):
     __gr.gr_setbordercolorind.restype = None
     __gr.gr_inqbordercolorind.argtypes = [POINTER(c_int)]
     __gr.gr_inqbordercolorind.restype = None
+
+if _RUNTIME_VERSION >= (0, 46, 0, 76):
+    __gr.gr_setprojectiontype.argtypes = [c_int]
+    __gr.gr_setprojectiontype.restype = None
+    __gr.gr_inqprojectiontype.argtypes = [POINTER(c_int)]
+    __gr.gr_inqprojectiontype.restype = None
+    __gr.gr_setperspectiveprojection.argtypes = [c_double, c_double, c_double]
+    __gr.gr_setperspectiveprojection.restype = None
+    __gr.gr_setorthographicprojection.argtypes = [c_double, c_double, c_double, c_double, c_double, c_double]
+    __gr.gr_setorthographicprojection.restype = None
+    __gr.gr_settransformationparameters.argtypes = [c_double, c_double, c_double, c_double, c_double, c_double, c_double, c_double, c_double]
+    __gr.gr_settransformationparameters.restype = None
+    __gr.gr_inqtransformationparameters.argtypes = [POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double)]
+    __gr.gr_inqtransformationparameters.restype = None
+    __gr.gr_inqorthographicprojection.argtypes = [POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double)]
+    __gr.gr_inqorthographicprojection.restype = None
+    __gr.gr_inqperspectiveprojection.argtypes = [POINTER(c_double), POINTER(c_double), POINTER(c_double)]
+    __gr.gr_inqperspectiveprojection.restype = None
+    __gr.gr_camerainteraction.argtypes = [c_double, c_double, c_double, c_double]
+    __gr.gr_camerainteraction.restype = None
+    __gr.gr_setwindow3d.argtypes = [c_double, c_double, c_double, c_double, c_double, c_double]
+    __gr.gr_setwindow3d.restype = None
+    __gr.gr_inqwindow3d.argtypes = [POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double)]
+    __gr.gr_inqwindow3d.restype = None
+
+if _RUNTIME_VERSION >= (0, 48, 0, 0):
+    __gr.gr_setscalefactors3d.argtypes = [c_double, c_double, c_double]
+    __gr.gr_setscalefactors3d.restype = None
+    __gr.gr_inqscalefactors3d.argtypes = [POINTER(c_double), POINTER(c_double), POINTER(c_double)]
+    __gr.gr_inqscalefactors3d.restype = None
+    __gr.gr_transformationinterfaceforrepl.argtypes = [c_double, c_double, c_double, c_double]
+    __gr.gr_transformationinterfaceforrepl.restype = None
+
 
 precision = __gr.gr_precision()
 
@@ -3714,6 +4018,11 @@ if _RUNTIME_VERSION >= (0, 41, 5, 43):
     RESAMPLE_LANCZOS = (
             UPSAMPLE_VERTICAL_LANCZOS | UPSAMPLE_HORIZONTAL_LANCZOS | DOWNSAMPLE_VERTICAL_LANCZOS | DOWNSAMPLE_HORIZONTAL_LANCZOS
     )
+
+if _RUNTIME_VERSION >= (0, 46, 0, 76):
+    PROJECTION_DEFAULT = 0
+    PROJECTION_ORTHOGRAPHIC = 1
+    PROJECTION_PERSPECTIVE = 2
 
 # automatically switch to inline graphics in Jupyter Notebooks
 if 'ipykernel' in sys.modules:
