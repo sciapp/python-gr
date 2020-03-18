@@ -71,10 +71,13 @@ def _require_runtime_version(*_minimum_runtime_version):
     :return: the wrapped function with a version check
     """
     def require_runtime_version_decorator(_func, _minimum_runtime_version=_minimum_runtime_version):
+        # remove extraneous 0s from version
+        while _minimum_runtime_version[-1] == 0:
+            _minimum_runtime_version = _minimum_runtime_version[:-1]
+
         minimum_runtime_version_str = '.'.join(
             'post' + str(c) if i == 3 else str(c)
             for i, c in enumerate(_minimum_runtime_version)
-            if not (i == 3 and c == 0)
         )
         _func.__doc__ += "\n\n    This function requires GR runtime version {} or higher.".format(minimum_runtime_version_str)
 
