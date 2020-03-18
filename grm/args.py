@@ -5,7 +5,7 @@ It is used to pass plotting data, settings and other data to GRM.
 """
 
 import numpy as np
-from ctypes import c_int, c_double, c_char_p, c_void_p
+from ctypes import c_int, c_uint, c_double, c_char_p, c_void_p
 from ctypes import POINTER, create_string_buffer
 from gr import _require_runtime_version, _RUNTIME_VERSION
 
@@ -113,6 +113,7 @@ class _ArgumentContainer:
         Raises:
             TypeError: This error is raised if name or values (or the child elements of values) are of no correct type.
             ValueError: This error is raised if one of the _ArgumentContainer elements is already a child of another.
+
         """
         if not isinstance(name, str):
             raise TypeError("Name must be a string!")
@@ -120,7 +121,7 @@ class _ArgumentContainer:
         if isinstance(values, (int, float, str, dict, _ArgumentContainer)):
             values = [values]
 
-        if not isinstance(values, (list, np.ndarray)):
+        if not isinstance(values, (tuple, list, np.ndarray)):
             raise TypeError(
                 "Values must be int/int-array, float/float-array or string/string-array or dict/dict-array, _ArgumentContainer/_ArgumentContainer-array"
             )
@@ -128,8 +129,9 @@ class _ArgumentContainer:
         values_orig = values
 
         if isinstance(values, np.ndarray):
-            if values.ndim != 1:
-                raise TypeError("The numpy ndarray must be one-dimensional")
+            if values.ndim > 1:
+                self[name + "_dims"] = values.shape
+                values_orig = values = values.ravel()
 
             if values.dtype.name == "float64":
                 type_spec = create_string_buffer(b"nD")
@@ -139,6 +141,7 @@ class _ArgumentContainer:
                 values = values.ctypes.data_as(POINTER(c_int))
             else:
                 raise TypeError("The given ndarray does not have the correct type.")
+
             self._bufs[name] = values
         else:
             typ = None
@@ -186,7 +189,8 @@ class _ArgumentContainer:
                 )  # This also stores the ArgumentContainers, so if 'self' is destructed, they loose a reference, and can be destructed, too.
             else:
                 raise TypeError("Unsupported type: " + repr(typ))
-        length = c_int(len(values_orig))
+
+        length = c_uint(len(values_orig))
 
         result = _grm.grm_args_push(self.ptr, _encode_str_to_char_p(name), type_spec, length, values)
         if result == 0:
@@ -216,7 +220,7 @@ if _RUNTIME_VERSION >= (0, 47, 0, 0):
     _grm.grm_args_new.argtypes = []
     _grm.grm_args_new.restype = c_void_p
 
-    _grm.grm_args_push.argtypes = [c_void_p, c_char_p, c_char_p, c_int, c_void_p]
+    _grm.grm_args_push.argtypes = [c_void_p, c_char_p, c_char_p, c_uint, c_void_p]
     _grm.grm_args_push.restype = c_int
 
     _grm.grm_args_clear.argtypes = [c_void_p]
