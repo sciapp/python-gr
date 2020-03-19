@@ -328,7 +328,7 @@ deploy-to-github:
 
 deploy-to-pypi:
   stage: deploy
-  image: ubuntu:16.04
+  image: ubuntu:18.04
   variables:
     GIT_STRATEGY: none
   only:
@@ -336,8 +336,8 @@ deploy-to-pypi:
   script:
   - rm -rf deploy && mkdir deploy && cd deploy
   - apt-get update
-  - apt-get install -y virtualenv python-pip git
-  - virtualenv env
+  - apt-get install -y python3-pip python3-venv git
+  - python3 -m venv env
   - env/bin/pip install --upgrade pip
   - env/bin/pip install twine
   - echo "[distutils]"                                 > ~/.pypirc
