@@ -53,16 +53,31 @@ class GRWidget(QWidget):
 
     def __init__(self, *args, **kwargs):
         super(GRWidget, self).__init__(*args, **kwargs)
+
+        try:
+            self.devicePixelRatioF()
+        except AttributeError:
+            try:
+                self.devicePixelRatio()
+            except AttributeError:
+                self.devicePixelRatio = lambda: 1
+            self.devicePixelRatioF = lambda: float(self.devicePixelRatio())
+
+        self.currentDevicePixelRatio = self.devicePixelRatioF()
+
         self._sizex, self._sizey = 1., 1.
         self._dwidth, self._dheight = self.width(), self.height()
-        self._mwidth = self._dwidth * 2.54 / self.physicalDpiX() / 100.
-        self._mheight = self._dheight * 2.54 / self.physicalDpiY() / 100.
+        self._mwidth = self._dwidth * 2.54 / self.physicalDpiX() / 100. / self.currentDevicePixelRatio
+        self._mheight = self._dheight * 2.54 / self.physicalDpiY() / 100. / self.currentDevicePixelRatio
         self._keepRatio = False
         self._bgColor = QtCore.Qt.white
         os.environ["GKS_WSTYPE"] = "381" # GKS Qt Plugin
         os.environ["GKS_DOUBLE_BUF"] = "True"
 
     def paintEvent(self, event):
+        if self.devicePixelRatioF() != self.currentDevicePixelRatio:
+            self.resizeEvent(None)
+
         self._painter = QPainter()
         self._painter.begin(self)
         self._painter.fillRect(0, 0, self.width(), self.height(), self._bgColor)
@@ -74,8 +89,9 @@ class GRWidget(QWidget):
 
     def resizeEvent(self, event):
         self._dwidth, self._dheight = self.width(), self.height()
-        self._mwidth = self._dwidth * 2.54 / self.physicalDpiX() / 100.
-        self._mheight = self._dheight * 2.54 / self.physicalDpiY() / 100.
+        self.currentDevicePixelRatio = self.devicePixelRatioF()
+        self._mwidth = self._dwidth * 2.54 / self.physicalDpiX() / 100. / self.currentDevicePixelRatio
+        self._mheight = self._dheight * 2.54 / self.physicalDpiY() / 100. / self.currentDevicePixelRatio
         if self._mwidth > self._mheight:
             self._sizex = 1.
             if self.keepRatio:

@@ -71,19 +71,29 @@ def _require_runtime_version(*_minimum_runtime_version):
     :return: the wrapped function with a version check
     """
     def require_runtime_version_decorator(_func, _minimum_runtime_version=_minimum_runtime_version):
+        # remove extraneous 0s from version
+        while _minimum_runtime_version[-1] == 0:
+            _minimum_runtime_version = _minimum_runtime_version[:-1]
+
         minimum_runtime_version_str = '.'.join(
             'post' + str(c) if i == 3 else str(c)
             for i, c in enumerate(_minimum_runtime_version)
         )
         _func.__doc__ += "\n\n    This function requires GR runtime version {} or higher.".format(minimum_runtime_version_str)
 
+        # The runtime version check may need to be skipped in some situations.
+        # Sphinx has issues parsing the decorated functions as the their
+        # arguments will not match the documented arguments exactly.
+        if os.environ.get('GR_SKIP_RUNTIME_VERSION_CHECK', ''):
+            return _func
+
         @functools.wraps(_func)
-        def wrapped_func(_func=_func, _minimum_runtime_version=_minimum_runtime_version, _minimum_runtime_version_str=minimum_runtime_version_str, *args, **kwargs):
+        def wrapped_func(*args, **kwargs):
             global _RUNTIME_VERSION
             if _RUNTIME_VERSION == (0, 0, 0):
-                raise RuntimeError("This function requires GR runtime version {} or higher, but the runtime version could not be detected.".format(_minimum_runtime_version_str))
+                raise RuntimeError("This function requires GR runtime version {} or higher, but the runtime version could not be detected.".format(minimum_runtime_version_str))
             if _RUNTIME_VERSION < _minimum_runtime_version:
-                raise RuntimeError("This function requires GR runtime version {} or higher.".format(_minimum_runtime_version_str))
+                raise RuntimeError("This function requires GR runtime version {} or higher.".format(minimum_runtime_version_str))
             return _func(*args, **kwargs)
 
         return wrapped_func
@@ -349,7 +359,7 @@ def quiver(nx, ny, x, y, u, v, color):
 
     `nx` :
         The number of points along the x-axis of the grid
-    `nx` :
+    `ny` :
         The number of points along the y-axis of the grid
     `x` :
         A list containing the X coordinates
@@ -782,12 +792,6 @@ def setmarkersize(size):
 def inqmarkersize():
     """
     Inquire the marker size for polymarkers.
-
-    **Parameters:**
-
-    `size` :
-        Scale factor applied to the nominal marker size
-
     """
     size = c_double()
     __gr.gr_inqmarkersize(byref(size))
@@ -1515,7 +1519,7 @@ def textext(x, y, string):
     |Ω ω     |omega    |
     +--------+---------+
 
-    Note: `\v` is a replacement for `\nu` which would conflict with `\n` (newline)
+    Note: :code:`\\v` is a replacement for :code:`\\nu` which would conflict with :code:`\\n` (newline)
 
     For more sophisticated mathematical formulas, you should use the `gr.mathtex`
     function.
@@ -2476,7 +2480,7 @@ def setshadow(offsetx, offsety, blur):
 
 def settransparency(alpha):
     """
-    Set the value of the alpha component associated with GR colors
+    Set the value of the alpha component associated with GR colors.
 
     **Parameters:**
 
@@ -2772,12 +2776,10 @@ def interp2(x, y, z, xq, yq, method, extrapval, flatten=True):
 
 def shadepoints(x, y, dims=(1200, 1200), xform=1):
     """
-    Display a point set as an aggregated and rasterized image.
+    Display a point set as an aggregated and rasterized image using the current GR colormap.
 
     **Parameters:**
 
-    `n` :
-        The number of points
     `x` :
         A pointer to the X coordinates
     `y` :
@@ -2815,12 +2817,10 @@ def shadepoints(x, y, dims=(1200, 1200), xform=1):
 
 def shadelines(x, y, dims=(1200, 1200), xform=1):
     """
-    Display a line set as an aggregated and rasterized image.
+    Display a line set as an aggregated and rasterized image using the current GR colormap.
 
     **Parameters:**
 
-    `n` :
-        The number of points
     `x` :
         A pointer to the X coordinates
     `y` :
@@ -2948,7 +2948,7 @@ def setresamplemethod(resample_method):
     | DOWNSAMPLE_HORIZONTAL_LANCZOS | 0x03000000 | lanczos for horizontal downsampling          |
     +-------------------------------+------------+----------------------------------------------+
     """
-    _gr.gr_setresamplemethod(c_uint(resample_method))
+    __gr.gr_setresamplemethod(c_uint(resample_method))
 
 
 @_require_runtime_version(0, 41, 5, 43)
@@ -2961,6 +2961,480 @@ def inqresamplemethod():
     _resample_method = c_uint(0)
     __gr.gr_inqresamplemethod(byref(_resample_method))
     return _resample_method.value
+
+
+@_require_runtime_version(0, 45, 0)
+def path(x, y, codes):
+    """
+    Draw paths using the given vertices and path codes.
+
+    **Parameters:**
+
+    `x` :
+        A list containing the X coordinates
+    `y` :
+        A list containing the Y coordinates
+    `codes` :
+        A list containing the path codes
+
+    The values for `x` and `y` are in world coordinates.
+    The `codes` describe several path primitives that can be used to create compound paths.
+
+    The following path codes are recognized:
+
+
+    +----------+---------------------------------+-------------------+-------------------+
+    | **Code** | **Description**                 | **x**             | **y**             |
+    +----------+---------------------------------+-------------------+-------------------+
+    |     M, m | move                            | x                 | y                 |
+    +----------+---------------------------------+-------------------+-------------------+
+    |     L, l | line                            | x                 | y                 |
+    +----------+---------------------------------+-------------------+-------------------+
+    |     Q, q | quadratic Bezier                | x1, x2            | y1, y2            |
+    +----------+---------------------------------+-------------------+-------------------+
+    |     C, c | cubic Bezier                    | x1, x2, x3        | y1, y2, y3        |
+    +----------+---------------------------------+-------------------+-------------------+
+    |     A, a | arc                             | rx, a1, reserved  | ry, a2, reserved  |
+    +----------+---------------------------------+-------------------+-------------------+
+    |        Z | close path                      |                   |                   |
+    +----------+---------------------------------+-------------------+-------------------+
+    |        S | stroke                          |                   |                   |
+    +----------+---------------------------------+-------------------+-------------------+
+    |        s | close path and stroke           |                   |                   |
+    +----------+---------------------------------+-------------------+-------------------+
+    |        f | close path and fill             |                   |                   |
+    +----------+---------------------------------+-------------------+-------------------+
+    |        F | close path, fill and stroke     |                   |                   |
+    +----------+---------------------------------+-------------------+-------------------+
+
+
+     - Move: `M`, `m`
+
+        Moves the current position to (`x`, `y`). The new position is either absolute (`M`) or relative to the current
+        position (`m`). The initial position of :py:func:`gr.path` is (0, 0).
+
+        Example:
+
+        >>> gr.path([0.5, -0.1], [0.2, 0.1], "Mm")
+
+        The first move command in this example moves the current position to the absolute coordinates (0.5, 0.2). The
+        second move to performs a movement by (-0.1, 0.1) relative to the current position resulting in the point
+        (0.4, 0.3).
+
+
+     - Line: `L`, `l`
+
+        Draws a line from the current position to the given position (`x`, `y`). The end point of the line is either
+        absolute (`L`) or relative to the current position (`l`). The current position is set to the end point of the
+        line.
+
+        Example:
+
+        >>> gr.path([0.1, 0.5, 0.0], [0.1, 0.1, 0.2], "MLlS")
+
+        The first line to command draws a straight line from the current position (0.1, 0.1) to the absolute position
+        (0.5, 0.1) resulting in a horizontal line. The second line to command draws a vertical line relative to the
+        current position resulting in the end point (0.5, 0.3).
+
+
+     - Quadratic Bezier curve: `Q`, `q`
+
+        Draws a quadratic bezier curve from the current position to the end point (`x2`, `y2`) using (`x1`, `y1`) as the
+        control point. Both points are either absolute (`Q`) or relative to the current position (`q`). The current
+        position is set to the end point of the bezier curve.
+
+        Example:
+
+        >>> gr.path([0.1, 0.3, 0.5, 0.2, 0.4], [0.1, 0.2, 0.1, 0.1, 0.0], "MQqS")
+
+        This example will generate two bezier curves whose start and end points are each located at y=0.1. As the control
+        points are horizontally in the middle of each bezier curve with a higher y value both curves are symmetrical
+        and bend slightly upwards in the middle. The current position is set to (0.9, 0.1) at the end.
+
+
+     - Cubic Bezier curve: `C`, `c`
+
+        Draws a cubic bezier curve from the current position to the end point (`x3`, `y3`) using (`x1`, `y1`) and
+        (`x2`, `y2`) as the control points. All three points are either absolute (`C`) or relative to the current position
+        (`c`). The current position is set to the end point of the bezier curve.
+
+        Example:
+
+        >>> gr.path(
+        ...     [0.1, 0.2, 0.3, 0.4, 0.1, 0.2, 0.3],
+        ...     [0.1, 0.2, 0.0, 0.1, 0.1, -0.1, 0.0],
+        ...     "MCcS"
+        ... )
+
+        This example will generate two bezier curves whose start and end points are each located at y=0.1. As the control
+        points are equally spaced along the x-axis and the first is above and the second is below the start and end
+        points this creates a wave-like shape for both bezier curves. The current position is set to (0.8, 0.1) at the
+        end.
+
+
+     - Ellipctical arc: `A`, `a`
+
+        Draws an elliptical arc starting at the current position. The major axis of the ellipse is aligned with the x-axis
+        and the minor axis is aligned with the y-axis of the plot. `rx` and `ry` are the ellipses radii along the major
+        and minor axis. `a1` and `a2` define the start and end angle of the arc in radians. The current position is set
+        to the end point of the arc. If `a2` is greater than `a1` the arc is drawn counter-clockwise, otherwise it is
+        drawn clockwise. The `a` and `A` commands draw the same arc. The third coordinates of the `x` and `y` array are
+        ignored and reserved for future use.
+
+        Examples:
+
+
+        >>> gr.path([0.1, 0.2, -3.14159 / 2, 0.0], [0.1, 0.4, 3.14159 / 2, 0.0], "MAS")
+
+        This example draws an arc starting at (0.1, 0.1). As the start angle -pi/2 is smaller than the end angle pi/2 the
+        arc is drawn counter-clockwise. In this case the right half of an ellipse with an x radius of 0.2 and a y radius
+        of 0.4 is shown. Therefore the current position is set to (0.1, 0.9) at the end.
+
+        >>> gr.path([0.1, 0.2, 3.14159 / 2, 0.0], [0.9, 0.4, -3.14159 / 2, 0.0], "MAS")
+
+        This examples draws the same arc as the previous one. The only difference is that the starting point is now at
+        (0.1, 0.9) and the start angle pi/2 is greater than the end angle -pi/2 so that the ellipse arc is drawn
+        clockwise. Therefore the current position is set to (0.1, 0.1) at the end.
+
+
+     - Close path: `Z`
+
+        Closes the current path by connecting the current position to the target position of the last move command
+        (`m` or `M`) with a straight line. If no move to was performed in this path it connects the current position to
+        (0, 0). When the path is stroked this line will also be drawn.
+
+
+     - Stroke path: `S`, `s`
+
+        Strokes the path with the current border width and border color (set with :py:func:`gr.setborderwidth` and
+        :py:func:`gr.setbordercolorind`). In case of `s` the path is closed beforehand, which is equivalent to `ZS`.
+
+
+     - Fill path: `F`, `f`
+
+        Fills the current path using the even-odd-rule using the current fill color. Filling a path implicitly closes
+        the path. The fill color can be set using :py:func:`gr.setfillcolorind`. In case of `F` the path is also
+        stroked using the current border width and color afterwards.
+    """
+    n = _assertEqualLength(x, y)
+    _x = floatarray(n, x)
+    _y = floatarray(n, y)
+    _codes = create_string_buffer(''.join(codes).encode('ascii'))
+    __gr.gr_path(c_int(n), _x.data, _y.data, _codes)
+
+
+@_require_runtime_version(0, 45, 0)
+def setborderwidth(width):
+    """
+    Defines the width of subsequent path borders.
+
+    **Parameters:**
+
+    `width` :
+        The border width
+    """
+    __gr.gr_setborderwidth(c_double(width))
+
+
+@_require_runtime_version(0, 45, 0)
+def inqborderwidth():
+    """
+    Returns the width of path borders.
+    """
+    width = c_double()
+    __gr.gr_inqborderwidth(byref(width))
+    return width.value
+
+
+@_require_runtime_version(0, 45, 0)
+def setbordercolorind(color):
+    """
+    Defines the color of subsequent path borders.
+
+    **Parameters:**
+
+    `color` :
+        The border color index (COLOR < 1256)
+    """
+    __gr.gr_setbordercolorind(c_int(color))
+
+
+@_require_runtime_version(0, 45, 0)
+def inqbordercolorind():
+    """
+    Returns the color index of path borders.
+    """
+    coli = c_int()
+    __gr.gr_inqbordercolorind(byref(coli))
+    return coli.value
+
+
+@_require_runtime_version(0, 46, 0, 76)
+def setprojectiontype(projection_type):
+    """
+    Set the projection type with this flag.
+
+    `projection_type` :
+        Projection type
+
+    The available options are:
+
+    +------------------------+---+--------------+
+    |PROJECTION_DEFAULT      |  0|default       |
+    +------------------------+---+--------------+
+    |PROJECTION_ORTHOGRAPHIC |  1|orthographic  |
+    +------------------------+---+--------------+
+    |PROJECTION_PERSPECTIVE  |  2|perspective   |
+    +------------------------+---+--------------+
+
+    """
+    __gr.gr_setprojectiontype(c_int(projection_type))
+
+
+@_require_runtime_version(0, 46, 0, 76)
+def inqprojectiontype():
+    """
+    Return the projection type.
+    """
+    projection_type = c_int()
+    __gr.gr_inqprojectiontype(byref(projection_type))
+    return projection_type.value
+
+
+@_require_runtime_version(0, 46, 0, 76)
+def setperspectiveprojection(near_plane, far_plane, fov):
+    """
+    Set the far and near clipping planes and the vertical field of view.
+
+    **Parameters:**
+
+    `near_plane` :
+        distance to near clipping plane
+    `far_plane` :
+        distance to far clipping plane
+    `fov` :
+        vertical field of view, must be between 0 and 180 degrees
+
+    Switches projection type to perspective.
+    """
+    __gr.gr_setperspectiveprojection(c_double(near_plane), c_double(far_plane), c_double(fov))
+
+
+@_require_runtime_version(0, 46, 0, 76)
+def setorthographicprojection(left, right, bottom, top, near_plane, far_plane):
+    """
+    Set parameters for orthographic transformation.
+
+    **Parameters:**
+
+    `left` :
+        xmin of the volume in world coordinates
+    `right` :
+        xmax of volume in world coordinates
+    `bottom` :
+        ymin of volume in world coordinates
+    `top` :
+        ymax of volume in world coordinates
+    `near_plane` :
+        distance to near clipping plane
+    `far_plane` :
+        distance to far clipping plane
+
+    Switches projection type to orthographic.
+    """
+    __gr.gr_setorthographicprojection(c_double(left), c_double(right), c_double(bottom), c_double(top), c_double(near_plane), c_double(far_plane))
+
+
+@_require_runtime_version(0, 46, 0, 76)
+def settransformationparameters(camera_position_x, camera_position_y, camera_position_z, up_vector_x, up_vector_y, up_vector_z, focus_point_x, focus_point_y, focus_point_z):
+    """
+    Method to set the camera position, the upward facing direction and the focus point of the shown volume.
+
+    **Parameters:**
+
+    `camera_position_x` :
+        x component of the camera position in world coordinates
+    `camera_position_y` :
+        y component of the camera position in world coordinates
+    `camera_position_z` :
+        z component of the camera position in world coordinates
+    `up_vector_x` :
+        x component of the up vector
+    `up_vector_y` :
+        y component of the up vector
+    `up_vector_z` :
+        z component of the up vector
+    `focus_point_x` :
+        x component of focus-point inside volume
+    `focus_point_y` :
+        y component of focus-point inside volume
+    `focus_point_z` :
+        z component of focus-point inside volume
+    """
+    __gr.gr_settransformationparameters(c_double(camera_position_x), c_double(camera_position_y), c_double(camera_position_z), c_double(up_vector_x), c_double(up_vector_y), c_double(up_vector_z), c_double(focus_point_x), c_double(focus_point_y), c_double(focus_point_z))
+
+
+@_require_runtime_version(0, 46, 0, 76)
+def inqtransformationparameters():
+    """
+    Return the camera position, up vector and focus point.
+    """
+    camera_position_x = c_double()
+    camera_position_y = c_double()
+    camera_position_z = c_double()
+    up_vector_x = c_double()
+    up_vector_y = c_double()
+    up_vector_z = c_double()
+    focus_point_x = c_double()
+    focus_point_y = c_double()
+    focus_point_z = c_double()
+    __gr.gr_inqtransformationparameters(byref(camera_position_x), byref(camera_position_y), byref(camera_position_z), byref(up_vector_x), byref(up_vector_y), byref(up_vector_z), byref(focus_point_x), byref(focus_point_y), byref(focus_point_z))
+    return [camera_position_x.value, camera_position_y.value, camera_position_z.value, up_vector_x.value, up_vector_y.value, up_vector_z.value, focus_point_x.value, focus_point_y.value, focus_point_z.value]
+
+
+@_require_runtime_version(0, 46, 0, 76)
+def inqorthographicprojection():
+    """
+    Return the parameters for the orthographic projection.
+    """
+    left = c_double()
+    right = c_double()
+    bottom = c_double()
+    top = c_double()
+    near_plane = c_double()
+    far_plane = c_double()
+    __gr.gr_inqorthographicprojection(byref(left), byref(right), byref(bottom), byref(top), byref(near_plane), byref(far_plane))
+    return [left.value, right.value, bottom.value, top.value, near_plane.value, far_plane.value]
+
+
+@_require_runtime_version(0, 46, 0, 76)
+def inqperspectiveprojection():
+    """
+    Return the parameters for the perspective projection.
+    """
+    near_plane = c_double()
+    far_plane = c_double()
+    fovy = c_double()
+    __gr.gr_inqperspectiveprojection(byref(near_plane), byref(far_plane), byref(fovy))
+    return [near_plane.value, far_plane.value, fovy.value]
+
+
+@_require_runtime_version(0, 46, 0, 76)
+def camerainteraction(start_mouse_position_x, start_mouse_position_y, end_mouse_position_x, end_mouse_position_y):
+    """
+    Interface for interaction with the rotation of the model. For this a virtual Arcball is used.
+
+    **Parameters:**
+
+    `start_mouse_position_x` :
+        x component of the start mouse position
+    `start_mouse_position_y` :
+        y component of the start mouse position
+    `end_mouse_position_x` :
+        x component of the end mouse position
+    `end_mouse_position_y` :
+        y component of the end mouse position
+
+    """
+    __gr.gr_camerainteraction(c_double(start_mouse_position_x), c_double(start_mouse_position_y), c_double(end_mouse_position_x), c_double(end_mouse_position_y))
+
+
+@_require_runtime_version(0, 46, 0, 76)
+def setwindow3d(x_min, x_max, y_min, y_max, z_min, z_max):
+    """
+    Set the three dimensional window. Only used for perspective and orthographic projection.
+
+    **Parameters:**
+
+    `xmin` :
+        min x-value
+    `xmax` :
+        max x-value
+    `ymin` :
+        min y-value
+    `ymax` :
+        max y-value
+    `zmin` :
+        min z-value
+    `zmax` :
+        max z-value
+    """
+    __gr.gr_setwindow3d(c_double(x_min), c_double(x_max), c_double(y_min), c_double(y_max), c_double(z_min), c_double(z_max))
+
+
+@_require_runtime_version(0, 46, 0, 76)
+def inqwindow3d():
+    """
+    Return the three dimensional window.
+    """
+    xmin = c_double()
+    xmax = c_double()
+    ymin = c_double()
+    ymax = c_double()
+    zmin = c_double()
+    zmax = c_double()
+    __gr.gr_inqwindow3d(byref(xmin), byref(xmax), byref(ymin), byref(ymax), byref(zmin), byref(zmax))
+    return [xmin.value, xmax.value, ymin.value, ymax.value, zmin.value, zmax.value]
+
+
+@_require_runtime_version(0, 48, 0, 0)
+def setscalefactors3d(x_axis_scale, y_axis_scale, z_axis_scale):
+    """
+    Set the scaling factor for each axis.
+
+    The scaling factors must not be zero.
+
+    **Parameters:**
+
+    `x_axis_scale` :
+        x axis scaling factor
+    `y_axis_scale` :
+        y axis scaling factor
+    `z_axis_scale` :
+        z axis scaling factor
+    """
+    __gr.gr_setscalefactors3d(c_double(x_axis_scale), c_double(y_axis_scale), c_double(z_axis_scale))
+
+
+@_require_runtime_version(0, 48, 0, 0)
+def inqscalefactors3d():
+    """
+    Return the scaling factor for each axis.
+    """
+    x_axis_scale = c_double()
+    y_axis_scale = c_double()
+    z_axis_scale = c_double()
+    __gr.gr_inqscalefactors3d(byref(x_axis_scale), byref(y_axis_scale), byref(z_axis_scale))
+    return [x_axis_scale.value, y_axis_scale.value, z_axis_scale.value]
+
+
+@_require_runtime_version(0, 48, 0, 0)
+def transformationinterfaceforrepl(phi, theta, fov, camera_distance):
+    """
+    This is an interface for REPL based languages to enable an easier way to
+    rotate around an object.
+
+    The center of the 3d window is used as the focus point and the camera is
+    positioned relative to it, using spherical coordinates. This function can
+    therefore also be used if the user prefers spherical coordinates to setting
+    the direct camera position, but with reduced functionality in comparison
+    to gr.settransformationparameters, gr.setperspectiveprojection and
+    gr.setorthographicprojection.
+
+    **Parameters:**
+
+    `phi` :
+        azimuthal angle of the spherical coordinates
+    `theta` :
+        polar angle of the spherical coordinates
+    `fov` :
+        vertical field of view
+        (0 or NaN for orthographic projection)
+    `camera distance` :
+        distance between the camera and the focus point
+        (0 or NaN for the radius of the object's smallest bounding sphere)
+    """
+    __gr.gr_transformationinterfaceforrepl(c_double(phi), c_double(theta), c_double(fov), c_double(camera_distance))
 
 
 def wrapper_version():
@@ -3188,6 +3662,51 @@ if _RUNTIME_VERSION >= (0, 41, 5, 43):
 if _RUNTIME_VERSION >= (0, 41, 5, 47):
     __gr.gr_inqmarkersize.argtypes = [POINTER(c_double)]
     __gr.gr_inqmarkersize.restype = None
+
+if _RUNTIME_VERSION >= (0, 45, 0, 0):
+    __gr.gr_path.argtypes = [c_int, POINTER(c_double), POINTER(c_double), c_char_p]
+    __gr.gr_path.restype = None
+    __gr.gr_setborderwidth.argtypes = [c_double]
+    __gr.gr_setborderwidth.restype = None
+    __gr.gr_inqborderwidth.argtypes = [POINTER(c_double)]
+    __gr.gr_inqborderwidth.restype = None
+    __gr.gr_setbordercolorind.argtypes = [c_int]
+    __gr.gr_setbordercolorind.restype = None
+    __gr.gr_inqbordercolorind.argtypes = [POINTER(c_int)]
+    __gr.gr_inqbordercolorind.restype = None
+
+if _RUNTIME_VERSION >= (0, 46, 0, 76):
+    __gr.gr_setprojectiontype.argtypes = [c_int]
+    __gr.gr_setprojectiontype.restype = None
+    __gr.gr_inqprojectiontype.argtypes = [POINTER(c_int)]
+    __gr.gr_inqprojectiontype.restype = None
+    __gr.gr_setperspectiveprojection.argtypes = [c_double, c_double, c_double]
+    __gr.gr_setperspectiveprojection.restype = None
+    __gr.gr_setorthographicprojection.argtypes = [c_double, c_double, c_double, c_double, c_double, c_double]
+    __gr.gr_setorthographicprojection.restype = None
+    __gr.gr_settransformationparameters.argtypes = [c_double, c_double, c_double, c_double, c_double, c_double, c_double, c_double, c_double]
+    __gr.gr_settransformationparameters.restype = None
+    __gr.gr_inqtransformationparameters.argtypes = [POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double)]
+    __gr.gr_inqtransformationparameters.restype = None
+    __gr.gr_inqorthographicprojection.argtypes = [POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double)]
+    __gr.gr_inqorthographicprojection.restype = None
+    __gr.gr_inqperspectiveprojection.argtypes = [POINTER(c_double), POINTER(c_double), POINTER(c_double)]
+    __gr.gr_inqperspectiveprojection.restype = None
+    __gr.gr_camerainteraction.argtypes = [c_double, c_double, c_double, c_double]
+    __gr.gr_camerainteraction.restype = None
+    __gr.gr_setwindow3d.argtypes = [c_double, c_double, c_double, c_double, c_double, c_double]
+    __gr.gr_setwindow3d.restype = None
+    __gr.gr_inqwindow3d.argtypes = [POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double)]
+    __gr.gr_inqwindow3d.restype = None
+
+if _RUNTIME_VERSION >= (0, 48, 0, 0):
+    __gr.gr_setscalefactors3d.argtypes = [c_double, c_double, c_double]
+    __gr.gr_setscalefactors3d.restype = None
+    __gr.gr_inqscalefactors3d.argtypes = [POINTER(c_double), POINTER(c_double), POINTER(c_double)]
+    __gr.gr_inqscalefactors3d.restype = None
+    __gr.gr_transformationinterfaceforrepl.argtypes = [c_double, c_double, c_double, c_double]
+    __gr.gr_transformationinterfaceforrepl.restype = None
+
 
 precision = __gr.gr_precision()
 
@@ -3505,6 +4024,11 @@ if _RUNTIME_VERSION >= (0, 41, 5, 43):
     RESAMPLE_LANCZOS = (
             UPSAMPLE_VERTICAL_LANCZOS | UPSAMPLE_HORIZONTAL_LANCZOS | DOWNSAMPLE_VERTICAL_LANCZOS | DOWNSAMPLE_HORIZONTAL_LANCZOS
     )
+
+if _RUNTIME_VERSION >= (0, 46, 0, 76):
+    PROJECTION_DEFAULT = 0
+    PROJECTION_ORTHOGRAPHIC = 1
+    PROJECTION_PERSPECTIVE = 2
 
 # automatically switch to inline graphics in Jupyter Notebooks
 if 'ipykernel' in sys.modules:

@@ -1,17 +1,17 @@
 Format: 1.0
 Source: python-gr
 Version: 1.0.1
-Binary: python-gr
+Binary: python-gr, python3-gr
 Maintainer: Josef Heinen <j.heinen@fz-juelich.de>
 Architecture: any
 X-Python-Version: >= 2.6
-Depends:
- python-numpy,
- gr (>= 0.27.0)
+X-Python3-Version: >= 3.4
 Build-Depends:
- python-setuptools (>= 0.6b3), python-all-dev (>= 2.6.6-3), debhelper (>= 7),
+ python-all-dev (>= 2.6.6-3), python3-all-dev (>= 3.4.0),
+ python-setuptools (>= 0.6b3), python3-setuptools (>= 0.6b3),
+ python-numpy, python3-numpy,
+ debhelper (>= 7),
  git,
- python-numpy,
  gr (>= 0.27.0)
 DEBTRANSFORM-TAR: python-gr-fixed.tar.gz
 Files:

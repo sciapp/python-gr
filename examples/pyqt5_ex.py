@@ -28,6 +28,17 @@ class GrWidget(QtWidgets.QWidget) :
         self.sizex = 1
         self.sizey = 1
 
+        try:
+            self.devicePixelRatioF()
+        except AttributeError:
+            try:
+                self.devicePixelRatio()
+            except AttributeError:
+                self.devicePixelRatio = lambda: 1
+            self.devicePixelRatioF = lambda: float(self.devicePixelRatio())
+
+        self.currentDevicePixelRatio = self.devicePixelRatioF()
+
     def setupUi(self, Form) :
 
         Form.setWindowTitle("GrWidget")
@@ -50,7 +61,7 @@ class GrWidget(QtWidgets.QWidget) :
         self.close()
 
     def draw(self) :
-        self.setStyleSheet("background-color:white;");
+        self.setStyleSheet("background-color:white;")
 
         x = range(0, 128)
         y = range(0, 128)
@@ -60,8 +71,9 @@ class GrWidget(QtWidgets.QWidget) :
         h = [min(z) + i * 0.025 * zrange for i in range(0, 40)]
 
         gr.clearws()
-        mwidth  = self.w * 2.54 / self.physicalDpiX() / 100
-        mheight = self.h * 2.54 / self.physicalDpiY() / 100
+        self.currentDevicePixelRatio = self.devicePixelRatioF()
+        mwidth  = self.w * 2.54 / self.physicalDpiX() / 100 / self.currentDevicePixelRatio
+        mheight = self.h * 2.54 / self.physicalDpiY() / 100 / self.currentDevicePixelRatio
         gr.setwsviewport(0, mwidth, 0, mheight)
         gr.setwswindow(0, self.sizex, 0, self.sizey)
         gr.setviewport(0.075 * self.sizex, 0.95 * self.sizex, 0.075 * self.sizey, 0.95 * self.sizey)
@@ -92,6 +104,10 @@ class GrWidget(QtWidgets.QWidget) :
         os.environ['GKSconid'] = "%x!%x" % (sip.unwrapinstance(self), sip.unwrapinstance(self.painter))
         gr.updatews()
         self.painter.end()
+
+    def moveEvent(self, event):
+        if self.devicePixelRatioF() != self.currentDevicePixelRatio:
+            self.draw()
 
 app = QtWidgets.QApplication(sys.argv)
 if not sys.platform == "linux2" :

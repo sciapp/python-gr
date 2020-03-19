@@ -7,6 +7,7 @@ __all__ = ['GR3_InitAttribute',
            'GR3_Exception',
            'GR3_Quality',
            'GR3_Drawable',
+           'GR3_ProjectionType',
            'init',
            'terminate',
            'useframebuffer',
@@ -26,6 +27,9 @@ __all__ = ['GR3_InitAttribute',
            'clear',
            'cameralookat',
            'setcameraprojectionparameters',
+           'setorthographicprojection',
+           'setprojectiontype',
+           'getprojectiontype'
            'setlightdirection',
            'drawcylindermesh',
            'drawconemesh',
@@ -215,6 +219,12 @@ class GR3_SurfaceOption(object):
     GR3_SURFACE_GRTRANSFORM =  4
     GR3_SURFACE_GRCOLOR     =  8
     GR3_SURFACE_GRZSHADED   = 16
+
+
+class GR3_ProjectionType(object):
+    GR3_PROJECTION_PERSPECTIVE = 0
+    GR3_PROJECTION_PARALLEL = 1
+    GR3_PROJECTION_ORTHOGRAPHIC = 2
 
 
 class GR3_Exception(Exception):
@@ -1526,6 +1536,41 @@ def drawtrianglesurface(vertices):
     _gr3.gr3_drawtrianglesurface(n, vertices.ctypes.data_as(POINTER(c_float)))
 
 
+def setprojectiontype(projection_type):
+    """
+    Set the current projection type.
+
+    :param projection_type: one of the GR3_ProjectionType constants
+    """
+    _gr3.gr3_setprojectiontype(c_int(projection_type))
+
+
+def getprojectiontype():
+    """
+    Get the current projection type.
+
+    :return: one of the GR3_ProjectionType constants
+    """
+    return _gr3.gr3_getprojectiontype()
+
+
+if hasattr(_gr3, 'gr3_setorthographicprojection'):
+    def setorthographicprojection(left, right, bottom, top, znear, zfar):
+        """
+        Set the parameters for the orthographic projection.
+
+        This also sets the current projection type to GR3_PROJECTION_ORTHOGRAPHIC.
+
+        :param left: left clipping plane distance
+        :param right: right clipping plane distance
+        :param bottom: bottom clipping plane distance
+        :param top: top clipping plane distance
+        :param znear: near clipping plane distance
+        :param zfar: far clipping plane distance
+        """
+        _gr3.gr3_setorthographicprojection(c_float(left), c_float(right), c_float(bottom), c_float(top), c_float(znear), c_float(zfar))
+
+
 _gr3.gr3_init.argtypes = [POINTER(c_int)]
 _gr3.gr3_terminate.argtypes = []
 _gr3.gr3_useframebuffer.argtypes = [c_uint]
@@ -1673,6 +1718,16 @@ _gr3.gr3_drawtrianglesurface.argtypes = [c_int, POINTER(c_float)]
 
 _gr3.gr_volume.restype = None
 _gr3.gr_volume.argtypes = [c_int, c_int, c_int, POINTER(c_double), c_int, POINTER(c_double), POINTER(c_double)]
+
+_gr3.gr3_setprojectiontype.restype = None
+_gr3.gr3_setprojectiontype.argtypes = [c_int]
+
+_gr3.gr3_getprojectiontype.restype = c_int
+_gr3.gr3_getprojectiontype.argtypes = []
+
+if hasattr(_gr3, 'gr3_setorthographicprojection'):
+    _gr3.gr3_setorthographicprojection.restype = None
+    _gr3.gr3_setorthographicprojection.argtypes = [c_float, c_float, c_float, c_float, c_float, c_float]
 
 
 for symbol in dir(_gr3):
