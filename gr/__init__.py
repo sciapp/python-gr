@@ -81,6 +81,12 @@ def _require_runtime_version(*_minimum_runtime_version):
         )
         _func.__doc__ += "\n\n    This function requires GR runtime version {} or higher.".format(minimum_runtime_version_str)
 
+        # The runtime version check may need to be skipped in some situations.
+        # Sphinx has issues parsing the decorated functions as the their
+        # arguments will not match the documented arguments exactly.
+        if os.environ.get('GR_SKIP_RUNTIME_VERSION_CHECK', ''):
+            return _func
+
         @functools.wraps(_func)
         def wrapped_func(*args, **kwargs):
             global _RUNTIME_VERSION
@@ -1513,7 +1519,7 @@ def textext(x, y, string):
     |Ω ω     |omega    |
     +--------+---------+
 
-    Note: `\v` is a replacement for `\nu` which would conflict with `\n` (newline)
+    Note: :code:`\\v` is a replacement for :code:`\\nu` which would conflict with :code:`\\n` (newline)
 
     For more sophisticated mathematical formulas, you should use the `gr.mathtex`
     function.
