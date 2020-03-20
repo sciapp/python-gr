@@ -86,14 +86,14 @@ check-codestyle:
   image: ubuntu:18.04
   script:
   - apt-get update
-  - apt-get install -y virtualenv python-pip git
-  - virtualenv env
+  - apt-get install -y python3-venv python3-pip git
+  - python3 -mvenv env
   - env/bin/pip install --upgrade pip
   - env/bin/pip install flake8-docstrings
   # Check against PEP8 and PEP257
   # Ignore line length check (E501)
   # Ignore single-line docstring check (D200)
-  - env/bin/python -m flake8 --ignore E501,D200 gr/pygr/mlab.py
+  - env/bin/python3 -m flake8 --ignore E501,D200 gr/pygr/mlab.py grm/*
 
 install-ubuntu1604-python2:
   stage: install

@@ -24,7 +24,7 @@ def version_string_to_tuple(version_string):
     return tuple(int(v) for v in version_string.split('.'))
 
 
-def load_runtime(search_dirs=(), silent=False):
+def load_runtime(search_dirs=(), silent=False, lib_name = 'libGR'):
     if sys.platform == "win32":
         library_extension = ".dll"
         library_directory = "bin"
@@ -54,7 +54,7 @@ def load_runtime(search_dirs=(), silent=False):
         if not os.path.isdir(directory):
             continue
         directory = os.path.abspath(directory)
-        library_filename = os.path.join(directory, 'libGR' + library_extension)
+        library_filename = os.path.join(directory, lib_name + library_extension)
         if os.path.isfile(library_filename):
             if sys.platform == "win32":
                 os.environ["PATH"] = search_path + ";" + directory
