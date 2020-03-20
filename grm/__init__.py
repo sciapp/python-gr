@@ -12,7 +12,7 @@ if _grm is None:
     raise ImportError("Failed to load GRM runtime!")
 
 
-def _encode_str_to_char_p(string):
+def _encode_str_to_char_p(string: str) -> c_char_p:
     return cast(create_string_buffer(string.encode("utf-8")), c_char_p)
 
 

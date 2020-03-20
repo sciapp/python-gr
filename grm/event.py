@@ -4,12 +4,15 @@ This module provides functions to manage callbacks for the events which can happ
 from ctypes import c_int, c_char_p
 from ctypes import POINTER, CFUNCTYPE
 from ctypes import Union, Structure
+from enum import Enum
+from typing import Dict, Callable, Union as UnionT
+
 from gr import _require_runtime_version, _RUNTIME_VERSION
 
 from . import _grm
 
 
-class EventType(object):
+class EventType(Enum):
     """
     This class contains the event types which are passed to register/unregister.
     """
@@ -84,11 +87,19 @@ class EVENT(Union):
 
 
 _event_callback_t = CFUNCTYPE(None, POINTER(EVENT))
-_registered_events = [None, None, None, None]  # One dict for each eventtype
+_registered_events = {}  # type: Dict[EventType, Callable[[EVENT], None]]
 
 
 @_require_runtime_version(0, 47, 0)
-def register(event_type, callback):
+def register(
+    event_type: EventType,
+    callback: UnionT[
+        Callable[[EVENT_NEW_PLOT], None],
+        Callable[[EVENT_SIZE], None],
+        Callable[[EVENT_UPDATE_PLOT], None],
+        Callable[[EVENT_MERGE_END], None],
+    ],
+) -> int:
     """
     Register a callback for the specified event type.
 
@@ -99,40 +110,40 @@ def register(event_type, callback):
      - EVENT_SIZE or
      - EVENT_MERGE_END
     """
-    if not isinstance(event_type, int) or event_type < 0 or event_type > EventType.MERGE_END:
+    if not isinstance(event_type, EventType):
         raise TypeError("event_type must be a value out of EventType!")
 
-    if callback == _registered_events[event_type]:
-        raise ValueError("The specified callback is already registered")
-
     if event_type == EventType.NEW_PLOT:
-        def i_callback(ev):
+        def i_callback(ev: EVENT) -> None:
             callback(ev.contents.new_plot_event)
+
     elif event_type == EventType.UPDATE_PLOT:
-        def i_callback(ev):
+        def i_callback(ev: EVENT) -> None:
             callback(ev.contents.update_plot_event)
+
     elif event_type == EventType.SIZE:
-        def i_callback(ev):
+        def i_callback(ev: EVENT) -> None:
             callback(ev.contents.size_event)
+
     else:
-        def i_callback(ev):
+        def i_callback(ev: EVENT) -> None:
             callback(ev.contents.merge_end_event)
 
     c_func = _event_callback_t(i_callback)
     _registered_events[event_type] = c_func
-    return _grm.grm_register(c_int(event_type), c_func)
+    return _grm.grm_register(c_int(event_type.value), c_func)
 
 
 @_require_runtime_version(0, 47, 0)
-def unregister(event_type):
+def unregister(event_type: EventType) -> int:
     """
     Deregister the callback for the given event type.
     """
-    if not isinstance(event_type, int) or event_type < 0 or event_type > EventType.MERGE_END:
+    if not isinstance(event_type, EventType):
         raise TypeError("event_type must be a value out of EventType!")
 
-    _event_callback_t[event_type] = None
-    return _grm.grm_unregister(c_int(event_type))
+    del _registered_events[event_type]
+    return _grm.grm_unregister(c_int(event_type.value))
 
 
 if _RUNTIME_VERSION >= (0, 47, 0, 0):
@@ -142,4 +153,12 @@ if _RUNTIME_VERSION >= (0, 47, 0, 0):
     _grm.grm_unregister.argtypes = [c_int]
     _grm.grm_unregister.restype = c_int
 
-__all__ = ["register", "unregister", "EventType", "EVENT_NEW_PLOT", "EVENT_UPDATE_PLOT", "EVENT_SIZE", "EVENT_MERGE_END"]
+__all__ = [
+    "register",
+    "unregister",
+    "EventType",
+    "EVENT_NEW_PLOT",
+    "EVENT_UPDATE_PLOT",
+    "EVENT_SIZE",
+    "EVENT_MERGE_END",
+]

@@ -4,6 +4,9 @@ This module provides functions to combine gui and graphs.
 
 from ctypes import c_int, c_void_p
 from ctypes import byref, POINTER
+
+from typing import Tuple
+
 from gr import _require_runtime_version, _RUNTIME_VERSION
 
 from . import _grm, args
@@ -12,7 +15,7 @@ _c_int_p = POINTER(c_int)
 
 
 @_require_runtime_version(0, 47, 0)
-def input(args_container):
+def input(args_container: args._ArgumentContainer) -> int:
     """
     Perform specific actions based on user interaction with the gui.
 
@@ -47,7 +50,7 @@ def input(args_container):
 
 
 @_require_runtime_version(0, 47, 0)
-def get_box(x1, y1, x2, y2, keep_aspect_ratio):
+def get_box(x1: int, y1: int, x2: int, y2: int, keep_aspect_ratio: bool) -> Tuple[int, int, int, int]:
     """
     Translate a x1, y1, x2, y2 in workstation coordinates into a box.
     """

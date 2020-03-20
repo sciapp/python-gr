@@ -7,36 +7,54 @@ It is used to pass plotting data, settings and other data to GRM.
 import numpy as np
 from ctypes import c_int, c_uint, c_double, c_char_p, c_void_p
 from ctypes import POINTER, create_string_buffer
+
+from typing import Union, Tuple, List, Dict, Optional, Any
+
 from gr import _require_runtime_version, _RUNTIME_VERSION
 
 from . import _grm, _encode_str_to_char_p
 
+_ElemType = Union[
+    np.ndarray,
+    int,
+    float,
+    str,
+    dict,
+    "_ArgumentContainer",
+    List[Union[int, float]],
+    List[str],
+    List[Union[dict, "_ArgumentContainer"]],
+    Tuple[Union[int, float], ...],
+    Tuple[str, ...],
+    Tuple[Union[dict, "_ArgumentContainer"], ...],
+]
+
 
 class _ArgumentContainer:
-    def __init__(self, ptr, params=None):
+    def __init__(self, ptr: c_void_p, params: Optional[Dict[str, _ElemType]] = None) -> None:
         """
         Initialize the class using the given pointer and optional params to insert directly.
 
-        :param c_void_p ptr: The pointer returned by grm_args_new
-        :param dict params: The data to set after init
+        :param ptr: The pointer returned by grm_args_new
+        :param params: The data to set after init
         """
-        self._ptr = ptr
-        self._bufs = {}
+        self._ptr = ptr  # type: Union[c_void_p, None]
+        self._bufs = {}  # type: Dict[str, Any]
         self._is_child = False
         if params is not None:
             self.update(params)
 
-    def update(self, params):
+    def update(self, params: Dict[str, _ElemType]) -> None:
         """
         Update the argument container with the given dictionary params, by calling self.push(k, v) on each item.
 
-        :param dict params: The data to set. On each element, self[k] = v is called, inserting the element.
+        :param params: The data to set. On each element, self[k] = v is called, inserting the element.
         """
         for k, v in params.items():
             self[k] = v
 
     @property
-    def ptr(self):
+    def ptr(self) -> c_void_p:
         """
         Return the internal pointer of the argument container. Should not be modified or otherwise dealt with, primarily for use of internal classes.
         """
@@ -44,41 +62,40 @@ class _ArgumentContainer:
             raise ValueError("Pointer already dead!")
         return self._ptr
 
-    def clear(self):
+    def clear(self) -> None:
         """
         Clear the argument container and frees all resources held by bufs.
         """
         _grm.grm_args_clear(self.ptr)
         self._bufs = {}
 
-    def remove(self, name):
+    def remove(self, name: str) -> None:
         """
         Remove the given key `name` from the argument container, and frees the ressource held by it.
 
-        :param str name: The key to remove from the container. `name in self` should be false after that.
+        `name in self` should be false after that.
         """
         _grm.grm_args_remove(self.ptr, _encode_str_to_char_p(name))
         del self._bufs[name]
 
-    def contains(self, name):
+    def contains(self, name: str) -> bool:
         """
         If the key `name` is contained in the argument, then return true.
 
-        :param str name: the key to check for.
-        :rtype: bool
+        :param name: the key to check for.
         """
         return _grm.grm_args_contains(self.ptr, _encode_str_to_char_p(name)) == 1
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value: _ElemType) -> None:
         self.push(key, value)
 
-    def __delitem__(self, key):
+    def __delitem__(self, key: str) -> None:
         self.remove(key)
 
-    def __contains__(self, key):
+    def __contains__(self, key: str) -> bool:
         return self.contains(key)
 
-    def delete(self):
+    def delete(self) -> None:
         """
         De-Initialises a argument container (e.g. clear and destroy).
         """
@@ -86,7 +103,7 @@ class _ArgumentContainer:
             _grm.grm_args_delete(self.ptr)
         self._delete()
 
-    def _delete(self):
+    def _delete(self) -> None:
         """
         Frees the internal bufs and passes _delete to subcontainers.
         """
@@ -97,24 +114,22 @@ class _ArgumentContainer:
                 for y in x[1]:
                     y._delete()
         self._ptr = None
-        self._bufs = None
+        del self._bufs
 
-    def push(self, name, values):
+    def push(self, name: str, values_to_insert: _ElemType) -> bool:
         """
         Pushes the argument with name to the argument container args_ptr, which should have been created using args_new.
 
         This function also silently overwrites entries with the same name.
         You can always mix int values and float values, but they will then all be converted to floats.
         One-dimensional numpy.ndarray with either Float64 or Int32 can also be passed.
-        :param str name: The key of the key-value-pair to insert.
-        :param Union[int, float, str, _ArgumentContainer, dict, List[Union[int, float]], List[Union[_ArgumentContainer, dict]], List[str]] The value(s) to insert.
-        :rtype: bool
 
         Raises:
             TypeError: This error is raised if name or values (or the child elements of values) are of no correct type.
             ValueError: This error is raised if one of the _ArgumentContainer elements is already a child of another.
-
         """
+        # Remove type annotation to silence mypy
+        values = values_to_insert  # type: Any
         if not isinstance(name, str):
             raise TypeError("Name must be a string!")
 
@@ -197,7 +212,7 @@ class _ArgumentContainer:
             return False  # TODO: Exceptions?
         return True
 
-    def __del__(self):
+    def __del__(self) -> None:
         """
         Destructor to optionally free resources and destroy the c container, if not already done.
         """
@@ -206,12 +221,9 @@ class _ArgumentContainer:
 
 
 @_require_runtime_version(0, 47, 0)
-def new(params=None):
+def new(params: Optional[Dict[str, _ElemType]] = None) -> _ArgumentContainer:
     """
     Initialise a new argument container.
-
-    :param dict The parameters to initialise the container with
-    :rtype: _ArgumentContainer
     """
     return _ArgumentContainer(_grm.grm_args_new(), params)
 
