@@ -145,6 +145,26 @@ class _ArgumentContainer:
 
         if isinstance(values, np.ndarray):
             if values.ndim > 1:
+                if values.ndim == 2 and values.shape[0] == 2 and name in ["error", "relative", "absolute"]:
+                    if values.dtype.name == "float64":
+                        values_1 = values[0].ctypes.data_as(POINTER(c_double))
+                        values_2 = values[1].ctypes.data_as(POINTER(c_double))
+                        type_spec = create_string_buffer(b"nDD")
+                    elif values.dtype.name == "int32":
+                        values_1 = values[0].ctypes.data_as(POINTER(c_int))
+                        values_2 = values[1].ctypes.data_as(POINTER(c_int))
+                        type_spec = create_string_buffer(b"nII")
+                    else:
+                        raise TypeError(
+                            "The ndarray has type " + values.dtype.name + ", but it must be either int32 or float64"
+                        )
+
+                    self._bufs[name] = [values_1, values_2]
+                    result = _grm.grm_args_push(
+                        self.ptr, _encode_str_to_char_p(name), type_spec, c_uint(values.shape[1]), values_1, values_2
+                    )
+                    return result != 0  # TODO: Exceptions
+
                 self[name + "_dims"] = values.shape
                 values_orig = values = values.ravel()
 
