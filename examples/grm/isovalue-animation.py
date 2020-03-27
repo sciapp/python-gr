@@ -1,4 +1,7 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
+"""
+[GRM] Rotation of isovalue plot with two spheres
+"""
 import sys, time
 
 import numpy as np

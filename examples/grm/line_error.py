@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+"""
+[GRM] Errorplot example with custom cap colors
+"""
 import grm, sys
 import numpy as np
 

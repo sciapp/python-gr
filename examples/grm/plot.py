@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+"""
+[GRM] Contourf and series legend example
+"""
 import numpy as np
 import grm, math, sys
 from random import random

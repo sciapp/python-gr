@@ -42,6 +42,10 @@ def input(args_container: args._ArgumentContainer) -> int:
          * ``y``: start point y
          * ``xshift``: shift in x direction
          * ``yshift``: shift in y direction
+
+    :param args_container: The container with one of the data sets described above set.
+
+    :raises TypeError: if args_container is not a valid :class:`grm.args._ArgumentContainer`
     """
     if not isinstance(args_container, args._ArgumentContainer):
         raise TypeError("args_container must be an ArgumentContainer!")
@@ -53,6 +57,9 @@ def input(args_container: args._ArgumentContainer) -> int:
 def get_box(x1: int, y1: int, x2: int, y2: int, keep_aspect_ratio: bool) -> Tuple[int, int, int, int]:
     """
     Translate a x1, y1, x2, y2 in workstation coordinates into a box.
+
+    :raises TypeError: if the arguments have invalid types.
+    :raises ValueError: if the c call failed.
     """
     if not isinstance(x1, int) or not isinstance(y1, int) or not isinstance(x2, int) or not isinstance(y2, int):
         raise TypeError("x1, x2, y1 and y2 is not an int")

@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+"""
+[GRM] Resizing plots after input and changing series
+"""
 import math, grm, sys
 import numpy as np
 

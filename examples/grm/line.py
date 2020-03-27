@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+"""
+[GRM] Simple line example
+"""
 import grm, sys
 
 args = grm.args.new({"x": [0.0, 1.0], "y": [0.0, 1.0]})

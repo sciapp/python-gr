@@ -1,4 +1,7 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
+"""
+[GRM] Simple isosurface plot
+"""
 import sys
 
 import numpy as np

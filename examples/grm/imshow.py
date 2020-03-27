@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+"""
+[GRM] Using the imshow plot
+"""
 import numpy as np
 import grm
 import sys

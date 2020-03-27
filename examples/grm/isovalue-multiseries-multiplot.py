@@ -1,4 +1,7 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
+"""
+[GRM] Complex example of multiple subplots and series
+"""
 import sys
 
 import numpy as np

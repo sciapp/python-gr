@@ -57,6 +57,8 @@ class _ArgumentContainer:
     def ptr(self) -> c_void_p:
         """
         Return the internal pointer of the argument container. Should not be modified or otherwise dealt with, primarily for use of internal classes.
+
+        :raises ValueError: if the container was already deleted.
         """
         if self._ptr is None:
             raise ValueError("Pointer already dead!")
@@ -65,6 +67,8 @@ class _ArgumentContainer:
     def clear(self) -> None:
         """
         Clear the argument container and frees all resources held by bufs.
+
+        :raises ValueError: if the container was already deleted.
         """
         _grm.grm_args_clear(self.ptr)
         self._bufs = {}
@@ -74,6 +78,10 @@ class _ArgumentContainer:
         Remove the given key `name` from the argument container, and frees the ressource held by it.
 
         `name in self` should be false after that.
+
+        :param name: the key to remove
+
+        :raises ValueError: if the container was already deleted.
         """
         _grm.grm_args_remove(self.ptr, _encode_str_to_char_p(name))
         del self._bufs[name]
@@ -83,6 +91,8 @@ class _ArgumentContainer:
         If the key `name` is contained in the argument, then return true.
 
         :param name: the key to check for.
+
+        :raises ValueError: if the container was already deleted.
         """
         return _grm.grm_args_contains(self.ptr, _encode_str_to_char_p(name)) == 1
 
@@ -121,12 +131,22 @@ class _ArgumentContainer:
         Pushes the argument with name to the argument container args_ptr, which should have been created using args_new.
 
         This function also silently overwrites entries with the same name.
+
         You can always mix int values and float values, but they will then all be converted to floats.
+
         One-dimensional numpy.ndarray with either Float64 or Int32 can also be passed.
 
-        Raises:
-            TypeError: This error is raised if name or values (or the child elements of values) are of no correct type.
-            ValueError: This error is raised if one of the _ArgumentContainer elements is already a child of another.
+        Multi-dimensional numpy.ndarrays with either Float64 or Int32 can also be passed, they will be passed flattened,
+        but :code:`name` _dims is populated with the shape beforehand.
+
+        The exception is if the name is `absolute`, `relative` or `error` where ndarrays with a shape of [2, N] are
+        passed as :code:`nDD`.
+
+        :param name: The key to insert.
+        :param values_to_insert: The data to insert.
+
+        :raises TypeError: if name or values (or the child elements of values) are of no correct type.
+        :raises ValueError: if one of the _ArgumentContainer elements is already a child of another or the container is already deleted.
         """
         # Remove type annotation to silence mypy
         values = values_to_insert  # type: Any
@@ -146,11 +166,11 @@ class _ArgumentContainer:
         if isinstance(values, np.ndarray):
             if values.ndim > 1:
                 if values.ndim == 2 and values.shape[0] == 2 and name in ["error", "relative", "absolute"]:
-                    if values.dtype.name == "float64":
+                    if values.dtype == np.float64:
                         values_1 = values[0].ctypes.data_as(POINTER(c_double))
                         values_2 = values[1].ctypes.data_as(POINTER(c_double))
                         type_spec = create_string_buffer(b"nDD")
-                    elif values.dtype.name == "int32":
+                    elif values.dtype == np.int32:
                         values_1 = values[0].ctypes.data_as(POINTER(c_int))
                         values_2 = values[1].ctypes.data_as(POINTER(c_int))
                         type_spec = create_string_buffer(b"nII")
@@ -168,10 +188,10 @@ class _ArgumentContainer:
                 self[name + "_dims"] = values.shape
                 values_orig = values = values.ravel()
 
-            if values.dtype.name == "float64":
+            if values.dtype == np.float64:
                 type_spec = create_string_buffer(b"nD")
                 values = values.ctypes.data_as(POINTER(c_double))
-            elif values.dtype.name == "int32":
+            elif values.dtype == np.int32:
                 type_spec = create_string_buffer(b"nI")
                 values = values.ctypes.data_as(POINTER(c_int))
             else:
@@ -243,7 +263,9 @@ class _ArgumentContainer:
 @_require_runtime_version(0, 47, 0)
 def new(params: Optional[Dict[str, _ElemType]] = None) -> _ArgumentContainer:
     """
-    Initialise a new argument container.
+    Initialise a new argument container with optional initialization data.
+
+    :param params: Each element in this dictionary is written into the container at initialization time.
     """
     return _ArgumentContainer(_grm.grm_args_new(), params)
 
