@@ -893,6 +893,10 @@ def settextfontprec(font, precision):
     +--------------------------------------+-----+
     |FONT_ZAPFDINGBATS                     |  131|
     +--------------------------------------+-----+
+    |FONT_COMPUTERMODERN                   |  232|
+    +--------------------------------------+-----+
+    |FONT_DEJAVUSANS                       |  233|
+    +--------------------------------------+-----+
 
     The available text precisions are:
 
@@ -903,12 +907,16 @@ def settextfontprec(font, precision):
     +---------------------------+---+--------------------------------------+
     |TEXT_PRECISION_STROKE      |  2|Stroke precision (lower quality)      |
     +---------------------------+---+--------------------------------------+
+    |TEXT_PRECISION_OUTLINE     |  3|Outline precision (highest quality)   |
+    +---------------------------+---+--------------------------------------+
 
     The appearance of a font depends on the text precision value specified.
     STRING, CHARACTER or STROKE precision allows for a greater or lesser
-    realization of the text primitives, for efficiency. STRING is the default
-    precision for GR and produces the highest quality output.
-
+    realization of the text primitives, for efficiency. STRING is the
+    default precision for GR and produces the high quality output using either
+    native font rendering or FreeType. OUTLINE uses the GR path rendering
+    functions to draw individual glyphs and produces the highest quality
+    output.
     """
     __gr.gr_settextfontprec(c_int(font), c_int(precision))
 
@@ -3743,6 +3751,7 @@ TEXT_PATH_DOWN = 3
 TEXT_PRECISION_STRING = 0
 TEXT_PRECISION_CHAR = 1
 TEXT_PRECISION_STROKE = 2
+TEXT_PRECISION_OUTLINE = 3
 
 LINETYPE_SOLID = 1
 LINETYPE_DASHED = 2
@@ -3943,6 +3952,8 @@ FONT_PALATINO_BOLD = 128
 FONT_PALATINO_BOLDITALIC = 129
 FONT_ZAPFCHANCERY_MEDIUMITALIC = 130
 FONT_ZAPFDINGBATS = 131
+FONT_COMPUTERMODERN = 232
+FONT_DEJAVUSANS = 233
 
 # gr.beginprint types
 PRINT_PS = "ps"
