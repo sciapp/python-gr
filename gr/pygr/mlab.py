@@ -1946,12 +1946,52 @@ def colormap(colormap=''):
 
 
 @_close_gks_on_error
+def field_of_view(field_of_view):
+    """
+    Set the vertical field of view of the current 3D plot.
+
+    Depending on how the field of view is set, a different projection will be
+    used for 3D plots. Setting field of view to a value between 0 and 180
+    degrees (exclusively) will use a perspective projection with the given
+    vertical field of view. Setting field of view to 0 or NaN will use an
+    orthographic projection and setting Field of view to None will use a
+    custom projection with limited camera positioning.
+
+    By default, a field of view set to None will be assumed.
+
+    :param field_of_view: the vertical field of view or None
+
+    **Usage examples:**
+
+    >>> # Create example data
+    >>> x = np.random.uniform(0, 1, 100)
+    >>> y = np.random.uniform(0, 1, 100)
+    >>> z = np.random.uniform(0, 1, 100)
+    >>> # Set the field of view to 20 degrees and draw an example plot
+    >>> mlab.field_of_view(20)
+    >>> mlab.plot3(x, y, z)
+    >>> # Select an orthographic projection instead
+    >>> mlab.field_of_view(0)
+    >>> mlab.plot3(x, y, z)
+    >>> # Restore the default projection
+    >>> mlab.field_of_view(None)
+    >>> mlab.plot3(x, y, z)
+    """
+    _plot_data(tilt=tilt)
+
+
+@_close_gks_on_error
 def tilt(tilt):
     """
     Set the 3d axis tilt of the current plot.
 
-    The tilt can be any value between 0 and 90, and controls the angle
-    between the viewer and the X-Y-plane.
+    How the tilt is interpreted depends on the current field_of_view setting.
+    For the default projection, with field_of_view set to None, the tilt can
+    be any value between 0 and 90, and controls the angle between the viewer
+    and the X-Y-plane. For the orthographic or perspective projection, with
+    field_of_view set to a value between 0 and 180 or to NaN, the tilt can
+    be any value between 0 and 180 and controls the angle between the viewer
+    and the z-axis.
 
     :param tilt: the 3d axis tilt
 
@@ -1973,8 +2013,15 @@ def rotation(rotation):
     """
     Set the 3d axis rotation of the current plot.
 
-    The rotation can be any value between 0 and 90, and controls the angle
-    between the viewer projected onto the X-Y-plane and the x-axis.
+    The rotation controls the angle between the viewer projected onto the
+    X-Y-plane and the x-axis, setting the camera position for 3D plots in
+    combination with the tilt setting.
+
+    The range of values for the rotation depends on the current field_of_view
+    setting. For the default projection, with field_of_view set to None, the
+    rotation can be any value between 0 and 90 degrees. For the orthographic
+    or perspective projection, with field_of_view set to a value between 0 and
+    180 or to NaN, the rotation can be any value between 0 and 360 degrees.
 
     :param rotation: the 3d axis rotation
 
@@ -2498,10 +2545,17 @@ def _set_window(kind):
         else:
             zorg = (z_max, z_min)
         _plt.kwargs['zaxis'] = z_tick, zorg, z_major_count
-
         rotation = _plt.kwargs.get('rotation', 40)
         tilt = _plt.kwargs.get('tilt', 70)
         gr.setspace(z_min, z_max, rotation, tilt)
+        fov = _plt.kwargs.get('field_of_view', None)
+        if fov is not None:
+            gr.setwindow3d(x_min, x_max, y_min, y_max, z_min, z_max)
+            gr.setwindow(-1, 1, -1, 1)
+            rotation %= 360
+            tilt %= 380
+            tilt = min(max(tilt, 0), 180)
+            gr.setspace3d(-rotation, tilt, fov, 0)
 
     _plt.kwargs['scale'] = scale
     gr.setscale(scale)
@@ -2552,12 +2606,47 @@ def _draw_axes(kind, pass_=1):
     ticksize = 0.0075 * diag
     if kind in ('wireframe', 'surface', 'plot3', 'scatter3', 'trisurf', 'volume'):
         z_tick, z_org, z_major_count = _plt.kwargs['zaxis']
-        if pass_ == 1:
-            gr.grid3d(x_tick, 0, z_tick, x_org[0], y_org[1], z_org[0], 2, 0, 2)
-            gr.grid3d(0, y_tick, 0, x_org[0], y_org[1], z_org[0], 0, 2, 0)
+        fov = _plt.kwargs.get('field_of_view', None)
+        if fov is None:
+            if pass_ == 1:
+                gr.grid3d(x_tick, 0, z_tick, x_org[0], y_org[1], z_org[0], 2, 0, 2)
+                gr.grid3d(0, y_tick, 0, x_org[0], y_org[1], z_org[0], 0, 2, 0)
+            else:
+                gr.axes3d(x_tick, 0, z_tick, x_org[0], y_org[0], z_org[0], x_major_count, 0, z_major_count, -ticksize)
+                gr.axes3d(0, y_tick, 0, x_org[1], y_org[0], z_org[0], 0, y_major_count, 0, ticksize)
         else:
-            gr.axes3d(x_tick, 0, z_tick, x_org[0], y_org[0], z_org[0], x_major_count, 0, z_major_count, -ticksize)
-            gr.axes3d(0, y_tick, 0, x_org[1], y_org[0], z_org[0], 0, y_major_count, 0, ticksize)
+            rotation = _plt.kwargs.get('rotation', 40)
+            tilt = _plt.kwargs.get('tilt', 70)
+            rotation %= 360
+            tilt %= 380
+            tilt = min(max(tilt, 0), 180)
+            zi = 0 if 0 <= tilt <= 90 else 1
+            if pass_ == 1:
+                if 0 <= rotation < 90:
+                    gr.grid3d(x_tick, 0, z_tick, x_org[0], y_org[1], z_org[zi], 2, 0, 2)
+                    gr.grid3d(0, y_tick, 0, x_org[0], y_org[1], z_org[zi], 0, 2, 0)
+                elif 90 <= rotation < 180:
+                    gr.grid3d(x_tick, 0, z_tick, x_org[1], y_org[1], z_org[zi], 2, 0, 2)
+                    gr.grid3d(0, y_tick, 0, x_org[1], y_org[1], z_org[zi], 0, 2, 0)
+                elif 180 <= rotation < 270:
+                    gr.grid3d(x_tick, 0, z_tick, x_org[1], y_org[0], z_org[zi], 2, 0, 2)
+                    gr.grid3d(0, y_tick, 0, x_org[1], y_org[0], z_org[zi], 0, 2, 0)
+                else:
+                    gr.grid3d(x_tick, 0, z_tick, x_org[0], y_org[0], z_org[0], 2, 0, 2)
+                    gr.grid3d(0, y_tick, 0, x_org[0], y_org[0], z_org[zi], 0, 2, 0)
+            else:
+                if 0 <= rotation < 90:
+                    gr.axes3d(x_tick, 0, z_tick, x_org[0], y_org[0], z_org[zi], x_major_count, 0, z_major_count, -ticksize)
+                    gr.axes3d(0, y_tick, 0, x_org[1], y_org[0], z_org[zi], 0, y_major_count, 0, ticksize)
+                elif 90 <= rotation < 180:
+                    gr.axes3d(0, 0, z_tick, x_org[0], y_org[1], z_org[zi], 0, 0, z_major_count, -ticksize)
+                    gr.axes3d(x_tick, y_tick, 0, x_org[0], y_org[0], z_org[zi], x_major_count, y_major_count, 0, -ticksize)
+                elif 180 <= rotation < 270:
+                    gr.axes3d(x_tick, 0, z_tick, x_org[1], y_org[1], z_org[zi], x_major_count, 0, z_major_count, ticksize)
+                    gr.axes3d(0, y_tick, 0, x_org[0], y_org[0], z_org[zi], 0, y_major_count, 0, -ticksize)
+                else:
+                    gr.axes3d(0, 0, z_tick, x_org[1], y_org[0], z_org[zi], 0, 0, z_major_count, -ticksize)
+                    gr.axes3d(x_tick, y_tick, 0, x_org[1], y_org[1], z_org[zi], x_major_count, y_major_count, 0, ticksize)
     else:
         if kind in ('heatmap', 'shade'):
             ticksize = -ticksize
