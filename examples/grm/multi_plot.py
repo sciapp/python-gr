@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+"""
+[GRM] Updating line plots
+"""
 import numpy as np
 import math, sys, grm
 

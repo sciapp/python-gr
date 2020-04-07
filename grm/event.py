@@ -104,11 +104,17 @@ def register(
     Register a callback for the specified event type.
 
     This eventually replaces an already set callback.
+    Internally stores a reference to the callback.
     The callback receives a class specific to the event type, one of:
-     - EVENT_NEW_PLOT,
-     - EVENT_UPDATE_PLOT,
-     - EVENT_SIZE or
-     - EVENT_MERGE_END
+     * :py:class:`~grm.event.EVENT_NEW_PLOT`
+     * :py:class:`~grm.event.EVENT_UPDATE_PLOT`
+     * :py:class:`~grm.event.EVENT_SIZE`
+     * :py:class:`~grm.event.EVENT_MERGE_END`
+
+    :param event_type: The EventType to register a callback for.
+    :param callback: The callback to be called if the event occurs.
+
+    :raises TypeError: if event_type is not an EventType.
     """
     if not isinstance(event_type, EventType):
         raise TypeError("event_type must be a value out of EventType!")
@@ -138,6 +144,10 @@ def register(
 def unregister(event_type: EventType) -> int:
     """
     Deregister the callback for the given event type.
+
+    :param event_type: The EventType to deregister the callback from.
+
+    :raises TypeError: if event_type is not an EventType.
     """
     if not isinstance(event_type, EventType):
         raise TypeError("event_type must be a value out of EventType!")

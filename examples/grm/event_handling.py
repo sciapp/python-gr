@@ -1,3 +1,27 @@
+#!/usr/bin/env python3
+"""
+[GRM] Event handling for resizing and new plots
+
+The following is printed:
+
+.. code-block:: none
+
+    filling argument container...
+    plotting data...
+    Got new plot event, plot_id: 0
+    Got size event, size: (600, 600)
+    Press any key to continue...
+    <ENTER>
+    plotting data...
+    Got size event, size: (1000, 1000)
+    Press any key to continue...
+    <ENTER>
+    plotting data...
+    Got new plot event, plot_id: 1
+    Got size event, size: (1000, 1000)
+    Press any key to continue...
+    <ENTER>
+"""
 import math, sys, grm
 import numpy as np
 

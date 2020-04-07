@@ -12,6 +12,10 @@ from . import _grm, _encode_str_to_char_p, args
 def plot(args_container: args._ArgumentContainer) -> int:
     """
     Update the internal data container with the given data and draw the plot after it.
+
+    :param args_container: The container with the data to merge and plot
+
+    :raises TypeError: if the args_container is not a valid :class:`grm.args._ArgumentContainer`
     """
     if args_container is None:
         return _grm.grm_plot(c_void_p(0x0))
@@ -40,6 +44,10 @@ def max_plotid() -> int:
 def merge(args_container: args._ArgumentContainer) -> int:
     """
     Store the args_container into the internal, possibly clearing the internal values.
+
+    :param args_container: The container with the data to merge
+
+    :raises TypeError: if the args_container is not a valid :class:`grm.args._ArgumentContainer`
     """
     if not isinstance(args_container, args._ArgumentContainer):
         raise TypeError("The given parameter is not a valid ArgumentContainer")
@@ -54,6 +62,8 @@ def merge_extended(args_container: args._ArgumentContainer, hold: bool, identifi
     :param args_container: The argument container with the data to merge
     :param hold: When True, does not clear the internal data.
     :param identificator: The identificator to pass to the MERGE_END event
+
+    :raises TypeError: if the arguments passed are not the expected type
     """
     if (
         not isinstance(args_container, args._ArgumentContainer)
@@ -69,6 +79,10 @@ def merge_extended(args_container: args._ArgumentContainer, hold: bool, identifi
 def merge_hold(args_container: args._ArgumentContainer) -> int:
     """
     Merge the container while preserving the internally stored values.
+
+    :param args_container: The argument container with the data to merge
+
+    :raises TypeError: if the args_container is not a valid :class:`grm.args._ArgumentContainer`
     """
     if not isinstance(args_container, args._ArgumentContainer):
         raise TypeError("The given parameter is not a valid ArgumentContainer.")
@@ -79,6 +93,12 @@ def merge_hold(args_container: args._ArgumentContainer) -> int:
 def merge_named(args_container: args._ArgumentContainer, identificator: str) -> int:
     """
     Merge the container, and the MERGE_END event is called with identificator set to the argument.
+
+    :param args_container: The argument container with the data to merge
+    :param identificator: The identificator to pass to the MERGE_END event
+
+    :raises TypeError: if the args_container is not a valid :class:`grm.args._ArgumentContainer`, or the
+        identificator is not a string
     """
     if not isinstance(args_container, args._ArgumentContainer):
         raise TypeError("The given parameter is not a valid ArgumentContainer.")
@@ -92,6 +112,10 @@ def merge_named(args_container: args._ArgumentContainer, identificator: str) -> 
 def switch(plot_id: int) -> int:
     """
     Switches the default plot id.
+
+    :param plot_id: The plot id to switch to.
+
+    :raises TypeError: if plot_id is not an unsigned int.
     """
     if not isinstance(plot_id, int):
         raise TypeError("Given parameter is not a valid integer!")

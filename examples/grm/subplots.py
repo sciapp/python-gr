@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+"""
+[GRM] Multiple line plots example
+"""
 import math, time, sys, grm
 import numpy as np
 
