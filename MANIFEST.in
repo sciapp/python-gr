@@ -6,6 +6,7 @@ include version.txt
 include vcversioner.py
 graft gr
 graft gr3
+graft grm
 graft qtgr
 graft tests
 global-exclude *.py[cod] __pycache__ *.db

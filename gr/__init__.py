@@ -893,6 +893,10 @@ def settextfontprec(font, precision):
     +--------------------------------------+-----+
     |FONT_ZAPFDINGBATS                     |  131|
     +--------------------------------------+-----+
+    |FONT_COMPUTERMODERN                   |  232|
+    +--------------------------------------+-----+
+    |FONT_DEJAVUSANS                       |  233|
+    +--------------------------------------+-----+
 
     The available text precisions are:
 
@@ -903,12 +907,16 @@ def settextfontprec(font, precision):
     +---------------------------+---+--------------------------------------+
     |TEXT_PRECISION_STROKE      |  2|Stroke precision (lower quality)      |
     +---------------------------+---+--------------------------------------+
+    |TEXT_PRECISION_OUTLINE     |  3|Outline precision (highest quality)   |
+    +---------------------------+---+--------------------------------------+
 
     The appearance of a font depends on the text precision value specified.
     STRING, CHARACTER or STROKE precision allows for a greater or lesser
-    realization of the text primitives, for efficiency. STRING is the default
-    precision for GR and produces the highest quality output.
-
+    realization of the text primitives, for efficiency. STRING is the
+    default precision for GR and produces the high quality output using either
+    native font rendering or FreeType. OUTLINE uses the GR path rendering
+    functions to draw individual glyphs and produces the highest quality
+    output.
     """
     __gr.gr_settextfontprec(c_int(font), c_int(precision))
 
@@ -3409,17 +3417,16 @@ def inqscalefactors3d():
 
 
 @_require_runtime_version(0, 48, 0, 0)
-def transformationinterfaceforrepl(phi, theta, fov, camera_distance):
+def setspace3d(phi, theta, fov, camera_distance):
     """
-    This is an interface for REPL based languages to enable an easier way to
-    rotate around an object.
+    Set the camera for orthographic or perspective projection.
 
     The center of the 3d window is used as the focus point and the camera is
-    positioned relative to it, using spherical coordinates. This function can
-    therefore also be used if the user prefers spherical coordinates to setting
-    the direct camera position, but with reduced functionality in comparison
-    to gr.settransformationparameters, gr.setperspectiveprojection and
-    gr.setorthographicprojection.
+    positioned relative to it, using camera distance, rotation and tilt similar
+    to gr_setspace. This function can be used if the user prefers spherical
+    coordinates to setting the camera position directly, but has reduced
+    functionality in comparison to gr.settransformationparameters,
+    gr.setperspectiveprojection and gr.setorthographicprojection.
 
     **Parameters:**
 
@@ -3434,7 +3441,7 @@ def transformationinterfaceforrepl(phi, theta, fov, camera_distance):
         distance between the camera and the focus point
         (0 or NaN for the radius of the object's smallest bounding sphere)
     """
-    __gr.gr_transformationinterfaceforrepl(c_double(phi), c_double(theta), c_double(fov), c_double(camera_distance))
+    __gr.gr_setspace3d(c_double(phi), c_double(theta), c_double(fov), c_double(camera_distance))
 
 
 def wrapper_version():
@@ -3704,8 +3711,11 @@ if _RUNTIME_VERSION >= (0, 48, 0, 0):
     __gr.gr_setscalefactors3d.restype = None
     __gr.gr_inqscalefactors3d.argtypes = [POINTER(c_double), POINTER(c_double), POINTER(c_double)]
     __gr.gr_inqscalefactors3d.restype = None
-    __gr.gr_transformationinterfaceforrepl.argtypes = [c_double, c_double, c_double, c_double]
-    __gr.gr_transformationinterfaceforrepl.restype = None
+    if not hasattr(__gr, 'gr_setspace3d'):
+        # gr_setspace3d used to be gr_transformationinterfaceforrepl
+        __gr.gr_setspace3d = __gr.gr_transformationinterfaceforrepl
+    __gr.gr_setspace3d.argtypes = [c_double, c_double, c_double, c_double]
+    __gr.gr_setspace3d.restype = None
 
 
 precision = __gr.gr_precision()
@@ -3743,6 +3753,7 @@ TEXT_PATH_DOWN = 3
 TEXT_PRECISION_STRING = 0
 TEXT_PRECISION_CHAR = 1
 TEXT_PRECISION_STROKE = 2
+TEXT_PRECISION_OUTLINE = 3
 
 LINETYPE_SOLID = 1
 LINETYPE_DASHED = 2
@@ -3943,6 +3954,8 @@ FONT_PALATINO_BOLD = 128
 FONT_PALATINO_BOLDITALIC = 129
 FONT_ZAPFCHANCERY_MEDIUMITALIC = 130
 FONT_ZAPFDINGBATS = 131
+FONT_COMPUTERMODERN = 232
+FONT_DEJAVUSANS = 233
 
 # gr.beginprint types
 PRINT_PS = "ps"
