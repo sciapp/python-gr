@@ -2,8 +2,10 @@
 """
 [GRM] Multiple line plots example
 """
-import math, time, sys, grm
+import math
+import sys
 import numpy as np
+import grm
 
 
 n = 1000

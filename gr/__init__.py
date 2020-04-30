@@ -1269,6 +1269,7 @@ def setviewport(xmin, xmax, ymin, ymax):
     workstation, in device coordinates.
 
     """
+    assert not np.isnan(xmin)
     __gr.gr_setviewport(c_double(xmin), c_double(xmax), c_double(ymin), c_double(ymax))
 
 

@@ -1,4 +1,6 @@
-import math, grm, sys
+import math
+import sys
+import grm
 
 plots = [[[0] * 3] * 2] * 4
 

@@ -10,6 +10,7 @@ from timeit import default_timer as timer
 import numpy as np
 import gr
 
+
 @cuda.jit(restype=uint32, argtypes=[f8, f8, uint32], device=True)
 def mandel(x, y, max_iters):
     c = complex(x, y)
@@ -26,6 +27,7 @@ def mandel(x, y, max_iters):
             inc = -inc
 
     return 255
+
 
 @cuda.jit(argtypes=[f8, f8, f8, f8, uint8[:,:], uint32])
 def mandel_kernel(min_x, max_x, min_y, max_y, image, max_iters):

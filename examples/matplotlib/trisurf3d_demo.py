@@ -1,7 +1,7 @@
-from mpl_toolkits.mplot3d import Axes3D
+import numpy as np
 from matplotlib import cm
 import matplotlib.pyplot as plt
-import numpy as np
+from mpl_toolkits.mplot3d import Axes3D
 
 n_angles = 36
 n_radii = 8
@@ -11,18 +11,18 @@ n_radii = 8
 radii = np.linspace(0.125, 1.0, n_radii)
 
 # An array of angles
-angles = np.linspace(0, 2*np.pi, n_angles, endpoint=False)
+angles = np.linspace(0, 2 * np.pi, n_angles, endpoint=False)
 
 # Repeat all angles for each radius
-angles = np.repeat(angles[...,np.newaxis], n_radii, axis=1)
+angles = np.repeat(angles[..., np.newaxis], n_radii, axis=1)
 
 # Convert polar (radii, angles) coords to cartesian (x, y) coords
 # (0, 0) is added here. There are no duplicate points in the (x, y) plane
-x = np.append(0, (radii*np.cos(angles)).flatten())
-y = np.append(0, (radii*np.sin(angles)).flatten())
+x = np.append(0, (radii * np.cos(angles)).flatten())
+y = np.append(0, (radii * np.sin(angles)).flatten())
 
 # Pringle surface
-z = np.sin(-x*y)
+z = np.sin(-x * y)
 
 fig = plt.figure()
 ax = fig.gca(projection='3d')

@@ -41,7 +41,7 @@ def func_vals(f, re, im,  N):
     return w
 
 
-def plot_domain(color_func, f, re=[-1, 1], im=[-1, 1], N=100, n=15):
+def plot_domain(color_func, f, re=(-1, 1), im=(-1, 1), N=100, n=15):
     w = func_vals(f, re, im, N)
     domc = color_func(w, n) * 255
     width, height = domc.shape[:2]
@@ -54,7 +54,9 @@ def plot_domain(color_func, f, re=[-1, 1], im=[-1, 1], N=100, n=15):
     gr.updatews()
 
 
-f = lambda z: (z**2 - 1) * (z - 2 - 1j)**2 / (z**2 + 2 + 2j)
+def f(z):
+    return (z**2 - 1) * (z - 2 - 1j)**2 / (z**2 + 2 + 2j)
+
 
 for n in range(5, 30):
     plot_domain(domain_colors, f, re=(-3, 3), im=(-3, 3), n=n)

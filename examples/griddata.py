@@ -3,13 +3,12 @@
 Create a contour plot of irregular distributed data
 """
 
-from numpy.random import uniform, seed
 import numpy as np
 import gr
 
-seed(0)
-xd = uniform(-2, 2, 100)
-yd = uniform(-2, 2, 100)
+np.random.seed(0)
+xd = np.random.uniform(-2, 2, 100)
+yd = np.random.uniform(-2, 2, 100)
 zd = xd * np.exp(-xd**2 - yd**2)
 
 gr.setviewport(0.1, 0.95, 0.1, 0.95)

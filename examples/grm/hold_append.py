@@ -2,8 +2,10 @@
 """
 [GRM] Resizing plots after input and changing series
 """
-import math, grm, sys
+import math
+import sys
 import numpy as np
+import grm
 
 
 print("filling argument container...")

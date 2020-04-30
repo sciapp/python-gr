@@ -3,7 +3,6 @@
 [GRM] Complex example of multiple subplots and series
 """
 import sys
-
 import numpy as np
 import grm
 

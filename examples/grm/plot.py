@@ -2,8 +2,10 @@
 """
 [GRM] Contourf and series legend example
 """
+import math
+import sys
 import numpy as np
-import grm, math, sys
+import grm
 from random import random
 
 

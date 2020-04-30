@@ -4,19 +4,25 @@
 Play an audio file and display spectrogram in realtime
 """
 
-import os, wave, pyaudio
+import os
+import wave
 import numpy as np
+import pyaudio
 import gr
 import gr3
 
-FS=44100       # Sampling frequency
+FS = 44100  # Sampling frequency
 SAMPLES = 2048
 
 wf = wave.open(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                             'Monty_Python.wav'), 'rb')
 pa = pyaudio.PyAudio()
-stream = pa.open(format=pa.get_format_from_width(wf.getsampwidth()),
-                 channels=wf.getnchannels(), rate=wf.getframerate(), output=True)
+stream = pa.open(
+    format=pa.get_format_from_width(wf.getsampwidth()),
+    channels=wf.getnchannels(),
+    rate=wf.getframerate(),
+    output=True
+)
 
 spectrum = np.zeros((256, 64), dtype=float)
 t = -63
@@ -26,8 +32,8 @@ df = FS / float(SAMPLES) / 2 / 2
 data = wf.readframes(SAMPLES)
 while data != '' and len(data) == SAMPLES * wf.getsampwidth():
     stream.write(data)
-    amplitudes = np.fromstring(data, dtype=np.short)
-    power = abs(np.fft.fft(amplitudes / 32768.0))[:SAMPLES/2]
+    amplitudes = np.frombuffer(data, dtype=np.short)
+    power = abs(np.fft.fft(amplitudes / 32768.0))[:SAMPLES // 2]
 
     gr.clearws()
     spectrum[:, 63] = power[:256]

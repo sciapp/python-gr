@@ -47,7 +47,7 @@ def orbital(n, l, m):
 
     def psi(radii, theta, phi):
         a0 = physical_constants['Bohr radius'][0]
-        rho = 2*radii / (n*a0)
+        rho = 2*radii / (n * a0)
         return norm(n, l) * R(n, l, rho) * np.abs(Yml(m, l, theta, phi))
     return psi
 
@@ -84,6 +84,7 @@ def main():
     if values.max() > 0:
         for rotation in range(360):
             isosurface(values/values.max(), isovalue=0.25, color=(0, 0.5, 0.8), rotation=rotation)
+
 
 if __name__ == '__main__':
     main()

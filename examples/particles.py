@@ -6,18 +6,19 @@ Simple particle simulation
 
 import numpy as np
 import gr, time
-from numba.decorators import jit
+from numba.core.decorators import jit
 
 N = 300                    # number of particles
 M = 0.05 * np.ones(N)      # masses
 size = 0.04                # particle size
+
 
 def step(dt, size, a):
     # update positions
     a[0] += dt * a[1]
 
     n = a.shape[1]
-    D = np.empty((n, n), dtype=np.float)
+    D = np.zeros((n, n))
     for i in range(n):
         for j in range(n):
             dx = a[0, i, 0] - a[0, j, 0]
@@ -61,8 +62,9 @@ def step(dt, size, a):
 
     return a
 
+
 np.random.seed(0)
-a = np.empty([2, N, 2], dtype=float)
+a = np.empty([2, N, 2], dtype=np.float)
 a[0, :] = -0.5 + np.random.random((N, 2))      # positions
 a[1, :] = -0.5 + np.random.random((N, 2))      # velocities
 a[0, :] *= (4 - 2*size)

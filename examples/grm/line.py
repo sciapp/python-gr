@@ -2,7 +2,8 @@
 """
 [GRM] Simple line example
 """
-import grm, sys
+import sys
+import grm
 
 args = grm.args.new({"x": [0.0, 1.0], "y": [0.0, 1.0]})
 

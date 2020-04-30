@@ -9,13 +9,12 @@ Sample microphone input and display power spectrum in QtGR.
 import sys
 # third party
 import pyaudio
-import numpy
-from numpy import arange, sin, pi
+import numpy as np
 from scipy import signal
 # local library
 import gr
 from gr.pygr import Plot, PlotAxes, PlotCurve
-from qtgr.backend import QtCore, QtGui
+from qtgr.backend import QtCore, QtWidgets
 from qtgr import InteractiveGRWidget
 
 __author__ = "Christian Felder <c.felder@fz-juelich.de>"
@@ -57,19 +56,21 @@ SAMPLES = 4096
 F = [FS / float(SAMPLES) * t for t in range(0, SAMPLES // 2)]
 
 mic = None
+
+
 def get_spectrum():
     global mic
     if mic is None:
         pa = pyaudio.PyAudio()
         mic = pa.open(format=pyaudio.paInt16, channels=1, rate=FS,
                       input=True, frames_per_buffer=SAMPLES)
-    amplitudes = numpy.fromstring(mic.read(SAMPLES), dtype=numpy.short)
-    return abs(numpy.fft.fft(amplitudes / 32768.0))[:SAMPLES/2]
+    amplitudes = np.frombuffer(mic.read(SAMPLES), dtype=np.short)
+    return abs(np.fft.fft(amplitudes / 32768.0))[:SAMPLES // 2]
 
 
 def parabolic(x, f, i):
-    xe = 1/2. * (f[i-1] - f[i+1]) / (f[i-1] - 2 * f[i] + f[i+1]) + x
-    ye = f[i] - 1/4. * (f[i-1] - f[i+1]) * (xe - x)
+    xe = 1 / 2. * (f[i - 1] - f[i + 1]) / (f[i - 1] - 2 * f[i] + f[i + 1]) + x
+    ye = f[i] - 1 / 4. * (f[i - 1] - f[i + 1]) * (xe - x)
     return xe, ye
 
 
@@ -127,10 +128,10 @@ class ClampedPlotAxes(PlotAxes):
         PlotAxes.setWindow(self, xmin, xmax, ymin, ymax)
 
 
-class MainWindow(QtGui.QMainWindow):
+class MainWindow(QtWidgets.QMainWindow):
 
     def __init__(self, *args, **kwargs):
-        QtGui.QMainWindow.__init__(self, *args, **kwargs)
+        QtWidgets.QMainWindow.__init__(self, *args, **kwargs)
         self._grw = InteractiveGRWidget()
         self.setCentralWidget(self._grw)
 
@@ -156,7 +157,7 @@ class MainWindow(QtGui.QMainWindow):
         power, peakind = None, None
         try:
             power = get_spectrum()
-            peakind = signal.find_peaks_cwt(power, numpy.array([5]))
+            peakind = signal.find_peaks_cwt(power, np.array([5]))
         except IOError:
             return
         else:
@@ -174,7 +175,7 @@ class MainWindow(QtGui.QMainWindow):
 
 
 def main(*args):
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     mainWin = MainWindow()
     mainWin.resize(QtCore.QSize(500, 500))
     mainWin.show()
@@ -183,4 +184,3 @@ def main(*args):
 
 if __name__ == "__main__":
     main(sys.argv)
-

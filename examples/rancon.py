@@ -26,4 +26,3 @@ h = range(-4, 28, 2)
 gr.contour(x, y, h, z, 0)
 
 gr.updatews()
-

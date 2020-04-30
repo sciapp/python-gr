@@ -2,12 +2,14 @@
 Simulation demo: movie of growing particles on substrate
 '''
 
-import os, sys
 import numpy
 import gr
 from gr.pygr import heatmap
-import math
-from bornagain import *
+from bornagain import (
+    angstrom, degree, nanometer, FTDistribution1DGauss, FormFactorCylinder,
+    GISASSimulation, HomogeneousMaterial, Particle, ParticleLayout,
+    Layer, MultiLayer, InterferenceFunctionRadialParaCrystal
+)
 
 Nframes = 50
 
@@ -18,7 +20,7 @@ distance = 5
 # ----------------------------------
 # describe sample and run simulation
 # ----------------------------------
-def RunSimulation():
+def run_simulation():
     # defining materials
     mAir = HomogeneousMaterial("Air", 0.0, 0.0)
     mSubstrate = HomogeneousMaterial("Substrate", 6e-6, 2e-8)
@@ -54,7 +56,7 @@ def RunSimulation():
     return simulation.result().array()
 
 
-def SetParameters(i):
+def set_parameters(i):
     global radius
     global height
     global distance
@@ -62,14 +64,12 @@ def SetParameters(i):
     height = (1. + (4.0/Nframes)*i) * nanometer
     distance = (10. - (1.0/Nframes)*i) * nanometer
 
-#-------------------------------------------------------------
-# main()
-#-------------------------------------------------------------
+
 if __name__ == '__main__':
     for i in range(Nframes):
-        SetParameters(i)
-        result = RunSimulation() + 1 # for log scale
-        result = numpy.log10(result)
+        set_parameters(i)
+        result = run_simulation()
+        result = numpy.log10(result + 1)  # for log scale
         heatmap(result, colormap=gr.COLORMAP_PILATUS,
                 xlim=(-4, 4), ylim=(0, 8),
                 xlabel="\\phi_f", ylabel="\\alpha_f")

@@ -8,10 +8,10 @@ Plotting two-dimensional live data using QtGR.
 # standard library
 import sys
 # third party
-from numpy import arange, sin, pi
+import numpy as np
 # local library
 from gr.pygr import Plot, PlotAxes, PlotCurve
-from qtgr.backend import QtCore, QtGui
+from qtgr.backend import QtCore, QtWidgets
 from qtgr import InteractiveGRWidget
 
 __author__ = "Christian Felder <c.felder@fz-juelich.de>"
@@ -60,16 +60,16 @@ class ScaledPlotAxes(PlotAxes):
         return self.getWindow()
 
 
-class MainWindow(QtGui.QMainWindow):
+class MainWindow(QtWidgets.QMainWindow):
 
     def __init__(self, *args, **kwargs):
-        QtGui.QMainWindow.__init__(self, *args, **kwargs)
+        QtWidgets.QMainWindow.__init__(self, *args, **kwargs)
         self._grw = InteractiveGRWidget()
         self.setCentralWidget(self._grw)
 
         viewport = [0.1, 0.88, 0.1, 0.88]
-        x = arange(0, 2 * pi, 0.01)
-        y = sin(x)
+        x = np.arange(0, 2 * np.pi, 0.01)
+        y = np.sin(x)
 
         self.curve = PlotCurve(x, y)
         axes = ScaledPlotAxes(viewport)
@@ -88,12 +88,12 @@ class MainWindow(QtGui.QMainWindow):
 
     def updateData(self):
         self.curve.x += 0.05
-        self.curve.y = sin(self.curve.x)
+        self.curve.y = np.sin(self.curve.x)
         self.update()
 
 
 def main(*args):
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     mainWin = MainWindow()
     mainWin.resize(QtCore.QSize(500, 500))
     mainWin.show()

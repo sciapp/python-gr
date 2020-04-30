@@ -12,7 +12,7 @@ import numpy as np
 # local library
 import gr
 from gr.pygr import Plot, PlotAxes, PlotSurface, PlotContour, readfile
-from qtgr.backend import QtCore, QtGui
+from qtgr.backend import QtCore, QtWidgets
 from qtgr import InteractiveGRWidget
 
 __author__ = "Christian Felder <c.felder@fz-juelich.de>"
@@ -61,7 +61,7 @@ class ContourAxes(PlotAxes):
 
 
 def main(*args):
-    app = QtGui.QApplication(*args)
+    app = QtWidgets.QApplication(*args)
     grw = InteractiveGRWidget()
     viewport = [0.1, 0.88, 0.1, 0.88]
 
@@ -84,6 +84,7 @@ def main(*args):
     grw.update()
 
     sys.exit(app.exec_())
+
 
 if __name__ == '__main__':
     main(sys.argv)
