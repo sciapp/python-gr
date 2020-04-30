@@ -90,11 +90,11 @@ class GrWidget(QtWidgets.QWidget) :
         self.w = event.size().width()
         self.h = event.size().height()
         if self.w > self.h:
-          self.sizex = 1
-          self.sizey = float(self.h)/self.w
+            self.sizex = 1
+            self.sizey = float(self.h)/self.w
         else:
-          self.sizex = float(self.w)/self.h
-          self.sizey = 1
+            self.sizex = float(self.w)/self.h
+            self.sizey = 1
         self.draw()
 
     def paintEvent(self, ev) :
