@@ -28,7 +28,7 @@ Name:          python-gr
 %endif
 
 Summary:       GR, a universal framework for visualization applications
-Version:       1.12.1
+Version:       1.14.1
 Release:       2%{?dist}
 License:       MIT
 Group:         Development/Libraries
@@ -72,13 +72,10 @@ GR, a universal framework for visualization applications
 
 %build
 %{__python2} setup.py build
-%if %{with py3}
-%{__python3} setup.py build
-%endif
-
-%install
 %{__python2} setup.py install --root=$RPM_BUILD_ROOT
 %if %{with py3}
+%{__python3} setup.py clean
+%{__python3} setup.py build
 %{__python3} setup.py install --root=$RPM_BUILD_ROOT
 %endif
 
