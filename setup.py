@@ -79,6 +79,13 @@ except IOError as e:
           e, file=sys.stderr)
 
 
+def find_packages_py2_or_py3(*args, **kwargs):
+    kwds = dict(kwargs)
+    if sys.version_info[0] == 2:
+        kwds.setdefault('exclude', []).extend(['grm'])
+    return find_packages(*args, **kwds)
+
+
 class DownloadHashes(sdist):
     def run(self):
         """
@@ -235,7 +242,7 @@ setup(
     install_requires=[
         'numpy >= 1.6',
     ],
-    packages=find_packages(exclude=["tests", "tests.*"]),
+    packages=find_packages_py2_or_py3(exclude=["tests", "tests.*"]),
     include_package_data=True,
     long_description=_long_description,
     classifiers=[

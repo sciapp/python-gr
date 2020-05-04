@@ -105,6 +105,7 @@ Requires:      python3-numpy
 %files -n python3-gr
 %{_prefix}/lib*/python3*/site-packages/gr-*.egg-info
 %{_prefix}/lib*/python3*/site-packages/gr
+%{_prefix}/lib*/python3*/site-packages/grm
 %{_prefix}/lib*/python3*/site-packages/gr3
 %{_prefix}/lib*/python3*/site-packages/qtgr
 
