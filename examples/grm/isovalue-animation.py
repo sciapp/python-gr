@@ -2,8 +2,8 @@
 """
 [GRM] Rotation of isovalue plot with two spheres
 """
-import sys, time
-
+import sys
+import time
 import numpy as np
 import grm
 

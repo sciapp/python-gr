@@ -2,8 +2,9 @@
 """
 [GRM] Errorplot example with custom cap colors
 """
-import grm, sys
+import sys
 import numpy as np
+import grm
 
 x = np.linspace(0, 1, 10)
 y = np.sin(x)

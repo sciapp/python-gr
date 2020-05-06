@@ -10,18 +10,21 @@ import time
 import gr
 import gr3
 
-FS=44100       # Sampling frequency
-SAMPLES=1024
+FS = 44100  # Sampling frequency
+SAMPLES = 1024
 
 mic = None
+
+
 def get_spectrum():
     global mic
     if mic is None:
         pa = pyaudio.PyAudio()
         mic = pa.open(format=pyaudio.paInt16, channels=1, rate=FS,
                       input=True, frames_per_buffer=SAMPLES)
-    amplitudes = np.fromstring(mic.read(SAMPLES), dtype=np.short)
-    return abs(np.fft.fft(amplitudes / 32768.0))[:SAMPLES/2]
+    amplitudes = np.frombuffer(mic.read(SAMPLES), dtype=np.short)
+    return abs(np.fft.fft(amplitudes / 32768.0))[:SAMPLES // 2]
+
 
 spectrum = np.zeros((256, 256), dtype=float)
 t = -255

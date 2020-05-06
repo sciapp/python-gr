@@ -1,5 +1,12 @@
+#!/usr/bin/env python
+# -*- animation -*-
+"""
+Animation of rotating DNA
+"""
+
 import gr
 import gr3
+
 gr.setviewport(0, 1, 0, 1)
 for i in range(360):
     gr.clearws()

@@ -5,18 +5,16 @@ way to the levels keyword argument to contour/contourf.
 
 """
 
+import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import BoundaryNorm
 from matplotlib.ticker import MaxNLocator
-import numpy as np
-
 
 # make these smaller to increase the resolution
 dx, dy = 0.05, 0.05
 
 # generate 2 2d grids for the x & y bounds
-y, x = np.mgrid[slice(1, 5 + dy, dy),
-                slice(1, 5 + dx, dx)]
+y, x = np.mgrid[slice(1, 5 + dy, dy), slice(1, 5 + dx, dx)]
 
 z = np.sin(x) ** 10 + np.cos(10 + y * x) * np.cos(x)
 
@@ -24,7 +22,6 @@ z = np.sin(x) ** 10 + np.cos(10 + y * x) * np.cos(x)
 # Therefore, remove the last value from the z array.
 z = z[:-1, :-1]
 levels = MaxNLocator(nbins=15).tick_values(z.min(), z.max())
-
 
 # pick the desired colormap, sensible levels, and define a normalization
 # instance which takes data values and translates those into levels.
@@ -38,8 +35,6 @@ plt.colorbar()
 plt.axis([x.min(), x.max(), y.min(), y.max()])
 plt.title('pcolormesh with levels')
 
-
-
 plt.subplot(2, 1, 2)
 # contours are *point* based plots, so convert our bound into point
 # centers
@@ -48,6 +43,5 @@ plt.contourf(x[:-1, :-1] + dx / 2.,
              cmap=cmap)
 plt.colorbar()
 plt.title('contourf with levels')
-
 
 plt.show()

@@ -1,15 +1,17 @@
-from pylab import *
-A = rand(5,5)
-figure(1)
-imshow(A, interpolation='nearest')
-grid(True)
+import numpy as np
+import matplotlib.pyplot as plt
 
-figure(2)
-imshow(A, interpolation='bilinear')
-grid(True)
+A = np.random.rand(5,5)
+plt.figure(1)
+plt.imshow(A, interpolation='nearest')
+plt.grid(True)
 
-figure(3)
-imshow(A, interpolation='bicubic')
-grid(True)
+plt.figure(2)
+plt.imshow(A, interpolation='bilinear')
+plt.grid(True)
 
-show()
+plt.figure(3)
+plt.imshow(A, interpolation='bicubic')
+plt.grid(True)
+
+plt.show()
