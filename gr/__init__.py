@@ -311,6 +311,13 @@ def deactivatews(workstation_id):
     __gr.gr_deactivatews(c_int(workstation_id))
 
 
+def configurews():
+    """
+    Configure active workstations (reread displaysize).
+    """
+    __gr.gr_configurews()
+
+
 def clearws():
     if isinline() and clear_output:
         clear_output(wait=True)
@@ -3484,6 +3491,7 @@ __gr.gr_openws.argtypes = [c_int, c_char_p, c_int]
 __gr.gr_closews.argtypes = [c_int]
 __gr.gr_activatews.argtypes = [c_int]
 __gr.gr_deactivatews.argtypes = [c_int]
+__gr.gr_configurews.argtypes = []
 __gr.gr_clearws.argtypes = []
 __gr.gr_updatews.argtypes = []
 __gr.gr_polyline.argtypes = [c_int, POINTER(c_double), POINTER(c_double)]
