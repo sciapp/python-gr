@@ -3434,7 +3434,8 @@ def setspace3d(phi, theta, fov, camera_distance):
     to gr_setspace. This function can be used if the user prefers spherical
     coordinates to setting the camera position directly, but has reduced
     functionality in comparison to gr.settransformationparameters,
-    gr.setperspectiveprojection and gr.setorthographicprojection.
+    gr.setscalefactors3d, gr.setperspectiveprojection and
+    gr.setorthographicprojection.
 
     **Parameters:**
 
@@ -3447,7 +3448,7 @@ def setspace3d(phi, theta, fov, camera_distance):
         (0 or NaN for orthographic projection)
     `camera distance` :
         distance between the camera and the focus point
-        (0 or NaN for the radius of the object's smallest bounding sphere)
+        (in arbitrary units, 0 or NaN for the radius of the object's smallest bounding sphere)
     """
     __gr.gr_setspace3d(c_double(phi), c_double(theta), c_double(fov), c_double(camera_distance))
 
