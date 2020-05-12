@@ -2355,13 +2355,19 @@ def _minmax(kind=None):
     x_step = y_step = float('-infinity')
 
     for x, y, z, c, spec in _plt.args:
-        if x is None and kind in ('heatmap', 'polar_heatmap'):
+        if x is None and kind in ('heatmap',):
+            x_min = -0.5
+            x_max = z.shape[1] - 0.5
+        elif x is None and kind in ('polar_heatmap',):
             x_min = 0
             x_max = z.shape[0]
         else:
             x_min = min(np.nanmin(x), x_min)
             x_max = max(np.nanmax(x), x_max)
-        if y is None and kind in ('heatmap', 'polar_heatmap'):
+        if y is None and kind in ('heatmap',):
+            y_min = -0.5
+            y_max = z.shape[0] - 0.5
+        elif y is None and kind in ('polar_heatmap',):
             y_min = 0
             y_max = z.shape[1]
         else:
@@ -2453,7 +2459,7 @@ def _set_window(kind):
 
     x_min, x_max = _plt.kwargs['xrange']
     if not scale & gr.OPTION_X_LOG:
-        if _plt.kwargs.get('adjust_xlim', True):
+        if _plt.kwargs.get('adjust_xlim', True) and kind not in ('heatmap',):
             x_min, x_max = gr.adjustlimits(x_min, x_max)
         if kind in ('bar'):
             x_tick = 1
@@ -2479,7 +2485,7 @@ def _set_window(kind):
         else:
             y_min = 0
     if not scale & gr.OPTION_Y_LOG:
-        if _plt.kwargs.get('adjust_ylim', True):
+        if _plt.kwargs.get('adjust_ylim', True) and kind not in ('heatmap',):
             y_min, y_max = gr.adjustlimits(y_min, y_max)
         y_major_count = major_count
         y_tick = gr.tick(y_min, y_max) / y_major_count
