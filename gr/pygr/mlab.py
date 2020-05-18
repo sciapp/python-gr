@@ -10,6 +10,7 @@ from __future__ import unicode_literals
 
 
 import functools
+import sys
 import warnings
 import numpy as np
 import gr
@@ -1456,6 +1457,46 @@ def imshow(image, **kwargs):
 
 
 @_close_gks_on_error
+def size(*size):
+    """
+    Set the size of the output window.
+
+    The size can be passed in several formats, allowing both pixel sizes and
+    metric sizes, as well as mixes of those. If nothing is passed to this
+    function, the default of 600 by 450 pixels is restored.
+
+    :param size: aseries of values or a tuple containing:
+        - two numbers (width and height as pixels), or
+        - two strings (width and height as another unit), or
+        - two numbers and a string (width, height and their unit), or
+        - a number, a string, another number and another string (width and
+            height, along with their units)
+
+    **Usage examples:**
+
+    >>> # Set the size to 640 by 480 pixels
+    >>> mlab.size(600, 450)
+    >>> # Set the size to 640 by 480 pixels using a tuple
+    >>> mlab.size((600, 450))
+    >>> # Reset size to its default of 600 by 450 pixels
+    >>> mlab.size()
+    >>> # Set the size to 6 centimeters by 200 pixels
+    >>> mlab.size("6cm", 200)
+    >>> # Set the size to 120 millimeters by 9 centimeters
+    >>> mlab.size("120mm", "9cm")
+    >>> # Set the size to 4 by 3 inches
+    >>> mlab.size(4, 3, "in")
+    >>> # Set the size to 0.5 feet by 0.1 meters
+    >>> mlab.size(0.5, "ft", 0.1, "m")
+    """
+    if len(size) == 1 and hasattr(size[0], '__getitem__'):
+        size = size[0]
+    if len(size) == 0:
+        size = (600, 450)
+    _plot_data(size=size)
+
+
+@_close_gks_on_error
 def title(title=""):
     """
     Set the plot title.
@@ -2258,6 +2299,67 @@ def _set_colormap():
     gr.setcolormapfromrgb(colors, positions)
 
 
+def _interpret_size(size, dpi, default_size=(600, 450)):
+    units = {
+        'px': (1, 0),
+        'in': (0, 1),
+        '"': (0, 1),
+        'ft': (0, 12),
+        '\'': (0, 12),
+        'mm': (0, 0.1 / 2.54),
+        'cm': (0, 1 / 2.54),
+        'dm': (0, 10 / 2.54),
+        'm': (0, 100 / 2.54)
+    }
+
+    def pixels_per_unit(unit, dpi):
+        return units[unit][0] + units[unit][1] * dpi
+
+    def interpret_length(length, dpi, default_length):
+        if length is None:
+            return default_length
+        if is_floatish(length):
+            return float(length)
+        if hasattr(length, 'endswith'):
+            for unit in units:
+                if length.endswith(unit) and is_floatish(length[:-len(unit)]):
+                    length_value = float(length[:-len(unit)])
+                    return length_value * pixels_per_unit(unit, dpi)
+        print("Unable to interpret length '{}', falling back to default value: {} pixels".format(length, default_length), file=sys.stderr)
+        return default_length
+
+    def is_floatish(number):
+        try:
+            float(number)
+            return True
+        except ValueError:
+            return False
+        except TypeError:
+            return False
+
+    if len(size) == 2:
+        width = interpret_length(size[0], dpi, default_size[0])
+        height = interpret_length(size[1], dpi, default_size[1])
+        return width, height
+    if len(size) == 3 and is_floatish(size[0]) and is_floatish(size[1]) and size[2] in units:
+        width_value = float(size[0])
+        height_value = float(size[1])
+        unit = size[2]
+        width = width_value * pixels_per_unit(unit, dpi)
+        height = height_value * pixels_per_unit(unit, dpi)
+        return width, height
+    if len(size) == 4 and is_floatish(size[0]) and size[1] in units and is_floatish(size[2]) and size[3] in units:
+        width_value = float(size[0])
+        unit = size[1]
+        width = width_value * pixels_per_unit(unit, dpi)
+        height_value = float(size[2])
+        unit = size[3]
+        height = height_value * pixels_per_unit(unit, dpi)
+        return width, height
+    print("Unable to interpret size '{}', falling back to default size: {} x {} pixels".format(repr(size), default_size[0], default_size[1]), file=sys.stderr)
+    return default_size
+
+
 def _set_viewport(kind, subplot):
     global _plt
     metric_width, metric_height, pixel_width, pixel_height = gr.inqdspsize()
@@ -2268,10 +2370,7 @@ def _set_viewport(kind, subplot):
         height = _plt.kwargs['figsize'][1] * vertical_pixels_per_inch
     else:
         dpi = pixel_width / metric_width * 0.0254
-        if dpi > 200:
-            width, height = tuple(x * dpi / 100 for x in _plt.kwargs['size'])
-        else:
-            width, height = _plt.kwargs['size']
+        width, height = _interpret_size(_plt.kwargs['size'], dpi)
 
     viewport = [0, 0, 0, 0]
     vp = subplot[:]
