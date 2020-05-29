@@ -4,6 +4,8 @@
 Calculate Mandelbrot set using NumbaPro (vectorized version)
 """
 
+from builtins import range
+
 from numba import vectorize
 from timeit import default_timer as timer
 
@@ -11,6 +13,7 @@ import numpy as np
 import gr
 
 sig = 'i8(uint32, f8, f8, f8, f8, uint32, uint32, uint32)'
+
 
 @vectorize([sig], target='parallel')
 def mandel(tid, min_x, max_x, min_y, max_y, width, height, iters):
@@ -28,7 +31,7 @@ def mandel(tid, min_x, max_x, min_y, max_y, width, height, iters):
     ci = 0
     inc = 1
 
-    for i in xrange(iters):
+    for i in range(iters):
         z = z * z + c
         if (z.real * z.real + z.imag * z.imag) >= 4:
             return ci
@@ -44,6 +47,7 @@ def create_fractal(min_x, max_x, min_y, max_y, width, height, iters):
     return mandel(tids, np.float64(min_x), np.float64(max_x), np.float64(min_y),
                   np.float64(max_y), np.uint32(height), np.uint32(width),
                   np.uint32(iters))
+
 
 x = -0.9223327810370947027656057193752719757635
 y = 0.3102598350874576432708737495917724836010

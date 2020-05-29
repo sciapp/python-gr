@@ -22,8 +22,10 @@ The following is printed:
     Press any key to continue...
     <ENTER>
 """
-import math, sys, grm
+import math
+import sys
 import numpy as np
+import grm
 
 
 def new_plot_callback(event):

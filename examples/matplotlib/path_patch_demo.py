@@ -5,7 +5,6 @@ import matplotlib.path as mpath
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 
-
 fig, ax = plt.subplots()
 
 Path = mpath.Path
@@ -19,7 +18,7 @@ path_data = [
     (Path.CURVE4, (3, 0.05)),
     (Path.CURVE4, (2.0, -0.5)),
     (Path.CLOSEPOLY, (1.58, -2.57)),
-    ]
+]
 codes, verts = zip(*path_data)
 path = mpath.Path(verts, codes)
 patch = mpatches.PathPatch(path, facecolor='r', alpha=0.5)

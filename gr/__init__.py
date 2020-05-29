@@ -311,6 +311,13 @@ def deactivatews(workstation_id):
     __gr.gr_deactivatews(c_int(workstation_id))
 
 
+def configurews():
+    """
+    Configure active workstations (reread displaysize).
+    """
+    __gr.gr_configurews()
+
+
 def clearws():
     if isinline() and clear_output:
         clear_output(wait=True)
@@ -1269,6 +1276,7 @@ def setviewport(xmin, xmax, ymin, ymax):
     workstation, in device coordinates.
 
     """
+    assert not np.isnan(xmin)
     __gr.gr_setviewport(c_double(xmin), c_double(xmax), c_double(ymin), c_double(ymax))
 
 
@@ -3426,7 +3434,8 @@ def setspace3d(phi, theta, fov, camera_distance):
     to gr_setspace. This function can be used if the user prefers spherical
     coordinates to setting the camera position directly, but has reduced
     functionality in comparison to gr.settransformationparameters,
-    gr.setperspectiveprojection and gr.setorthographicprojection.
+    gr.setscalefactors3d, gr.setperspectiveprojection and
+    gr.setorthographicprojection.
 
     **Parameters:**
 
@@ -3439,7 +3448,7 @@ def setspace3d(phi, theta, fov, camera_distance):
         (0 or NaN for orthographic projection)
     `camera distance` :
         distance between the camera and the focus point
-        (0 or NaN for the radius of the object's smallest bounding sphere)
+        (in arbitrary units, 0 or NaN for the radius of the object's smallest bounding sphere)
     """
     __gr.gr_setspace3d(c_double(phi), c_double(theta), c_double(fov), c_double(camera_distance))
 
@@ -3484,6 +3493,7 @@ __gr.gr_openws.argtypes = [c_int, c_char_p, c_int]
 __gr.gr_closews.argtypes = [c_int]
 __gr.gr_activatews.argtypes = [c_int]
 __gr.gr_deactivatews.argtypes = [c_int]
+__gr.gr_configurews.argtypes = []
 __gr.gr_clearws.argtypes = []
 __gr.gr_updatews.argtypes = []
 __gr.gr_polyline.argtypes = [c_int, POINTER(c_double), POINTER(c_double)]

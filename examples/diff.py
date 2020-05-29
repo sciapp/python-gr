@@ -6,7 +6,7 @@ Solving The 2D Diffusion Equation
 
 import numpy
 import gr
-from numba.decorators import jit
+from numba.core.decorators import jit
 
 try:
     from time import perf_counter
@@ -26,15 +26,15 @@ u = numpy.zeros([nx,ny])
 
 for i in range(nx):
     for j in range(ny):
-        if (((i*dx-0.5)**2+(j*dy-0.5)**2 <= 0.1) &
-            ((i*dx-0.5)**2+(j*dy-0.5)**2 >= 0.05) ):
+        if ((i*dx-0.5)**2+(j*dy-0.5)**2 <= 0.1) and ((i*dx-0.5)**2+(j*dy-0.5)**2 >= 0.05):
             ui[i,j] = 1
 
+
 def diff_step(u, ui):
-    for i in range(1,nx-1):
-        for j in range(1,ny-1):
-            uxx = ( ui[i+1,j] - 2*ui[i,j] + ui[i-1, j] )/(dx*dx)
-            uyy = ( ui[i,j+1] - 2*ui[i,j] + ui[i, j-1] )/(dy*dy)
+    for i in range(1, nx-1):
+        for j in range(1, ny-1):
+            uxx = (ui[i+1,j] - 2*ui[i,j] + ui[i-1, j]) / (dx*dx)
+            uyy = (ui[i,j+1] - 2*ui[i,j] + ui[i, j-1]) / (dy*dy)
             u[i,j] = ui[i,j]+dt*a*(uxx+uyy)
 
 diff_step_numba = jit('void(f8[:,:], f8[:,:])')(diff_step)

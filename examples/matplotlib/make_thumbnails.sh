@@ -1,5 +1,5 @@
 #!/bin/sh
-export MPLBACKEND=gr
+export MPLBACKEND=module://gr.matplotlib.backend_gr
 for f in  *.py
 do
   gr -o pdf $f

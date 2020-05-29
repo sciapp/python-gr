@@ -738,17 +738,10 @@ def triangulate(grid, step, offset, isolevel, slices = None):
                                          step_x, step_y, step_z,
                                          offset_x, offset_y, offset_z,
                                          byref(triangles_p))
-    if _impl != 'PyPy':
-        buffer_from_memory = pythonapi.PyBuffer_FromMemory
-    else:
-        buffer_from_memory = PyBuffer_FromMemory
-    buffer_from_memory.restype = py_object
-    buffer = buffer_from_memory(triangles_p, 4*3*3*2*num_triangles)
-    triangles = numpy.frombuffer(buffer, numpy.float32).copy()
+    triangles = numpy.ctypeslib.as_array(triangles_p, (num_triangles, 2, 3, 3))
+    vertices = numpy.array(triangles[:, 0, :, :], copy=True)
+    normals = numpy.array(triangles[:, 1, :, :], copy=True)
     _gr3.gr3_free(triangles_p)
-    triangles.shape = (num_triangles, 2, 3, 3)
-    vertices = triangles[:, 0, :, :]
-    normals = triangles[:, 1, :, :]
     return vertices, normals
 
 def createisosurfacemesh(grid, step=None, offset=None, isolevel=None):

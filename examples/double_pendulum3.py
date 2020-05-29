@@ -4,7 +4,7 @@
 3D animation of a double pendulum
 """
 
-from numpy import sin, cos, pi, array
+import numpy as np
 import time
 import gr
 import gr3
@@ -16,6 +16,7 @@ except ImportError:
 
 g = 9.8        # gravitational constant
 
+
 def rk4(x, h, y, f):
     k1 = h * f(x, y)
     k2 = h * f(x + 0.5 * h, y + 0.5 * k1)
@@ -23,17 +24,18 @@ def rk4(x, h, y, f):
     k4 = h * f(x + h, y + k3)
     return x + h, y + (k1 + 2 * (k2 + k3) + k4) / 6.0
 
+
 def pendulum_derivs(t, state):
     # The following derivation is from:
     # http://scienceworld.wolfram.com/physics/DoublePendulum.html
     t1, w1, t2, w2 = state
     a = (m1 + m2) * l1
-    b = m2 * l2 * cos(t1 - t2)
-    c = m2 * l1 * cos(t1 - t2)
+    b = m2 * l2 * np.cos(t1 - t2)
+    c = m2 * l1 * np.cos(t1 - t2)
     d = m2 * l2
-    e = -m2 * l2 * w2**2 * sin(t1 - t2) - g * (m1 + m2) * sin(t1)
-    f =  m2 * l1 * w1**2 * sin(t1 - t2) - m2 * g * sin(t2)
-    return array([w1, (e*d-b*f) / (a*d-c*b), w2, (a*f-c*e) / (a*d-c*b)])
+    e = -m2 * l2 * w2**2 * np.sin(t1 - t2) - g * (m1 + m2) * np.sin(t1)
+    f =  m2 * l1 * w1**2 * np.sin(t1 - t2) - m2 * g * np.sin(t2)
+    return np.array([w1, (e*d-b*f) / (a*d-c*b), w2, (a*f-c*e) / (a*d-c*b)])
 
 def double_pendulum(theta, length, mass):
     gr.clearws()
@@ -42,8 +44,8 @@ def double_pendulum(theta, length, mass):
     direction = []
     position = [(0, 0, 0)]
     for i in range(2):
-        direction.append((sin(theta[i]) * length[i] * 2,
-                          -cos(theta[i]) * length[i] * 2, 0))
+        direction.append((np.sin(theta[i]) * length[i] * 2,
+                          -np.cos(theta[i]) * length[i] * 2, 0))
         position.append([position[-1][j] + direction[-1][j] for j in range(3)])
     
     gr3.clear()
@@ -62,6 +64,7 @@ def double_pendulum(theta, length, mass):
     gr.updatews()
     return
 
+
 l1 = 1.2       # length of rods
 l2 = 1.0
 m1 = 1.0       # weights of bobs
@@ -73,7 +76,7 @@ w1 = 0.0
 w2 = 0.0
 t = 0
 dt = 0.04
-state = array([t1, w1, t2, w2]) * pi / 180
+state = np.radians([t1, w1, t2, w2])
 
 gr3.init()
 gr3.setcameraprojectionparameters(45, 1, 100)
@@ -93,4 +96,3 @@ while t < 30:
     now = perf_counter()
     if start + dt > now:
         time.sleep(start + dt - now)
-

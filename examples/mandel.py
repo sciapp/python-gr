@@ -6,8 +6,9 @@ Calculate Mandelbrot set
 
 from timeit import default_timer as timer
 
-from numpy import zeros, uint8
+import numpy as np
 import gr
+
 
 def mandel(x, y, iters):
     c = complex(x, y)
@@ -25,6 +26,7 @@ def mandel(x, y, iters):
 
     return 255
 
+
 def create_fractal(min_x, max_x, min_y, max_y, image, iters):
     height = image.shape[0]
     width = image.shape[1]
@@ -40,13 +42,14 @@ def create_fractal(min_x, max_x, min_y, max_y, image, iters):
 
     return image
 
+
 x = -0.9223327810370947027656057193752719757635
 y = 0.3102598350874576432708737495917724836010
 
 f = 0.5
 for i in range(200):
     start = timer()
-    image = zeros((500, 500), dtype=uint8)
+    image = np.zeros((500, 500), dtype=np.uint8)
     pixels = create_fractal(x-f, x+f, y-f, y+f, image, 400)
     dt = timer() - start
 

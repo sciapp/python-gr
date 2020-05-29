@@ -2,8 +2,10 @@
 """
 [GRM] Updating line plots
 """
+import math
+import sys
 import numpy as np
-import math, sys, grm
+import grm
 
 n = 1000
 x_vals = np.linspace(0, 2 * math.pi, n)

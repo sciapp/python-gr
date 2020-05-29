@@ -75,6 +75,7 @@ def calc_fractal(q, min_x, max_x, min_y, max_y, width, height, iters):
 
     return output
 
+
 def create_fractal(min_x, max_x, min_y, max_y, width, height, iters):
     q = np.zeros(width * height).astype(np.complex128)
 

@@ -3,7 +3,6 @@
 [GRM] Simple isosurface plot
 """
 import sys
-
 import numpy as np
 import grm
 

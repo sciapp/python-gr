@@ -1,5 +1,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
+import os
+import warnings
 
 from matplotlib import __version__
 from matplotlib.cbook import maxdict
@@ -11,14 +13,13 @@ from matplotlib.figure import Figure
 from matplotlib.mathtext import MathTextParser
 from matplotlib.texmanager import TexManager
 
-from os import putenv
 import numpy as np
 import gr
 
 
 linetype = {'solid': 1, 'dashed': 2, 'dashdot': 4, 'dotted': 3}
 
-putenv('GKS_DOUBLE_BUF', '1')
+os.environ['GKS_DOUBLE_BUF'] = '1'
 
 
 class RendererGR(RendererBase):
@@ -64,7 +65,7 @@ class RendererGR(RendererBase):
         points = path.vertices
         codes = path.codes
         bbox = gc.get_clip_rectangle()
-        if bbox is not None:
+        if bbox is not None and not np.any(np.isnan(bbox.bounds)):
             x, y, w, h = bbox.bounds
             clrt = np.array([x, x + w, y, y + h])
         else:
@@ -91,9 +92,22 @@ class RendererGR(RendererBase):
             gr.drawpath(points, codes, fill=False)
 
     def draw_image(self, gc, x, y, im):
-        h, w, s = im.as_rgba_str()
-        img = np.fromstring(s, np.uint32)
-        img.shape = (h, w)
+        if hasattr(im, 'as_rgba_str'):
+            h, w, s = im.as_rgba_str()
+            img = np.fromstring(s, np.uint32)
+            img.shape = (h, w)
+        elif len(im.shape) == 3 and im.shape[2] == 4 and im.dtype == np.uint8:
+            img = im.view(np.uint32)
+            img.shape = im.shape[:2]
+            h, w = img.shape
+        else:
+            type_info = repr(type(im))
+            if hasattr(im, 'shape'):
+                type_info += ' shape=' + repr(im.shape)
+            if hasattr(im, 'dtype'):
+                type_info += ' dtype=' + repr(im.dtype)
+            warnings.warn('Unsupported image type ({}). Please report this at https://github.com/sciapp/python-gr/issues'.format(type_info))
+            return
         gr.drawimage(x, x + w, y + h, y, w, h, img)
 
     def draw_mathtext(self, x, y, angle, Z):
@@ -127,7 +141,7 @@ class RendererGR(RendererBase):
     def _draw_mathtext(self, gc, x, y, s, prop, angle):
         ox, oy, width, height, descent, image, used_characters = \
             self.mathtext_parser.parse(s, self.dpi, prop)
-        self.draw_mathtext(x, y, angle, 255 - image.as_array())
+        self.draw_mathtext(x, y, angle, 255 - np.asarray(image))
 
     def draw_text(self, gc, x, y, s, prop, angle, ismath=False, mtext=None):
         if ismath:

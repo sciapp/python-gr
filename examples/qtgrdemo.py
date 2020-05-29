@@ -255,11 +255,11 @@ class MainWindow(QtWidgets.QMainWindow):
             self._chkLogY.setChecked(bool)
 
 if __name__ == '__main__':
-#    logging.basicConfig(level=logging.CRITICAL)
-#    for name in [__name__, qtgr.__name__, qtgr.events.__name__,
-#                 qtgr.events.base.__name__,
-#                 gr.pygr.base.__name__, gr.pygr.__name__]:
-#        logging.getLogger(name).setLevel(logging.DEBUG)
+    # logging.basicConfig(level=logging.CRITICAL)
+    # for name in [__name__, qtgr.__name__, qtgr.events.__name__,
+    #              qtgr.events.base.__name__,
+    #              gr.pygr.base.__name__, gr.pygr.__name__]:
+    #     logging.getLogger(name).setLevel(logging.DEBUG)
     app = QtWidgets.QApplication(sys.argv)
     mainWin = MainWindow()
     mainWin.show()

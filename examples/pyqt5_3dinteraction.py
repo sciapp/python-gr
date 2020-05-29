@@ -40,23 +40,8 @@ class Gr3DInteractionWidget(QtWidgets.QWidget):
             focus_point_x=50, focus_point_y=50, focus_point_z=0
         )
 
-        try:
-            self.devicePixelRatioF()
-        except AttributeError:
-            try:
-                self.devicePixelRatio()
-            except AttributeError:
-                self.devicePixelRatio = lambda: 1
-            self.devicePixelRatioF = lambda: float(self.devicePixelRatio())
-
-        self._currentDevicePixelRatio = self.devicePixelRatioF()
-
     def draw(self):
         gr.clearws()
-        self._currentDevicePixelRatio = self.devicePixelRatioF()
-        mwidth = self._width * 2.54 / self.physicalDpiX() / 100 / self._currentDevicePixelRatio
-        mheight = self._height * 2.54 / self.physicalDpiY() / 100 / self._currentDevicePixelRatio
-        gr.setwsviewport(0, mwidth, 0, mheight)
         gr.setwswindow(0, self._sizex, 0, self._sizey)
         gr.setviewport(0, self._sizex, 0, self._sizey)
         if self._projection == 'perspective':
@@ -92,9 +77,9 @@ class Gr3DInteractionWidget(QtWidgets.QWidget):
         gr.updatews()
         self.painter.end()
 
-    def moveEvent(self, event):
-        if self.devicePixelRatioF() != self._currentDevicePixelRatio:
-            self.draw()
+    def screenChangedEvent(self, event):
+        gr.configurews()
+        self.update()
 
     def mousePressEvent(self, event):
         x, y = float(event.x()) / self.width(), float(event.y()) / self.height()

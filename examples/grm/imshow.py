@@ -2,9 +2,9 @@
 """
 [GRM] Using the imshow plot
 """
+import sys
 import numpy as np
 import grm
-import sys
 
 x = np.linspace(-2, 2, 40)
 y = np.linspace(0, np.pi, 20)

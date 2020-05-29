@@ -9,6 +9,7 @@ import numpy as np
 import gr
 import gr3
 
+
 def draw(mesh, x=None, y=None, z=None):
     gr3.clear()
     gr3.drawmesh(mesh, 1, (0,0,0), (0,0,1), (0,1,0), (1,1,1), (1,1,1))
@@ -16,6 +17,7 @@ def draw(mesh, x=None, y=None, z=None):
     gr.clearws()
     gr3.drawimage(0, 1, 0, 1, 500, 500, gr3.GR3_Drawable.GR3_DRAWABLE_GKS)
     gr.updatews()
+
 
 data = np.fromfile("mri.raw", np.uint16)
 data = data.reshape((64, 64, 93))

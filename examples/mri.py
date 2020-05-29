@@ -7,9 +7,8 @@ Simple MRI visualization example
     - use the mousewheel to change the threshold value for densities
 """
 
-from os import environ
-from sys import argv, exit
-from glob import glob
+import os
+import sys
 
 have_pyside = True
 try:
@@ -20,47 +19,55 @@ except ImportError:
     except ImportError:
         have_pyside = False
 if have_pyside:
-    from PySide import QtCore, QtGui
+    from PySide import QtCore
+    from PySide.QtGui import QWidget, QApplication, QPainter
 else:
     try:
-        from PyQt4 import QtCore, QtGui
+        from PyQt4 import QtCore
+        from PyQt4.QtGui import QWidget, QApplication, QPainter
         from sip import unwrapinstance
     except ImportError:
-        print('Unable to load Qt binding')
-        exit(-1)
+        try:
+            from PyQt5 import QtCore
+            from PyQt5.QtGui import QPainter
+            from PyQt5.QtWidgets import QWidget, QApplication
+            from sip import unwrapinstance
+        except ImportError:
+            print('Unable to load Qt binding')
+            exit(-1)
 
-from numpy import fromfile, uint16, ones
-from math import sin, cos, pi
-from gr import clearws, setviewport, setwindow, updatews
-from gr3 import setbackgroundcolor, triangulate, createmesh, cameralookat, \
-                drawmesh, drawimage, clear, deletemesh, GR3_Drawable, export
+
+import numpy as np
+import gr
+import gr3
 from ctypes import c_int
 
 
-data = fromfile("mri.raw", uint16)
+data = np.fromfile("mri.raw", np.uint16)
 data = data.reshape((64, 64, 93))
 
+
 def spherical_to_cartesian(r, theta, phi):
-    x = r * sin(theta) * cos(phi)
-    y = r * sin(theta) * sin(phi)
-    z = r * cos(theta)
-    return (x, y, z)
+    x = r * np.sin(theta) * np.cos(phi)
+    y = r * np.sin(theta) * np.sin(phi)
+    z = r * np.cos(theta)
+    return x, y, z
 
 
-class GrWidget(QtGui.QWidget):
+class GrWidget(QWidget):
     def __init__(self):
-        QtGui.QWidget.__init__(self)
+        super(GrWidget, self).__init__()
 
         self.setup_ui(self)
 
-        environ["GKS_WSTYPE"] = "381"
-        environ["GKS_DOUBLE_BUF"] = "True"
+        os.environ["GKS_WSTYPE"] = "381"
+        os.environ["GKS_DOUBLE_BUF"] = "True"
 
         self.w = 500
         self.h = 500
         self.beginx = self.x = 0
         self.beginy = self.y = 0
-        self.painter = QtGui.QPainter()
+        self.painter = QPainter()
         self.isolevel = (data.min() + data.max()) // 2
         self.export = False
         self.needs_refresh = True
@@ -74,28 +81,24 @@ class GrWidget(QtGui.QWidget):
         if not self.needs_refresh:
             return
         self.needs_refresh = False
-        w, h = (self.w, self.h)
-        clearws()
-        setwindow(0, self.w, 0, self.h)
-        setviewport(0, 1, 0, 1)
+        gr.clearws()
+        gr.setwindow(0, self.w, 0, self.h)
+        gr.setviewport(0, 1, 0, 1)
 
-        setbackgroundcolor(1, 1, 1, 0)
-        vertices, normals = triangulate(data, \
-          (1.0/64, 1.0/64, 1.0/128), (-0.5, -0.5, -0.5), self.isolevel)
-        mesh = createmesh(len(vertices)*3, vertices, normals, \
-          ones(vertices.shape))
-        drawmesh(mesh, 1, (0,0,0), (0,0,1), (0,1,0), (1,1,1), (1,1,1))
-        center = spherical_to_cartesian(-2, pi*self.y/self.h+pi/2, pi*self.x/self.w)
-        up = spherical_to_cartesian(1, pi*self.y/self.h+pi, pi*self.x/self.w)
-        cameralookat(center[0], center[1], -0.25+center[2], 0, 0, -0.25, up[0], up[1], up[2])
-        drawimage(0, self.w, 0, self.h, \
-          self.w, self.h, GR3_Drawable.GR3_DRAWABLE_GKS)
+        gr3.setbackgroundcolor(1, 1, 1, 0)
+        vertices, normals = gr3.triangulate(data, (1.0/64, 1.0/64, 1.0/128), (-0.5, -0.5, -0.5), self.isolevel)
+        mesh = gr3.createmesh(len(vertices)*3, vertices, normals, np.ones(vertices.shape))
+        gr3.drawmesh(mesh, 1, (0,0,0), (0,0,1), (0,1,0), (1,1,1), (1,1,1))
+        center = spherical_to_cartesian(-2, np.pi*self.y / self.h+np.pi/2, np.pi*self.x / self.w)
+        up = spherical_to_cartesian(1, np.pi*self.y / self.h+np.pi, np.pi*self.x / self.w)
+        gr3.cameralookat(center[0], center[1], -0.25+center[2], 0, 0, -0.25, up[0], up[1], up[2])
+        gr3.drawimage(0, self.w, 0, self.h, self.w, self.h, gr3.GR3_Drawable.GR3_DRAWABLE_GKS)
         if self.export:
-            export("mri.html", 800, 800)
+            gr3.export("mri.html", 800, 800)
             print("Saved current isosurface to mri.html")
             self.export = False
-        clear()
-        deletemesh(c_int(mesh.value))
+        gr3.clear()
+        gr3.deletemesh(c_int(mesh.value))
 
     def mouseMoveEvent(self, event):
         self.x += event.pos().x() - self.beginx
@@ -108,7 +111,7 @@ class GrWidget(QtGui.QWidget):
     def mousePressEvent(self, event):
         self.beginx = event.pos().x()
         self.beginy = event.pos().y()
-        
+
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Escape:
             self.close()
@@ -118,7 +121,11 @@ class GrWidget(QtGui.QWidget):
         self.update()
 
     def wheelEvent(self, ev):
-        if ev.delta() > 0:
+        if hasattr(ev, 'delta'):
+            delta = ev.delta()
+        else:
+            delta = ev.angleDelta().y()
+        if delta > 0:
             if self.isolevel * 1.01 < data.max():
                 self.isolevel *= 1.01
         else:
@@ -135,18 +142,18 @@ class GrWidget(QtGui.QWidget):
     def paintEvent(self, ev):
         self.painter.begin(self)
         if have_pyside:
-            environ['GKSconid'] = "%x!%x" % (
+            os.environ['GKSconid'] = "%x!%x" % (
                 int(shiboken.getCppPointer(self)[0]),
                 int(shiboken.getCppPointer(self.painter)[0]))
         else:
-            environ["GKSconid"] = "%x!%x" % (unwrapinstance(self),
+            os.environ["GKSconid"] = "%x!%x" % (unwrapinstance(self),
                                              unwrapinstance(self.painter))
         self.draw_image()
-        updatews()
+        gr.updatews()
         self.painter.end()
 
 
-app = QtGui.QApplication(argv)
+app = QApplication(sys.argv)
 win = GrWidget()
 win.show()
 

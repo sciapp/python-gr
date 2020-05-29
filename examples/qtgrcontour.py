@@ -9,7 +9,7 @@ Plot contour lines using QtGR.
 import sys
 # local library
 from gr.pygr import Plot, PlotAxes, PlotContour
-from qtgr.backend import QtCore, QtGui
+from qtgr.backend import QtCore, QtWidgets
 from qtgr import InteractiveGRWidget
 
 __author__ = "Christian Felder <c.felder@fz-juelich.de>"
@@ -58,7 +58,7 @@ class ContourAxes(PlotAxes):
 
 
 def main(*args):
-    app = QtGui.QApplication(*args)
+    app = QtWidgets.QApplication(*args)
     grw = InteractiveGRWidget()
     viewport = [0.1, 0.88, 0.1, 0.88]
 
