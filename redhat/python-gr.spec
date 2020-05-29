@@ -93,6 +93,7 @@ GR, a universal framework for visualization applications
 
 %package -n python3-gr
 Summary:       GR, a universal framework for visualization applications (Python 3 bindings)
+Requires:      gr
 Requires:      python3
 Requires:      python3-numpy
 
