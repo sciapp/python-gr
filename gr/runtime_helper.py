@@ -10,7 +10,7 @@ import sys
 
 def required_runtime_version():
     # TODO: load runtime version from file
-    return '0.49.0'
+    return '0.50.0'
 
 
 def version_string_to_tuple(version_string):
