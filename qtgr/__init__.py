@@ -15,8 +15,8 @@ from gr.pygr import Plot, PlotAxes, RegionOfInterest, DeviceCoordConverter
 from qtgr.backend import QtCore, QtGui
 from qtgr.backend import QApplication, QWidget, QPainter, QPrinter, \
     QPrintDialog, getGKSConnectionId
-from qtgr.events import GUIConnector, MouseEvent, PickEvent, ROIEvent, \
-    LegendEvent, MouseGestureEvent, WheelEvent
+from qtgr.events import MouseEvent, PickEvent, ROIEvent, \
+    LegendEvent, MouseGestureEvent, WheelEvent, installEventFilter
 from qtgr.events.gestures import PanGestureRecognizer, SelectGestureRecognizer
 from gr import __version__, __revision__
 
@@ -214,14 +214,15 @@ class InteractiveGRWidget(GRWidget):
             # correctly, e.g. PyQt4 4.9.1 shipped with Ubuntu 12.04.
             self._recognizers.append(instance)
 
-        guiConn = GUIConnector(self)
-        guiConn.connect(MouseEvent.MOUSE_MOVE, self.mouseMove)
-        guiConn.connect(MouseEvent.MOUSE_PRESS, self.mousePress)
-        guiConn.connect(MouseEvent.MOUSE_RELEASE, self.mouseRelease)
-        guiConn.connect(WheelEvent.WHEEL_MOVE, self.wheelMove)
-        guiConn.connect(PickEvent.PICK_MOVE, self.pickMove)
-        guiConn.connect(MouseGestureEvent.MOUSE_PAN, self._mousePan)
-        guiConn.connect(MouseGestureEvent.MOUSE_SELECT, self._mouseSelect)
+        self._eventFilter = installEventFilter(self)
+        self._eventFilterEnabled = True
+        self.cbm.addHandler(MouseEvent.MOUSE_MOVE, self.mouseMove)
+        self.cbm.addHandler(MouseEvent.MOUSE_PRESS, self.mousePress)
+        self.cbm.addHandler(MouseEvent.MOUSE_RELEASE, self.mouseRelease)
+        self.cbm.addHandler(WheelEvent.WHEEL_MOVE, self.wheelMove)
+        self.cbm.addHandler(PickEvent.PICK_MOVE, self.pickMove)
+        self.cbm.addHandler(MouseGestureEvent.MOUSE_PAN, self._mousePan)
+        self.cbm.addHandler(MouseGestureEvent.MOUSE_SELECT, self._mouseSelect)
         self.setMouseTracking(True)
         self._tselect = None  # select point tuple
         self._logXinDomain = None
@@ -268,6 +269,20 @@ class InteractiveGRWidget(GRWidget):
                 self._lstPlot.append(plot)
         self.update()
         return self._lstPlot
+
+    @property
+    def cbm(self):
+        """Get CallbackManager used by EventFilter"""
+        return self._eventFilter.manager
+
+    def setEventFilterEnabled(self, flag):
+        """Dis-/Enable QtGR events"""
+        if self._eventFilterEnabled:
+            if not flag:
+                self.removeEventFilter(self._eventFilter)
+        elif flag:
+            self.installEventFilter(self._eventFilter)
+        self._eventFilterEnabled = flag
 
     def plot(self, *args, **kwargs):
         plot = Plot()
