@@ -23,7 +23,7 @@ if len(sys.argv) > 1:
     else:
         gr.QT_BACKEND_ORDER = [sys.argv[1]]
 
-from qtgr.events import GUIConnector, MouseEvent, PickEvent, LegendEvent
+from qtgr.events import MouseEvent, PickEvent, LegendEvent
 from qtgr.backend import QtWidgets, backend, uic
 from gr.pygr import Plot, PlotAxes, PlotCurve, ErrorBar
 
@@ -98,11 +98,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self._gr.logYinDomain.connect(self._logYinDomain)
         self._gr.modePick.connect(self._pickModeChanged)
 
-        guiConn = GUIConnector(self._gr)
-        guiConn.connect(MouseEvent.MOUSE_MOVE, self.mouseMoveGr)
-        guiConn.connect(PickEvent.PICK_PRESS, self.pointPickGr)
-        guiConn.connect(LegendEvent.ROI_CLICKED, self.legendClick)
-        guiConn.connect(LegendEvent.ROI_OVER, self.legendOver)
+        self._gr.cbm.addHandler(MouseEvent.MOUSE_MOVE, self.mouseMoveGr)
+        self._gr.cbm.addHandler(PickEvent.PICK_PRESS, self.pointPickGr)
+        self._gr.cbm.addHandler(LegendEvent.ROI_CLICKED, self.legendClick)
+        self._gr.cbm.addHandler(LegendEvent.ROI_OVER, self.legendOver)
 
         x = [-3.3 + t * .1 for t in range(66)]
         y = [t ** 5 - 13 * t ** 3 + 36 * t for t in x]
