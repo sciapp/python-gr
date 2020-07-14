@@ -24,7 +24,7 @@ def version_string_to_tuple(version_string):
     return tuple(int(v) for v in version_string.split('.'))
 
 
-def load_runtime(search_dirs=(), silent=False, lib_name = 'libGR'):
+def load_runtime(search_dirs=(), silent=False, lib_name='libGR'):
     if sys.platform == "win32":
         library_extension = ".dll"
         library_directory = "bin"
@@ -66,14 +66,19 @@ def load_runtime(search_dirs=(), silent=False, lib_name = 'libGR'):
                     break
                 else:
                     raise
-            library.gr_version.argtypes = []
-            library.gr_version.restype = ctypes.c_char_p
-            library_version_string = library.gr_version()
-            library_version = version_string_to_tuple(library_version_string)
-            required_version = version_string_to_tuple(required_runtime_version())
-            version_compatible = library_version[0] == required_version[0] and library_version >= required_version
-            if version_compatible:
-                return library
+            if lib_name == 'libGR':
+                library.gr_version.argtypes = []
+                library.gr_version.restype = ctypes.c_char_p
+                library_version_string = library.gr_version()
+                library_version = version_string_to_tuple(library_version_string)
+                required_version = version_string_to_tuple(required_runtime_version())
+                version_compatible = library_version[0] == required_version[0] and library_version >= required_version
+                if version_compatible:
+                    return library
+            # TODO: other libraries, such as libGRM, require some form of
+            # validation as well, but currently no mechanism for this has
+            # been implemented
+            return library
     if not silent:
         sys.stderr.write("""GR runtime not found.
 Please visit https://gr-framework.org and install at least the following version of the GR runtime:
