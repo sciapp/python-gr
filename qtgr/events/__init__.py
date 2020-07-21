@@ -47,6 +47,11 @@ class EventFilter(QtCore.QObject):
         self._manager = manager
         self._last_btn_mask = None
 
+    @property
+    def manager(self):
+        """Get CallbackManager for this EventFilter"""
+        return self._manager
+
     def handleEvent(self, event):
         etype = event.type()
         cls = type(event)
@@ -209,12 +214,20 @@ class CallbackManager(object):
 class GUIConnector(object):
 
     def __init__(self, parent):
-        self._manager = CallbackManager()
-        self._eventFilter = EventFilter(parent, self._manager)
-        parent.installEventFilter(self._eventFilter)
+        if hasattr(parent, "_eventFilter") and parent._eventFilter:
+            self._eventFilter = parent._eventFilter
+        else:
+            self._eventFilter = installEventFilter(parent)
+        self._manager = self._eventFilter.manager
 
     def connect(self, type, handle, cls=None):
         self._manager.addHandler(type, handle, cls)
 
     def disconnect(self, type, handle, cls=None):
         self._manager.removeHandler(type, handle, cls)
+
+
+def installEventFilter(filterObj):
+    ef = EventFilter(filterObj, CallbackManager())
+    filterObj.installEventFilter(ef)
+    return ef
