@@ -10,7 +10,7 @@ Build-Depends:
  python-all-dev (>= 2.6.6-3), python3-all-dev (>= 3.4.0),
  python-setuptools (>= 0.6b3), python3-setuptools (>= 0.6b3),
  python-numpy, python3-numpy,
- debhelper (>= 7),
+ debhelper (>= 7), dh-python,
  git,
  gr (>= 0.27.0)
 DEBTRANSFORM-TAR: python-gr-fixed.tar.gz
