@@ -190,7 +190,7 @@ class DownloadBinaryDistribution(build_py):
         """
         build_py.run(self)
         base_path = os.path.realpath(self.build_lib)
-        if runtime_helper.load_runtime(silent=True) is None:
+        if os.environ.get('GR_FORCE_DOWNLOAD') or runtime_helper.load_runtime(silent=True) is None:
             version = _runtime_version
             operating_system = DownloadBinaryDistribution.detect_os()
             if operating_system is not None:
