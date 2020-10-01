@@ -2407,7 +2407,8 @@ def _set_viewport(kind, subplot):
 
     if width > height:
         viewport[2] += (1 - (subplot[3] - subplot[2])**2) * 0.02
-    if kind in ('contour', 'contourf', 'heatmap', 'polar_heatmap', 'hexbin', 'quiver'):
+    colorbar = _plt.kwargs.get('colorbar', None)
+    if colorbar or kind in ('contour', 'contourf', 'heatmap', 'polar_heatmap', 'hexbin', 'quiver'):
         viewport[1] -= 0.1
     gr.setviewport(*viewport)
     _plt.kwargs['viewport'] = viewport
@@ -2922,9 +2923,11 @@ def _colorbar(off=0.0, colors=256, label_name='zlabel'):
     gr.savestate()
     viewport = _plt.kwargs['viewport']
     zmin, zmax = _plt.kwargs['zrange']
-    gr.setwindow(0, 1, zmin, zmax)
+    zlog = _plt.kwargs.get('zlog', None)
+
     gr.setviewport(viewport[1] + 0.02 + off, viewport[1] + 0.05 + off,
                    viewport[2], viewport[3])
+    gr.setwindow(0, 1, 0, 1)
 
     if colors == 1:
         data = [1000]
@@ -2934,25 +2937,44 @@ def _colorbar(off=0.0, colors=256, label_name='zlabel'):
     gr.setlinecolorind(1)
     gr.setscale(0)
     if _plt.kwargs['scale'] & gr.OPTION_FLIP_Z:
-        gr.cellarray(0, 1, zmin, zmax, 1, colors, data)
+        gr.cellarray(0, 1, 0, 1, 1, colors, data)
     else:
-        gr.cellarray(0, 1, zmax, zmin, 1, colors, data)
-    diag = ((viewport[1] - viewport[0])**2 + (viewport[3] - viewport[2])**2)**0.5
+        gr.cellarray(0, 1, 1, 0, 1, colors, data)
+    diag = ((viewport[1] - viewport[0]) ** 2 + (viewport[3] - viewport[2]) ** 2) ** 0.5
     charheight = max(0.016 * diag, 0.012)
     gr.setcharheight(charheight)
-    if _plt.kwargs['scale'] & gr.OPTION_Z_LOG:
+
+    if 0 < zmin < zmax and zlog:
+        gr.setwindow(0, 1, zmin, zmax)
         if _plt.kwargs['scale'] & gr.OPTION_FLIP_Z:
             gr.setscale(gr.OPTION_Y_LOG | gr.OPTION_FLIP_Y)
         else:
             gr.setscale(gr.OPTION_Y_LOG)
         gr.axes(0, 2, 1, zmin, 0, 1, 0.005)
-    else:
+    elif zmin <= zmax and not zlog:
         if _plt.kwargs['scale'] & gr.OPTION_FLIP_Z:
             gr.setscale(gr.OPTION_FLIP_Y)
         else:
             gr.setscale(0)
         ztick = 0.5 * gr.tick(zmin, zmax)
+        gr.setwindow(0, 1, zmin, zmax)
         gr.axes(0, ztick, 1, zmin, 0, 1, 0.005)
+    else:
+        if zmin == float('inf') and zmax != float('-inf') and not (zmax < 0 and zlog):
+            labels = ("min", str(zmax))
+        elif zmax == float('-inf') and zmin != float('inf') and not (zmin < 0 and zlog):
+            labels = (str(zmin), "max")
+        else:
+            labels = ("min", "max")
+
+        def axeslbl_callback(x, y, svalue, value, labels=labels):
+            gr.text(x, y, labels[int(value)])
+        if _plt.kwargs['scale'] & gr.OPTION_FLIP_Z:
+            gr.setscale(gr.OPTION_FLIP_Y)
+        else:
+            gr.setscale(0)
+        gr.axeslbl(0, 1, 1, 0, 0, 1, 0.005, 0, axeslbl_callback)
+
     label = _plt.kwargs.get(label_name, None)
     if label:
         diag = ((viewport[1] - viewport[0])**2 + (viewport[3] - viewport[2])**2)**0.5
@@ -2966,6 +2988,7 @@ def _colorbar(off=0.0, colors=256, label_name='zlabel'):
 def _plot_data(**kwargs):
     global _plt
     _plt.kwargs.update(kwargs)
+    colorbar = _plt.kwargs.get('colorbar', None)
     if not _plt.args:
         return
     kind = _plt.kwargs.get('kind', 'line')
@@ -2987,6 +3010,8 @@ def _plot_data(**kwargs):
         _set_window(kind)
 
     _set_colormap()
+    if colorbar and kind not in ('quiver', 'hexbin', 'contour', 'contourf', 'surface', 'trisurf', 'heatmap', 'volume' 'polar_heatmap'):
+        _colorbar()
     gr.uselinespec(" ")
     for x, y, z, c, spec in _plt.args:
         gr.savestate()
@@ -3058,7 +3083,8 @@ def _plot_data(**kwargs):
             u = z
             v = c
             gr.quiver(len(x), len(y), x, y, u, v, True)
-            _colorbar(0.05)
+            if colorbar or colorbar is None:
+                _colorbar(0.05)
         elif kind == 'stem':
             gr.setlinecolorind(1)
             gr.polyline(_plt.kwargs['window'][:2], [0, 0])
@@ -3092,7 +3118,8 @@ def _plot_data(**kwargs):
                 h = [z_min + i / num_levels * (z_max - z_min) for i in range(num_levels)]
             z.shape = np.prod(z.shape)
             gr.contour(x, y, h, z, 1000)
-            _colorbar(colors=num_levels)
+            if colorbar or colorbar is None:
+                _colorbar(colors=num_levels)
         elif kind == 'contourf':
             z_min, z_max = _plt.kwargs['zrange']
             gr.setspace(z_min, z_max, 0, 90)
@@ -3110,7 +3137,8 @@ def _plot_data(**kwargs):
             else:
                 h = [z_min + i / num_levels * (z_max - z_min) for i in range(num_levels)]
             z.shape = np.prod(z.shape)
-            _colorbar(colors=num_levels)
+            if colorbar or colorbar is None:
+                _colorbar(colors=num_levels)
             gr.setlinecolorind(1)
             gr.contourf(x, y, h, z, 0)
         elif kind == 'hexbin':
@@ -3118,7 +3146,8 @@ def _plot_data(**kwargs):
             cntmax = gr.hexbin(x, y, nbins)
             if cntmax > 0:
                 _plt.kwargs['zrange'] = (0, cntmax)
-                _colorbar()
+                if colorbar or colorbar is None:
+                    _colorbar()
         elif kind == 'heatmap':
             x_min, x_max, y_min, y_max = _plt.kwargs['window']
             if x is not None:
@@ -3148,7 +3177,8 @@ def _plot_data(**kwargs):
                     rgba[y, x] = icmap[int(data[y, x])]
             y_min, y_max = y_max, y_min
             gr.drawimage(x_min, x_max, y_min, y_max, width, height, rgba)
-            _colorbar()
+            if colorbar or colorbar is None:
+                _colorbar()
         elif kind == 'polar_heatmap':
             height, width = z.shape
             z_min, z_max = _plt.kwargs.get('zlim', (np.min(z), np.max(z)))
@@ -3182,7 +3212,8 @@ def _plot_data(**kwargs):
                 r_range = 1 + relative_r_min - r_range
             gr.polarcellarray(0, 0, phi_min, phi_max, r_range[0], r_range[1], width, height, data)
             _draw_polar_axes()
-            _colorbar()
+            if colorbar or colorbar is None:
+                _colorbar()
         elif kind == 'wireframe':
             if x.shape == y.shape == z.shape:
                 x, y, z = gr.gridit(x, y, z, 50, 50)
@@ -3206,7 +3237,8 @@ def _plot_data(**kwargs):
             else:
                 gr.surface(x, y, z, gr.OPTION_COLORED_MESH)
             _draw_axes(kind, 2)
-            _colorbar(0.05)
+            if colorbar or colorbar is None:
+                _colorbar(0.05)
         elif kind == 'plot3':
             gr.polyline3d(x, y, z)
             _draw_axes(kind, 2)
@@ -3245,7 +3277,8 @@ def _plot_data(**kwargs):
             dmin, dmax = gr.volume(c, algorithm=_algorithm, dmin=dmin, dmax=dmax)
             prev_zrange = _plt.kwargs.get('zrange', None)
             _plt.kwargs['zrange'] = (dmin, dmax)
-            _colorbar(0.05, label_name='dlabel')
+            if colorbar or colorbar is None:
+                _colorbar(0.05, label_name='dlabel')
             _plt.kwargs['zrange'] = prev_zrange
             _draw_axes(kind, 2)
         elif kind == 'polar':
@@ -3254,7 +3287,8 @@ def _plot_data(**kwargs):
         elif kind == 'trisurf':
             gr.trisurface(x, y, z)
             _draw_axes(kind, 2)
-            _colorbar(0.05)
+            if colorbar or colorbar is None:
+                _colorbar(0.05)
         elif kind == 'tricont':
             zmin, zmax = _plt.kwargs['zrange']
             levels = np.linspace(zmin, zmax, 20)
