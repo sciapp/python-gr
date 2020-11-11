@@ -153,6 +153,8 @@ class DownloadBinaryDistribution(build_py):
     def detect_architecture():
         if 'armv7' in platform.machine():
             return 'armhf'
+        if 'aarch64' in platform.machine():
+            return 'aarch64'
         is_64bits = sys.maxsize > 2**32
         if is_64bits:
             return 'x86_64'
