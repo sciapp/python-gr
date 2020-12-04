@@ -153,6 +153,8 @@ class DownloadBinaryDistribution(build_py):
     def detect_architecture():
         if 'armv7' in platform.machine():
             return 'armhf'
+        if 'aarch64' in platform.machine():
+            return 'aarch64'
         is_64bits = sys.maxsize > 2**32
         if is_64bits:
             return 'x86_64'
@@ -190,7 +192,7 @@ class DownloadBinaryDistribution(build_py):
         """
         build_py.run(self)
         base_path = os.path.realpath(self.build_lib)
-        if runtime_helper.load_runtime(silent=True) is None:
+        if os.environ.get('GR_FORCE_DOWNLOAD') or runtime_helper.load_runtime(silent=True) is None:
             version = _runtime_version
             operating_system = DownloadBinaryDistribution.detect_os()
             if operating_system is not None:
