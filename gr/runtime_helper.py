@@ -26,10 +26,13 @@ def version_string_to_tuple(version_string):
 
 def load_runtime(search_dirs=(), silent=False, lib_name='libGR'):
     if sys.platform == "win32":
-        library_extension = ".dll"
+        library_extensions = (".dll",)
         library_directory = "bin"
+    elif sys.platform == "darwin":
+        library_extensions = (".dylib", ".so")
+        library_directory = "lib"
     else:
-        library_extension = ".so"
+        library_extensions = (".so",)
         library_directory = "lib"
 
     search_directories = list(search_dirs)
@@ -54,31 +57,32 @@ def load_runtime(search_dirs=(), silent=False, lib_name='libGR'):
         if not os.path.isdir(directory):
             continue
         directory = os.path.abspath(directory)
-        library_filename = os.path.join(directory, lib_name + library_extension)
-        if os.path.isfile(library_filename):
-            if sys.platform == "win32":
-                os.environ["PATH"] = search_path + ";" + directory
-            try:
-                library = ctypes.CDLL(library_filename)
-            except OSError:
-                # library exists but could not be loaded (e.g. due to missing dependencies)
-                if silent:
-                    break
-                else:
-                    raise
-            if lib_name == 'libGR':
-                library.gr_version.argtypes = []
-                library.gr_version.restype = ctypes.c_char_p
-                library_version_string = library.gr_version()
-                library_version = version_string_to_tuple(library_version_string)
-                required_version = version_string_to_tuple(required_runtime_version())
-                version_compatible = library_version[0] == required_version[0] and library_version >= required_version
-                if version_compatible:
-                    return library
-            # TODO: other libraries, such as libGRM, require some form of
-            # validation as well, but currently no mechanism for this has
-            # been implemented
-            return library
+        for library_extension in library_extensions:
+            library_filename = os.path.join(directory, lib_name + library_extension)
+            if os.path.isfile(library_filename):
+                if sys.platform == "win32":
+                    os.environ["PATH"] = search_path + ";" + directory
+                try:
+                    library = ctypes.CDLL(library_filename)
+                except OSError:
+                    # library exists but could not be loaded (e.g. due to missing dependencies)
+                    if silent:
+                        return None
+                    else:
+                        raise
+                if lib_name == 'libGR':
+                    library.gr_version.argtypes = []
+                    library.gr_version.restype = ctypes.c_char_p
+                    library_version_string = library.gr_version()
+                    library_version = version_string_to_tuple(library_version_string)
+                    required_version = version_string_to_tuple(required_runtime_version())
+                    version_compatible = library_version[0] == required_version[0] and library_version >= required_version
+                    if version_compatible:
+                        return library
+                # TODO: other libraries, such as libGRM, require some form of
+                # validation as well, but currently no mechanism for this has
+                # been implemented
+                return library
     if not silent:
         sys.stderr.write("""GR runtime not found.
 Please visit https://gr-framework.org and install at least the following version of the GR runtime:
