@@ -105,7 +105,7 @@ install-ubuntu1604-python2:
   - apt-get update
   - apt-get install -y virtualenv python-pip
   - virtualenv env
-  - env/bin/pip install --upgrade pip
+  - env/bin/pip install --upgrade pip==20.3.4
   - env/bin/pip install ../dist/gr-*.tar.gz
   - GKS_WSTYPE=png env/bin/python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
   - env/bin/python -c 'import gr3'
@@ -123,7 +123,7 @@ install-ubuntu1604-python3:
   - apt-get update
   - apt-get install -y python3-venv python3-pip
   - python3 -m venv env
-  - env/bin/pip install --upgrade pip
+  - env/bin/pip install --upgrade pip==20.3.4
   - env/bin/pip install ../dist/gr-*.tar.gz
   - GKS_WSTYPE=png env/bin/python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
   - env/bin/python -c 'import gr3'
@@ -141,7 +141,7 @@ install-ubuntu1804-python2:
   - apt-get update
   - apt-get install -y virtualenv python-pip
   - virtualenv env
-  - env/bin/pip install --upgrade pip
+  - env/bin/pip install --upgrade pip==20.3.4
   - env/bin/pip install ../dist/gr-*.tar.gz
   - GKS_WSTYPE=png env/bin/python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
   - env/bin/python -c 'import gr3'
@@ -177,7 +177,7 @@ install-debian9-python2:
   - apt-get update
   - apt-get install -y virtualenv python-pip
   - virtualenv env
-  - env/bin/pip install --upgrade pip
+  - env/bin/pip install --upgrade pip==20.3.4
   - env/bin/pip install ../dist/gr-*.tar.gz
   - GKS_WSTYPE=png env/bin/python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
   - env/bin/python -c 'import gr3'
@@ -231,9 +231,9 @@ install-centos7-python2:
   script:
   - rm -rf install && mkdir install && cd install
   - yum install -y python
-  - curl -LO https://bootstrap.pypa.io/get-pip.py
+  - curl -LO https://bootstrap.pypa.io/2.7/get-pip.py
   - python get-pip.py
-  - pip install --upgrade pip
+  - pip install --upgrade pip==20.3.4
   - pip install ../dist/gr-*.tar.gz
   - GKS_WSTYPE=png python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
   - python -c 'import gr3'
@@ -249,7 +249,7 @@ install-fedora30-python2:
   script:
   - rm -rf install && mkdir install && cd install
   - dnf install -y python-pip
-  - pip install --upgrade pip
+  - pip install --upgrade pip==20.3.4
   - pip install ../dist/gr-*.tar.gz
   - GKS_WSTYPE=png python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
   - python -c 'import gr3'
