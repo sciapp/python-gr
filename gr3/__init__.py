@@ -86,11 +86,15 @@ if _impl != 'PyPy':
 
 def load_runtime(silent=False):
     if sys.platform == "win32":
-        library_extension = ".dll"
+        library_extensions = (".dll",)
         library_directory = "bin"
-    else:
-        library_extension = ".so"
+    elif sys.platform == "darwin":
+        library_extensions = (".dylib", ".so")
         library_directory = "lib"
+    else:
+        library_extensions = (".so",)
+        library_directory = "lib"
+
     search_directories = [
         os.environ.get('GR3LIB'),
         os.environ.get('GRLIB'),
@@ -101,27 +105,28 @@ def load_runtime(silent=False):
     ]
 
     # Detect whether this is a site-package installation
-    if os.access(os.path.join(os.path.dirname(__file__), "libGR3" + library_extension), os.R_OK):
-        # Set GRDIR environment accordingly to site-package installation.
-        # (needed for finding GKSTerm on OSX)
-        os.environ["GRDIR"] = os.getenv("GRDIR", os.path.join(os.path.realpath(os.path.dirname(__file__)), "..", "gr"))
+    for library_extension in library_extensions:
+        if os.access(os.path.join(os.path.dirname(__file__), "libGR3" + library_extension), os.R_OK):
+            # Set GRDIR environment accordingly to site-package installation.
+            # (needed for finding GKSTerm on OSX)
+            os.environ["GRDIR"] = os.getenv("GRDIR", os.path.join(os.path.realpath(os.path.dirname(__file__)), "..", "gr"))
 
-    for directory in search_directories:
-        if directory is None:
-            continue
-        if not os.path.isdir(directory):
-            continue
-        directory = os.path.abspath(directory)
-        library_filename = os.path.join(directory, 'libGR3' + library_extension)
-        if not os.path.isfile(library_filename):
-            continue
-        try:
-            return CDLL(library_filename)
-        except OSError:
-            if silent:
-                break
-            else:
-                raise
+        for directory in search_directories:
+            if directory is None:
+                continue
+            if not os.path.isdir(directory):
+                continue
+            directory = os.path.abspath(directory)
+            library_filename = os.path.join(directory, 'libGR3' + library_extension)
+            if not os.path.isfile(library_filename):
+                continue
+            try:
+                return CDLL(library_filename)
+            except OSError:
+                if silent:
+                    return None
+                else:
+                    raise
 
     if not silent:
         # TODO: OS-specific dependencies
