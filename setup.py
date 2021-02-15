@@ -198,11 +198,17 @@ class DownloadBinaryDistribution(build_py):
             if operating_system is not None:
                 arch = DownloadBinaryDistribution.detect_architecture()
 
+                # check for desired build variant (e.g. -msvc)
+                variant = os.environ.get('GR_BUILD_VARIANT', '')
+                if variant:
+                    variant = '-' + variant
+
                 # download binary distribution for system
-                file_name = 'gr-{version}-{os}-{arch}.tar.gz'.format(
+                file_name = 'gr-{version}-{os}-{arch}{variant}.tar.gz'.format(
                     version=version,
                     os=operating_system,
-                    arch=arch
+                    arch=arch,
+                    variant=variant
                 )
 
                 tar_gz_data = DownloadBinaryDistribution.get_file_from_mirrors(file_name, version, 'http')
