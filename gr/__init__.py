@@ -928,6 +928,34 @@ def settextfontprec(font, precision):
     __gr.gr_settextfontprec(c_int(font), c_int(precision))
 
 
+@_require_runtime_version(0, 56, 0, 0)
+def loadfont(filename):
+    """
+    Load a font file from a given filename.
+
+    **Parameters:**
+
+    `filename` :
+        The filename of the font
+
+    This function loads a font from a given filename and returns the font index
+    that has been assigned to it or `None` if the font could not be found.
+    To use the loaded font call `gr.settextfontprec` using the resulting font
+    index and precision 3.
+
+         gr.settextfontprec(gr.loadfont(filename), 3)
+
+    The filename can either be an absolute path or a filename like `Arial.ttf`.
+    Font files are searched in the directories specified by the `GKS_FONT_DIRS`
+    environment variable and the operating system's default font locations.
+
+    """
+    result = c_int()
+    __gr.gr_loadfont(char(filename), byref(result))
+    if result.value >= 0:
+        return result.value
+
+
 def setcharexpan(factor):
     """
     Set the current character expansion factor (width to height ratio).
@@ -3727,6 +3755,9 @@ if _RUNTIME_VERSION >= (0, 48, 0, 0):
     __gr.gr_setspace3d.argtypes = [c_double, c_double, c_double, c_double]
     __gr.gr_setspace3d.restype = None
 
+if _RUNTIME_VERSION >= (0, 56, 0, 0):
+    __gr.gr_loadfont.argtypes = [c_char_p, POINTER(c_int)]
+    __gr.gr_loadfont.restype = None
 
 precision = __gr.gr_precision()
 
