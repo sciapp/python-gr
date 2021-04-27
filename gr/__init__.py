@@ -2003,6 +2003,16 @@ def hexbin(x, y, nbins):
 
 
 def setcolormap(index):
+    """
+    Set the current GR colormap.
+
+    **Parameters:**
+
+    `index` :
+        The colormap index, e.g. one of the `gr.COLORMAP_*` constants
+
+    For a list of built-in colormaps, see https://gr-framework.org/colormaps.html.
+    """
     __gr.gr_setcolormap(c_int(index))
 
 
