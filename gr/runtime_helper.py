@@ -93,6 +93,7 @@ Debian/Ubuntu: apt install libxt6 libxrender1 libgl1-mesa-glx libqt5widgets5
 CentOS 7: yum install libXt libXrender libXext mesa-libGL qt5-qtbase-gui
 Fedora 28: dnf install -y libXt libXrender libXext mesa-libGL qt5-qtbase-gui
 openSUSE 42.3 / 15: zypper install -y libXt6 libXrender1 libXext6 Mesa-libGL1 libQt5Widgets5
+FreeBSD: pkg install libXt libXrender libXext mesa-libs qt5
 """.format(required_runtime_version()))
     return None
 
