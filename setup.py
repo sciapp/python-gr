@@ -147,6 +147,16 @@ class DownloadBinaryDistribution(build_py):
                 if 'release 7' in release_info:
                     return 'CentOS'
             return 'Linux'
+        if sys.platform.startswith('freebsd'):
+            if os.access('/etc/os-release', os.R_OK):
+                with open('/etc/os-release', 'r') as f:
+                    release_info = {key: value for key, value in (line.split('=')[:2] for line in f)}
+                if 'VERSION' in release_info:
+                    major_version_str = release_info['VERSION'].split('.')[0]
+                    if major_version_str.isdigit():
+                        major_version = int(major_version_str)
+                        if major_version >= 13:
+                            return 'FreeBSD'
         return None
 
     @staticmethod
