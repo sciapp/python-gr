@@ -3274,6 +3274,8 @@ def _plot_data(**kwargs):
                 dmin = -1
             if dmax is None:
                 dmax = -1
+            width, height, device_pixel_ratio = gr.inqvpsize()
+            gr.setpicturesizeforvolume(int(width * device_pixel_ratio), int(height * device_pixel_ratio))
             dmin, dmax = gr.volume(c, algorithm=_algorithm, dmin=dmin, dmax=dmax)
             prev_zrange = _plt.kwargs.get('zrange', None)
             _plt.kwargs['zrange'] = (dmin, dmax)
