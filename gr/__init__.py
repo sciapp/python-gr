@@ -5,7 +5,7 @@ which may be imported directly, e.g.:
 
 import gr
 """
-
+import collections
 import functools
 import os
 import sys
@@ -3512,6 +3512,112 @@ def setspace3d(phi, theta, fov, camera_distance):
     __gr.gr_setspace3d(c_double(phi), c_double(theta), c_double(fov), c_double(camera_distance))
 
 
+@_require_runtime_version(0, 58, 0, 0)
+def setthreadnumber(num):
+    """
+    Set the number of threads which can run parallel.
+
+    The default value is the number of threads the cpu has. The only usage
+    right now is inside gr_cpubasedvolume.
+
+    **Parameters:**
+
+    `num` :
+        number of threads
+    """
+    __gr.gr_setthreadnumber(c_int(num))
+
+
+@_require_runtime_version(0, 58, 0, 0)
+def setpicturesizeforvolume(width, height):
+    """
+    Set the width and height of the resulting picture. These values are only used for gr_volume and gr_cpubasedvolume.
+
+    The default values are 1000 for both.
+
+    **Parameters:**
+
+    `width` :
+        width of the resulting image
+    `height` :
+        height of the resulting image
+    """
+    __gr.gr_setpicturesizeforvolume(c_int(width), c_int(height))
+
+
+@_require_runtime_version(0, 58, 0, 0)
+def setvolumebordercalculation(flag):
+    """
+    Set the gr_volume border type with this flag.
+
+    This influences how the volume is calculated. When the flag is set to
+    GR_VOLUME_WITH_BORDER the border will be calculated the same as the points
+    inside the volume.
+
+    **Parameters:**
+
+    `flag` :
+        calculation of the gr.volume border
+
+    The available options are:
+
+    +---------------------------+---+-----------------------+
+    |GR_VOLUME_WITHOUT_BORDER   |  0|default value          |
+    +---------------------------+---+-----------------------+
+    |GR_VOLUME_WITH_BORDER      |  1|gr_volume with border  |
+    +---------------------------+---+-----------------------+
+    """
+    __gr.gr_setvolumebordercalculation(c_int(flag))
+
+
+@_require_runtime_version(0, 58, 0, 0)
+def setapproximativecalculation(approximative_calculation):
+    """
+    Set if gr_cpubasedvolume is calculated approximative or exact.
+
+    To use the exact calculation set approximative_calculation to 0. The
+    default value is the approximative version, which can be set with the
+    number 1.
+
+    **Parameters:**
+
+    `approximative_calculation` :
+        exact or approximative calculation of the volume
+    """
+    if isinstance(approximative_calculation, bool):
+        approximative_calculation = 1 if approximative_calculation else 0
+    __gr.gr_setapproximativecalculation(c_int(approximative_calculation))
+
+
+@_require_runtime_version(0, 58, 0, 0)
+def inqvolumeflags():
+    """
+    Returns the parameters which can be set for gr_cpubasedvolume.
+
+    The following parameters are returned as a tuple:
+
+    - volume border type (GR_VOLUME_WITHOUT_BORDER or GR_VOLUME_WITH_BORDER)
+    - maximum number of threads used
+    - picture width in pixels
+    - picture height in pixels
+    - whether or not the approximative calculation is used
+    """
+    border = c_int()
+    max_threads = c_int()
+    picture_width = c_int()
+    picture_height = c_int()
+    approximative_calculation = c_int()
+    __gr.gr_inqvolumeflags(byref(border), byref(max_threads), byref(picture_width), byref(picture_height), byref(approximative_calculation))
+
+    return (
+        border.value,
+        max_threads.value,
+        picture_width.value,
+        picture_height.value,
+        True if approximative_calculation.value else False
+    )
+
+
 def wrapper_version():
     """
     Returns the version string of the Python package gr.
@@ -3793,6 +3899,16 @@ if _RUNTIME_VERSION >= (0, 56, 0, 0):
 if _RUNTIME_VERSION >= (0, 58, 0, 0):
     __gr.gr_inqvpsize.argtypes = [POINTER(c_int), POINTER(c_int), POINTER(c_double)]
     __gr.gr_inqvpsize.restype = None
+    __gr.gr_setthreadnumber.argtypes = [c_int]
+    __gr.gr_setthreadnumber.restype = None
+    __gr.gr_setpicturesizeforvolume.argtypes = [c_int, c_int]
+    __gr.gr_setpicturesizeforvolume.restype = None
+    __gr.gr_setvolumebordercalculation.argtypes = [c_int]
+    __gr.gr_setvolumebordercalculation.restype = None
+    __gr.gr_setapproximativecalculation.argtypes = [c_int]
+    __gr.gr_setapproximativecalculation.restype = None
+    __gr.gr_inqvolumeflags.argtypes = [POINTER(c_int), POINTER(c_int), POINTER(c_int), POINTER(c_int), POINTER(c_int)]
+    __gr.gr_inqvolumeflags.restype = None
 
 precision = __gr.gr_precision()
 
@@ -4118,6 +4234,10 @@ if _RUNTIME_VERSION >= (0, 46, 0, 76):
     PROJECTION_DEFAULT = 0
     PROJECTION_ORTHOGRAPHIC = 1
     PROJECTION_PERSPECTIVE = 2
+
+if _RUNTIME_VERSION >= (0, 58, 0, 0):
+    GR_VOLUME_WITHOUT_BORDER = 0
+    GR_VOLUME_WITH_BORDER = 1
 
 # automatically switch to inline graphics in Jupyter Notebooks
 if 'ipykernel' in sys.modules:
