@@ -201,6 +201,27 @@ def inqdspsize():
     return [mwidth.value, mheight.value, width.value, height.value]
 
 
+@_require_runtime_version(0, 58, 0, 0)
+def inqvpsize():
+    """
+    Get the size of the viewport in the currently active workstation.
+
+    This function returns the width and height of the viewport in logical
+    pixels, as well as the ratio of logical to device pixels for the
+    currently active workstation. For those workstation types that work with
+    windows such as GKSTerm / quartz (400) it may not be possible to
+    precisely determine the size of the viewport if no window has been opened
+    yet. Similarly, workstation types that create vector graphics can not
+    return a precise pixel value either. In both of these cases, best guess
+    values will be returned.
+    """
+    width = c_int()
+    height = c_int()
+    device_pixel_ratio = c_double()
+    __gr.gr_inqvpsize(byref(width), byref(height), byref(device_pixel_ratio))
+    return width.value, height.value, device_pixel_ratio.value
+
+
 def openws(workstation_id, connection, workstation_type):
     """
     Open a graphical workstation.
@@ -3768,6 +3789,10 @@ if _RUNTIME_VERSION >= (0, 48, 0, 0):
 if _RUNTIME_VERSION >= (0, 56, 0, 0):
     __gr.gr_loadfont.argtypes = [c_char_p, POINTER(c_int)]
     __gr.gr_loadfont.restype = None
+
+if _RUNTIME_VERSION >= (0, 58, 0, 0):
+    __gr.gr_inqvpsize.argtypes = [POINTER(c_int), POINTER(c_int), POINTER(c_double)]
+    __gr.gr_inqvpsize.restype = None
 
 precision = __gr.gr_precision()
 
