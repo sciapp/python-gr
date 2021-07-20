@@ -3551,7 +3551,7 @@ def setvolumebordercalculation(flag):
     Set the gr_volume border type with this flag.
 
     This influences how the volume is calculated. When the flag is set to
-    GR_VOLUME_WITH_BORDER the border will be calculated the same as the points
+    VOLUME_WITH_BORDER the border will be calculated the same as the points
     inside the volume.
 
     **Parameters:**
@@ -3562,9 +3562,9 @@ def setvolumebordercalculation(flag):
     The available options are:
 
     +---------------------------+---+-----------------------+
-    |GR_VOLUME_WITHOUT_BORDER   |  0|default value          |
+    |VOLUME_WITHOUT_BORDER   |  0|default value          |
     +---------------------------+---+-----------------------+
-    |GR_VOLUME_WITH_BORDER      |  1|gr_volume with border  |
+    |VOLUME_WITH_BORDER      |  1|gr_volume with border  |
     +---------------------------+---+-----------------------+
     """
     __gr.gr_setvolumebordercalculation(c_int(flag))
@@ -3596,7 +3596,7 @@ def inqvolumeflags():
 
     The following parameters are returned as a tuple:
 
-    - volume border type (GR_VOLUME_WITHOUT_BORDER or GR_VOLUME_WITH_BORDER)
+    - volume border type (VOLUME_WITHOUT_BORDER or VOLUME_WITH_BORDER)
     - maximum number of threads used
     - picture width in pixels
     - picture height in pixels
@@ -3616,6 +3616,64 @@ def inqvolumeflags():
         picture_height.value,
         True if approximative_calculation.value else False
     )
+
+
+@_require_runtime_version(0, 58, 0, 0)
+def cpubasedvolume(data, algorithm, dmin, dmax, min_val, max_val):
+    """
+    Draw volume data with raycasting using the given algorithm and apply the current GR colormap.
+
+    The minimum and maximum values used for the colormap are returned as a tuple.
+
+    **Parameters:**
+
+    `data` :
+        a three-dimensional numpy array containing the intensities for each point
+    `algorithm` :
+        the algorithm to reduce the volume data
+    `dmin` :
+        minimum value when applying the colormap, or None to use the actual occuring minimum
+    `dmax` :
+        maximum value when applying the colormap, or None to use the actual occuring maximum
+    `min_val` :
+        array with the minimum coordinates of the volume data, or None to use -1 for each axis
+    `max_val` :
+        array with the maximum coordinates of the volume data, or None to use 1 for each axis
+
+    Available algorithms are:
+
+    +---------------------+---+-----------------------------+
+    |VOLUME_EMISSION   |  0|emission model               |
+    +---------------------+---+-----------------------------+
+    |VOLUME_ABSORPTION |  1|absorption model             |
+    +---------------------+---+-----------------------------+
+    |VOLUME_MIP        |  2|maximum intensity projection |
+    +---------------------+---+-----------------------------+
+    """
+
+    data = np.array(data, copy=False, ndmin=3)
+    nz, ny, nx = data.shape
+    _data = floatarray(nx * ny * nz, data)
+    if dmin is None:
+        dmin = c_double(-1)
+    else:
+        dmin = c_double(dmin)
+    if dmax is None:
+        dmax = c_double(-1)
+    else:
+        dmax = c_double(dmax)
+    if min_val is None:
+        min_val_ptr = cast(c_void_p(0), POINTER(c_double))
+    else:
+        min_val_ptr = (c_double * 3)(min_val[0], min_val[1], min_val[2])
+    if max_val is None:
+        max_val_ptr = cast(c_void_p(0), POINTER(c_double))
+    else:
+        max_val_ptr = (c_double * 3)(max_val[0], max_val[1], max_val[2])
+
+    __gr.gr_cpubasedvolume(c_int(nx), c_int(ny), c_int(nz), _data.data, c_int(algorithm), byref(dmin), byref(dmax), min_val_ptr, max_val_ptr)
+
+    return dmin.value, dmax.value
 
 
 def wrapper_version():
@@ -3909,6 +3967,8 @@ if _RUNTIME_VERSION >= (0, 58, 0, 0):
     __gr.gr_setapproximativecalculation.restype = None
     __gr.gr_inqvolumeflags.argtypes = [POINTER(c_int), POINTER(c_int), POINTER(c_int), POINTER(c_int), POINTER(c_int)]
     __gr.gr_inqvolumeflags.restype = None
+    __gr.gr_cpubasedvolume.argtypes = [c_int, c_int, c_int, POINTER(c_double), c_int, POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double)]
+    __gr.gr_cpubasedvolume.restype = None
 
 precision = __gr.gr_precision()
 
@@ -4236,8 +4296,8 @@ if _RUNTIME_VERSION >= (0, 46, 0, 76):
     PROJECTION_PERSPECTIVE = 2
 
 if _RUNTIME_VERSION >= (0, 58, 0, 0):
-    GR_VOLUME_WITHOUT_BORDER = 0
-    GR_VOLUME_WITH_BORDER = 1
+    VOLUME_WITHOUT_BORDER = 0
+    VOLUME_WITH_BORDER = 1
 
 # automatically switch to inline graphics in Jupyter Notebooks
 if 'ipykernel' in sys.modules:
