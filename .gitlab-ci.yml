@@ -323,6 +323,25 @@ install-arch-python3:
     paths:
     - install/gks.png
 
+install-freebsd13-python3:
+  stage: install
+  image: freebsd:13
+  tags:
+  - libvirt
+  variables:
+    GIT_STRATEGY: none
+  script:
+  - rm -rf install && mkdir install && cd install
+  - sudo pkg install -y python3 py38-pip
+  - python3 -m venv env
+  - env/bin/pip install --upgrade pip
+  - env/bin/pip install ../dist/gr-*.tar.gz
+  - GKS_WSTYPE=png env/bin/python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
+  - env/bin/python -c 'import gr3'
+  artifacts:
+    paths:
+    - install/gks.png
+
 deploy-to-github:
   stage: deploy
   image: ubuntu:16.04
