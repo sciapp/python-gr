@@ -167,6 +167,24 @@ install-ubuntu1804-python3:
     paths:
     - install/gks.png
 
+install-ubuntu2004-python3:
+  stage: install
+  image: ubuntu:20.04
+  variables:
+    GIT_STRATEGY: none
+  script:
+  - rm -rf install && mkdir install && cd install
+  - apt-get update
+  - apt-get install -y python3-venv python3-pip
+  - python3 -m venv env
+  - env/bin/pip install --upgrade pip
+  - env/bin/pip install ../dist/gr-*.tar.gz
+  - GKS_WSTYPE=png env/bin/python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
+  - env/bin/python -c 'import gr3'
+  artifacts:
+    paths:
+    - install/gks.png
+
 install-debian9-python2:
   stage: install
   image: debian:9
