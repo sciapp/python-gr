@@ -5,7 +5,7 @@ which may be imported directly, e.g.:
 
 import gr
 """
-
+import collections
 import functools
 import os
 import sys
@@ -199,6 +199,27 @@ def inqdspsize():
     height = c_int()
     __gr.gr_inqdspsize(byref(mwidth), byref(mheight), byref(width), byref(height))
     return [mwidth.value, mheight.value, width.value, height.value]
+
+
+@_require_runtime_version(0, 58, 0, 0)
+def inqvpsize():
+    """
+    Get the size of the viewport in the currently active workstation.
+
+    This function returns the width and height of the viewport in logical
+    pixels, as well as the ratio of logical to device pixels for the
+    currently active workstation. For those workstation types that work with
+    windows such as GKSTerm / quartz (400) it may not be possible to
+    precisely determine the size of the viewport if no window has been opened
+    yet. Similarly, workstation types that create vector graphics can not
+    return a precise pixel value either. In both of these cases, best guess
+    values will be returned.
+    """
+    width = c_int()
+    height = c_int()
+    device_pixel_ratio = c_double()
+    __gr.gr_inqvpsize(byref(width), byref(height), byref(device_pixel_ratio))
+    return width.value, height.value, device_pixel_ratio.value
 
 
 def openws(workstation_id, connection, workstation_type):
@@ -926,6 +947,34 @@ def settextfontprec(font, precision):
     output.
     """
     __gr.gr_settextfontprec(c_int(font), c_int(precision))
+
+
+@_require_runtime_version(0, 56, 0, 0)
+def loadfont(filename):
+    """
+    Load a font file from a given filename.
+
+    **Parameters:**
+
+    `filename` :
+        The filename of the font
+
+    This function loads a font from a given filename and returns the font index
+    that has been assigned to it or `None` if the font could not be found.
+    To use the loaded font call `gr.settextfontprec` using the resulting font
+    index and precision 3.
+
+         gr.settextfontprec(gr.loadfont(filename), 3)
+
+    The filename can either be an absolute path or a filename like `Arial.ttf`.
+    Font files are searched in the directories specified by the `GKS_FONT_DIRS`
+    environment variable and the operating system's default font locations.
+
+    """
+    result = c_int()
+    __gr.gr_loadfont(char(filename), byref(result))
+    if result.value >= 0:
+        return result.value
 
 
 def setcharexpan(factor):
@@ -1975,6 +2024,16 @@ def hexbin(x, y, nbins):
 
 
 def setcolormap(index):
+    """
+    Set the current GR colormap.
+
+    **Parameters:**
+
+    `index` :
+        The colormap index, e.g. one of the `gr.COLORMAP_*` constants
+
+    For a list of built-in colormaps, see https://gr-framework.org/colormaps.html.
+    """
     __gr.gr_setcolormap(c_int(index))
 
 
@@ -3453,6 +3512,170 @@ def setspace3d(phi, theta, fov, camera_distance):
     __gr.gr_setspace3d(c_double(phi), c_double(theta), c_double(fov), c_double(camera_distance))
 
 
+@_require_runtime_version(0, 58, 0, 0)
+def setthreadnumber(num):
+    """
+    Set the number of threads which can run parallel.
+
+    The default value is the number of threads the cpu has. The only usage
+    right now is inside gr_cpubasedvolume.
+
+    **Parameters:**
+
+    `num` :
+        number of threads
+    """
+    __gr.gr_setthreadnumber(c_int(num))
+
+
+@_require_runtime_version(0, 58, 0, 0)
+def setpicturesizeforvolume(width, height):
+    """
+    Set the width and height of the resulting picture. These values are only used for gr_volume and gr_cpubasedvolume.
+
+    The default values are 1000 for both.
+
+    **Parameters:**
+
+    `width` :
+        width of the resulting image
+    `height` :
+        height of the resulting image
+    """
+    __gr.gr_setpicturesizeforvolume(c_int(width), c_int(height))
+
+
+@_require_runtime_version(0, 58, 0, 0)
+def setvolumebordercalculation(flag):
+    """
+    Set the gr_volume border type with this flag.
+
+    This influences how the volume is calculated. When the flag is set to
+    VOLUME_WITH_BORDER the border will be calculated the same as the points
+    inside the volume.
+
+    **Parameters:**
+
+    `flag` :
+        calculation of the gr.volume border
+
+    The available options are:
+
+    +---------------------------+---+-----------------------+
+    |VOLUME_WITHOUT_BORDER   |  0|default value          |
+    +---------------------------+---+-----------------------+
+    |VOLUME_WITH_BORDER      |  1|gr_volume with border  |
+    +---------------------------+---+-----------------------+
+    """
+    __gr.gr_setvolumebordercalculation(c_int(flag))
+
+
+@_require_runtime_version(0, 58, 0, 0)
+def setapproximativecalculation(approximative_calculation):
+    """
+    Set if gr_cpubasedvolume is calculated approximative or exact.
+
+    To use the exact calculation set approximative_calculation to 0. The
+    default value is the approximative version, which can be set with the
+    number 1.
+
+    **Parameters:**
+
+    `approximative_calculation` :
+        exact or approximative calculation of the volume
+    """
+    if isinstance(approximative_calculation, bool):
+        approximative_calculation = 1 if approximative_calculation else 0
+    __gr.gr_setapproximativecalculation(c_int(approximative_calculation))
+
+
+@_require_runtime_version(0, 58, 0, 0)
+def inqvolumeflags():
+    """
+    Returns the parameters which can be set for gr_cpubasedvolume.
+
+    The following parameters are returned as a tuple:
+
+    - volume border type (VOLUME_WITHOUT_BORDER or VOLUME_WITH_BORDER)
+    - maximum number of threads used
+    - picture width in pixels
+    - picture height in pixels
+    - whether or not the approximative calculation is used
+    """
+    border = c_int()
+    max_threads = c_int()
+    picture_width = c_int()
+    picture_height = c_int()
+    approximative_calculation = c_int()
+    __gr.gr_inqvolumeflags(byref(border), byref(max_threads), byref(picture_width), byref(picture_height), byref(approximative_calculation))
+
+    return (
+        border.value,
+        max_threads.value,
+        picture_width.value,
+        picture_height.value,
+        True if approximative_calculation.value else False
+    )
+
+
+@_require_runtime_version(0, 58, 0, 0)
+def cpubasedvolume(data, algorithm, dmin, dmax, min_val, max_val):
+    """
+    Draw volume data with raycasting using the given algorithm and apply the current GR colormap.
+
+    The minimum and maximum values used for the colormap are returned as a tuple.
+
+    **Parameters:**
+
+    `data` :
+        a three-dimensional numpy array containing the intensities for each point
+    `algorithm` :
+        the algorithm to reduce the volume data
+    `dmin` :
+        minimum value when applying the colormap, or None to use the actual occuring minimum
+    `dmax` :
+        maximum value when applying the colormap, or None to use the actual occuring maximum
+    `min_val` :
+        array with the minimum coordinates of the volume data, or None to use -1 for each axis
+    `max_val` :
+        array with the maximum coordinates of the volume data, or None to use 1 for each axis
+
+    Available algorithms are:
+
+    +---------------------+---+-----------------------------+
+    |VOLUME_EMISSION   |  0|emission model               |
+    +---------------------+---+-----------------------------+
+    |VOLUME_ABSORPTION |  1|absorption model             |
+    +---------------------+---+-----------------------------+
+    |VOLUME_MIP        |  2|maximum intensity projection |
+    +---------------------+---+-----------------------------+
+    """
+
+    data = np.array(data, copy=False, ndmin=3)
+    nz, ny, nx = data.shape
+    _data = floatarray(nx * ny * nz, data)
+    if dmin is None:
+        dmin = c_double(-1)
+    else:
+        dmin = c_double(dmin)
+    if dmax is None:
+        dmax = c_double(-1)
+    else:
+        dmax = c_double(dmax)
+    if min_val is None:
+        min_val_ptr = cast(c_void_p(0), POINTER(c_double))
+    else:
+        min_val_ptr = (c_double * 3)(min_val[0], min_val[1], min_val[2])
+    if max_val is None:
+        max_val_ptr = cast(c_void_p(0), POINTER(c_double))
+    else:
+        max_val_ptr = (c_double * 3)(max_val[0], max_val[1], max_val[2])
+
+    __gr.gr_cpubasedvolume(c_int(nx), c_int(ny), c_int(nz), _data.data, c_int(algorithm), byref(dmin), byref(dmax), min_val_ptr, max_val_ptr)
+
+    return dmin.value, dmax.value
+
+
 def wrapper_version():
     """
     Returns the version string of the Python package gr.
@@ -3727,6 +3950,25 @@ if _RUNTIME_VERSION >= (0, 48, 0, 0):
     __gr.gr_setspace3d.argtypes = [c_double, c_double, c_double, c_double]
     __gr.gr_setspace3d.restype = None
 
+if _RUNTIME_VERSION >= (0, 56, 0, 0):
+    __gr.gr_loadfont.argtypes = [c_char_p, POINTER(c_int)]
+    __gr.gr_loadfont.restype = None
+
+if _RUNTIME_VERSION >= (0, 58, 0, 0):
+    __gr.gr_inqvpsize.argtypes = [POINTER(c_int), POINTER(c_int), POINTER(c_double)]
+    __gr.gr_inqvpsize.restype = None
+    __gr.gr_setthreadnumber.argtypes = [c_int]
+    __gr.gr_setthreadnumber.restype = None
+    __gr.gr_setpicturesizeforvolume.argtypes = [c_int, c_int]
+    __gr.gr_setpicturesizeforvolume.restype = None
+    __gr.gr_setvolumebordercalculation.argtypes = [c_int]
+    __gr.gr_setvolumebordercalculation.restype = None
+    __gr.gr_setapproximativecalculation.argtypes = [c_int]
+    __gr.gr_setapproximativecalculation.restype = None
+    __gr.gr_inqvolumeflags.argtypes = [POINTER(c_int), POINTER(c_int), POINTER(c_int), POINTER(c_int), POINTER(c_int)]
+    __gr.gr_inqvolumeflags.restype = None
+    __gr.gr_cpubasedvolume.argtypes = [c_int, c_int, c_int, POINTER(c_double), c_int, POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double)]
+    __gr.gr_cpubasedvolume.restype = None
 
 precision = __gr.gr_precision()
 
@@ -4052,6 +4294,10 @@ if _RUNTIME_VERSION >= (0, 46, 0, 76):
     PROJECTION_DEFAULT = 0
     PROJECTION_ORTHOGRAPHIC = 1
     PROJECTION_PERSPECTIVE = 2
+
+if _RUNTIME_VERSION >= (0, 58, 0, 0):
+    VOLUME_WITHOUT_BORDER = 0
+    VOLUME_WITH_BORDER = 1
 
 # automatically switch to inline graphics in Jupyter Notebooks
 if 'ipykernel' in sys.modules:

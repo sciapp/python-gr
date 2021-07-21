@@ -231,7 +231,7 @@ install-centos7-python2:
   script:
   - rm -rf install && mkdir install && cd install
   - yum install -y python
-  - curl -LO https://bootstrap.pypa.io/2.7/get-pip.py
+  - curl -LO https://bootstrap.pypa.io/pip/2.7/get-pip.py
   - python get-pip.py
   - pip install --upgrade pip==20.3.4
   - pip install ../dist/gr-*.tar.gz
@@ -291,7 +291,7 @@ install-opensuse15-python3:
 
 install-arch-python3:
   stage: install
-  image: archlinux/base
+  image: archlinux:base
   variables:
     GIT_STRATEGY: none
   script:
