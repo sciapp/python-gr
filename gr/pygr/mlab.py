@@ -3174,7 +3174,11 @@ def _plot_data(**kwargs):
             rgba = np.zeros((height, width), np.uint32)
             for x in range(width):
                 for y in range(height):
-                    rgba[y, x] = icmap[int(data[y, x])]
+                    if 0 <= data[y, x] <= 255:
+                        rgba[y, x] = icmap[int(data[y, x])]
+                    else:
+                        # make invalid values transparent
+                        rgba[y, x] = 0
             y_min, y_max = y_max, y_min
             gr.drawimage(x_min, x_max, y_min, y_max, width, height, rgba)
             if colorbar or colorbar is None:
