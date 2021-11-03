@@ -85,6 +85,15 @@ def find_packages_py2_or_py3(*args, **kwargs):
         kwds.setdefault('exclude', []).extend(['grm'])
     return find_packages(*args, **kwds)
 
+try:
+    from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
+    class bdist_wheel(_bdist_wheel):
+        def finalize_options(self):
+            _bdist_wheel.finalize_options(self)
+            self.root_is_pure = False
+except ImportError:
+    bdist_wheel = None
+
 
 class DownloadHashes(sdist):
     def run(self):
@@ -196,6 +205,12 @@ class DownloadBinaryDistribution(build_py):
             raise RuntimeError('No hash known for file: ' + file_name)
         return expected_hashes[file_name]
 
+    def finalize_options(self):
+            build_py.finalize_options(self)
+            self.root_is_pure = False
+
+
+
     def run(self):
         """
         Downloads, unzips and installs GKS, GR and GR3 binaries.
@@ -278,6 +293,7 @@ setup(
     ],
     cmdclass={
         'sdist': DownloadHashes,
-        'build_py': DownloadBinaryDistribution
+        'build_py': DownloadBinaryDistribution,
+        'bdist_wheel': bdist_wheel,
     }
 )
