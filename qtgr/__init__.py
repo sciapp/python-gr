@@ -306,8 +306,8 @@ class InteractiveGRWidget(GRWidget):
             coords.setNDC(p1.x, p1.y)
             p1dc = coords.getDC()
             if self._getPlotsForPoint(p0):
-                rect = QtCore.QRect(QtCore.QPoint(p0dc.x, p0dc.y),
-                                    QtCore.QPoint(p1dc.x, p1dc.y)).normalized()
+                rect = QtCore.QRect(QtCore.QPoint(int(p0dc.x), int(p0dc.y)),
+                                    QtCore.QPoint(int(p1dc.x), int(p1dc.y))).normalized()
                 self._painter.setOpacity(.75)
                 self._painter.drawRect(rect)
                 self._painter.setOpacity(1.)

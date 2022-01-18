@@ -9,7 +9,10 @@ Exported Classes:
 import math
 import time
 import logging
-import collections
+try:
+    from collections.abc import Iterable
+except ImportError:
+    from collections import Iterable
 # third party
 from numpy import ndarray, asarray
 # local library
@@ -1191,7 +1194,7 @@ def isinstanceof(other, cls):
 
 
 def islistof(otheriter, cls):
-    if isinstance(otheriter, collections.Iterable):
+    if isinstance(otheriter, Iterable):
         for other in otheriter:
             if not isinstance(other, cls):
                 raise ValueError("Iterable contains %s " % type(other) +
