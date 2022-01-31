@@ -29,7 +29,7 @@ __all__ = ['GR3_InitAttribute',
            'setcameraprojectionparameters',
            'setorthographicprojection',
            'setprojectiontype',
-           'getprojectiontype'
+           'getprojectiontype',
            'setlightdirection',
            'drawcylindermesh',
            'drawconemesh',
@@ -51,7 +51,15 @@ __all__ = ['GR3_InitAttribute',
            'createzslicemesh',
            'drawslicemeshes',
            'createslicemeshes',
-           'drawtrianglesurface']
+           'drawtrianglesurface',
+           'setclipping',
+           'getclipping',
+           'setlightsources',
+           'getlightsources',
+           'setlightparameters',
+           'getlightparameters',
+           'setdefaultlightparameters'
+           ]
 
 
 import sys
@@ -1569,6 +1577,133 @@ if hasattr(_gr3, 'gr3_setorthographicprojection'):
         _gr3.gr3_setorthographicprojection(c_float(left), c_float(right), c_float(bottom), c_float(top), c_float(znear), c_float(zfar))
 
 
+if hasattr(_gr3, 'gr3_setclipping'):
+    def setclipping(xmin, xmax, ymin, ymax, zmin, zmax):
+        """
+        Set the axis aligned clipping box.
+
+        :param xmin: minimum rendered coordinate along x-axis
+        :param xmax: maximum rendered coordinate along x-axis
+        :param ymin: minimum rendered coordinate along y-axis
+        :param ymax: maximum rendered coordinate along y-axis
+        :param zmin: minimum rendered coordinate along z-axis
+        :param zmax: maximum rendered coordinate along z-axis
+        """
+        _gr3.gr3_setclipping(c_float(xmin), c_float(xmax), c_float(ymin), c_float(ymax), c_float(zmin), c_float(zmax))
+
+
+if hasattr(_gr3, 'gr3_getclipping'):
+    def getclipping():
+        """
+        Get the axis aligned clipping box.
+
+        :return: the bounding box minimum and maximum coordinates
+        """
+        xmin = c_float(0)
+        xmax = c_float(0)
+        ymin = c_float(0)
+        ymax = c_float(0)
+        zmin = c_float(0)
+        zmax = c_float(0)
+        _gr3.gr3_getclipping(byref(xmin), byref(xmax), byref(ymin), byref(ymax), byref(zmin), byref(zmax))
+        return (
+            xmin.value,
+            xmax.value,
+            ymin.value,
+            ymax.value,
+            zmin.value,
+            zmax.value
+        )
+
+
+if hasattr(_gr3, 'gr3_setlightsources'):
+    def setlightsources(directions, colors):
+        """
+        Set the current light sources.
+
+        Any light sources beyond the maximum number of light sources will be ignored.
+
+        :param directions: a list of directions
+        :param colors: a list of colors
+        """
+        directions = floatarray(directions)
+        colors = floatarray(colors)
+        directions.array.shape = numpy.prod(directions.array.shape)
+        colors.array.shape = numpy.prod(colors.array.shape)
+        if len(directions.array) != len(colors.array):
+            raise ValueError('directions and colors must be of same length')
+        if len(directions.array) % 3:
+            raise ValueError('directions and colors must be a multiple of three in length')
+        num_light_sources = len(directions.array) // 3
+        _gr3.gr3_setlightsources(c_int(num_light_sources), directions.data, colors.data)
+
+
+if hasattr(_gr3, 'gr3_getlightsources'):
+    def getlightsources():
+        """
+        Get the current light sources.
+
+        :return: the light source directions and colors
+        """
+        num_light_sources = _gr3.gr3_getlightsources(0, None, None)
+        directions = (c_float * (num_light_sources * 3))()
+        colors = (c_float * (num_light_sources * 3))()
+        num_light_sources = _gr3.gr3_getlightsources(c_int(num_light_sources), directions, colors)
+        directions = [
+            (float(directions[i * 3 + 0]), float(directions[i * 3 + 1]), float(directions[i * 3 + 2]))
+            for i in range(num_light_sources)
+        ]
+        colors = [
+            (float(colors[i * 3 + 0]), float(colors[i * 3 + 1]), float(colors[i * 3 + 2]))
+            for i in range(num_light_sources)
+        ]
+        return directions, colors
+
+
+if hasattr(_gr3, 'gr3_setlightparameters'):
+    def setlightparameters(ambient, diffuse, specular, specular_exponent):
+        """
+        Set the current light parameters.
+
+        :param ambient: ambient intensity
+        :param diffuse: diffuse intensity
+        :param specular: specular intensity
+        :param specular_exponent: specular exponent for rendered surfaces
+        """
+        _gr3.gr3_setlightparameters(c_float(ambient), c_float(diffuse), c_float(specular), c_float(specular_exponent))
+
+
+if hasattr(_gr3, 'gr3_getlightparameters'):
+    def getlightparameters():
+        """
+        Get the current light parameters.
+
+        :return: ambient, diffuse, specular and specular exponent
+        """
+        ambient = c_float(0)
+        diffuse = c_float(0)
+        specular = c_float(0)
+        specular_exponent = c_float(0)
+        _gr3.gr3_getlightparameters(byref(ambient), byref(diffuse), byref(specular), byref(specular_exponent))
+        return (
+            ambient.value,
+            diffuse.value,
+            specular.value,
+            specular_exponent.value,
+        )
+
+
+if hasattr(_gr3, 'gr3_setdefaultlightparameters'):
+    def setdefaultlightparameters():
+        """
+        Set the default light parameters.
+
+        The current default light parameters are 0.2 for ambient, 0.8 for
+        diffuse, 0.7 for specular and 128 for specular exponent.
+        """
+        _gr3.gr3_setdefaultlightparameters()
+
+
 _gr3.gr3_init.argtypes = [POINTER(c_int)]
 _gr3.gr3_terminate.argtypes = []
 _gr3.gr3_useframebuffer.argtypes = [c_uint]
@@ -1727,6 +1862,33 @@ if hasattr(_gr3, 'gr3_setorthographicprojection'):
     _gr3.gr3_setorthographicprojection.restype = None
     _gr3.gr3_setorthographicprojection.argtypes = [c_float, c_float, c_float, c_float, c_float, c_float]
 
+if hasattr(_gr3, 'gr3_setclipping'):
+    _gr3.gr3_setclipping.restype = None
+    _gr3.gr3_setclipping.argtypes = [c_float, c_float, c_float, c_float, c_float, c_float]
+
+if hasattr(_gr3, 'gr3_getclipping'):
+    _gr3.gr3_getclipping.restype = None
+    _gr3.gr3_getclipping.argtypes = [POINTER(c_float), POINTER(c_float), POINTER(c_float), POINTER(c_float), POINTER(c_float), POINTER(c_float)]
+
+if hasattr(_gr3, 'gr3_setlightsources'):
+    _gr3.gr3_setlightsources.restype = c_int
+    _gr3.gr3_setlightsources.argtypes = [c_int, POINTER(c_float), POINTER(c_float)]
+
+if hasattr(_gr3, 'gr3_getlightsources'):
+    _gr3.gr3_getlightsources.restype = c_int
+    _gr3.gr3_getlightsources.argtypes = [c_int, POINTER(c_float), POINTER(c_float)]
+
+if hasattr(_gr3, 'gr3_setlightparameters'):
+    _gr3.gr3_setlightparameters.restype = None
+    _gr3.gr3_setlightparameters.argtypes = [c_float, c_float, c_float, c_float]
+
+if hasattr(_gr3, 'gr3_getlightparameters'):
+    _gr3.gr3_getlightparameters.restype = None
+    _gr3.gr3_getlightparameters.argtypes = [POINTER(c_float), POINTER(c_float), POINTER(c_float), POINTER(c_float)]
+
+if hasattr(_gr3, 'gr3_setdefaultlightparameters'):
+    _gr3.gr3_setdefaultlightparameters.restype = None
+    _gr3.gr3_setdefaultlightparameters.argtypes = []
 
 for symbol in dir(_gr3):
     if symbol.startswith('gr3_') and symbol != 'gr3_geterror':
