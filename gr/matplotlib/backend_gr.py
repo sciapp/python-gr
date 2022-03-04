@@ -30,6 +30,7 @@ class RendererGR(RendererBase):
     texd = maxdict(50)  # a cache of tex image rasters
 
     def __init__(self, dpi, width, height):
+        super(RendererGR, self).__init__()
         self.dpi = dpi
         if __version__[0] >= '2':
             self.nominal_fontsize = 0.001625
