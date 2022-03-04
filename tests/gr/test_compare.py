@@ -4,54 +4,61 @@ import os
 import shutil
 import platform
 
-from nose import with_setup
+import pytest
 
 from gr_test import CompareResult
 from gr_test import python_image as image_data
 from gr_test import python_video as video_data
 from gr_test.entry_points import safe_mkdir
-base_path = os.path.abspath(os.path.dirname(os.path.realpath(__name__)) + '/../../test_result/')
 
-if 'GR_TEST_BASE_PATH' in os.environ:
-    base_path = os.path.abspath(os.environ['GR_TEST_BASE_PATH'])
 
-results_path = os.path.abspath(base_path + '/' + platform.python_version())
+@pytest.fixture(scope='session')
+def base_dir():
+    base_path = os.path.abspath(os.path.dirname(os.path.realpath(__name__)) + '/../../test_result/')
 
-def setup_func():
+    if 'GR_TEST_BASE_PATH' in os.environ:
+        base_path = os.path.abspath(os.environ['GR_TEST_BASE_PATH'])
+
     try:
         os.mkdir(base_path)
     except OSError:
         pass
+    return base_path
+
+
+@pytest.fixture(scope='session')
+def results_dir(base_dir):
+    results_path = os.path.abspath(base_dir + '/' + platform.python_version())
 
     try:
         os.mkdir(results_path)
     except OSError:
         pass
+    return results_path
 
-@with_setup(setup_func)
-def test_images():
+
+def test_images(results_dir):
     image_data.create_files('TEST')
     consistency, pairs = image_data.get_test_data()
     for x in consistency:
-        yield succeed_if_none, x
-    for dir, ext, ref_name, test_name, base_name in pairs:
-        yield compare, dir, ext, ref_name, test_name, base_name
+        assert x is None
+    for dir, _, ref_name, test_name, base_name in pairs:
+        compare(dir, ref_name, test_name, base_name, results_dir)
 
-@with_setup(setup_func)
-def test_video():
+
+def test_video(results_dir):
     video_data.create_files('TEST')
     consistency, pairs = video_data.get_test_data()
     for x in consistency:
-        yield succeed_if_none, x
-    for dir, ext, ref_name, test_name, base_name in pairs:
-        yield compare, dir, ext, ref_name, test_name, base_name
+        assert x is None
+    for dir, _, ref_name, test_name, base_name in pairs:
+        compare(dir, ref_name, test_name, base_name, results_dir)
 
-def succeed_if_none(x):
-    assert x is None
 
-def compare(dir, ext, ref_name, test_name, base_name):
-    this_path = os.path.join(results_path, dir)
-    file_name = os.path.basename(test_name) # f.e. REFERENCE.pdf.png or frame-1.mov.png
+def compare(dir, ref_name, test_name, base_name, results_dir):
+    this_path = os.path.join(results_dir, dir)
+    # e.g. REFERENCE.pdf.png or frame-1.mov.png
+    file_name = os.path.basename(test_name)
 
     result = CompareResult(ref_name, test_name)
 
