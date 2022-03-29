@@ -3864,6 +3864,8 @@ __gr.gr_inqbbox.argtypes = [POINTER(c_double), POINTER(c_double),
                             POINTER(c_double), POINTER(c_double)]
 __gr.gr_precision.argtypes = []
 __gr.gr_precision.restype = c_double
+__gr.gr_text_maxsize.argtypes = []
+__gr.gr_text_maxsize.restype = c_int
 __gr.gr_setregenflags.argtypes = [c_int]
 __gr.gr_inqregenflags.argtypes = []
 __gr.gr_inqregenflags.restype = c_int
@@ -3971,6 +3973,7 @@ if _RUNTIME_VERSION >= (0, 58, 0, 0):
     __gr.gr_cpubasedvolume.restype = None
 
 precision = __gr.gr_precision()
+text_maxsize = __gr.gr_text_maxsize()
 
 ASF_BUNDLED = 0
 ASF_INDIVIDUAL = 1
