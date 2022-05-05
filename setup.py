@@ -110,6 +110,13 @@ class DownloadHashes(sdist):
 
 
 class DownloadBinaryDistribution(build_py):
+    SUPPORTED_LINUX_DISTRIBUTIONS = (
+        'ArchLinux',
+        'CentOS',
+        'Debian',
+        'Ubuntu',
+    )
+
     @staticmethod
     def get_file_from_mirrors(file_name, version, schema):
         mirrors = [
@@ -222,6 +229,10 @@ class DownloadBinaryDistribution(build_py):
             operating_system = DownloadBinaryDistribution.detect_os()
             if operating_system is not None:
                 arch = DownloadBinaryDistribution.detect_architecture()
+                if arch == 'i686' and (
+                    operating_system == 'Linux' or operating_system in self.SUPPORTED_LINUX_DISTRIBUTIONS
+                ):
+                    operating_system, arch = 'Linux', 'i386'
 
                 # check for desired build variant (e.g. -msvc)
                 variant = os.environ.get('GR_BUILD_VARIANT', '')
