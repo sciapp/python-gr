@@ -58,7 +58,9 @@ __all__ = ['GR3_InitAttribute',
            'getlightsources',
            'setlightparameters',
            'getlightparameters',
-           'setdefaultlightparameters'
+           'setdefaultlightparameters',
+           'getviewmatrix',
+           'setviewmatrix',
            ]
 
 
@@ -1704,6 +1706,29 @@ if hasattr(_gr3, 'gr3_setdefaultlightparameters'):
         _gr3.gr3_setdefaultlightparameters()
 
 
+if hasattr(_gr3, 'gr3_getviewmatrix'):
+    def getviewmatrix():
+        """
+        Get the current view matrix.
+
+        :return: 4x4 column major view matrix as numpy array
+        """
+        view_matrix = numpy.zeros((4, 4), dtype=numpy.float32, order='F')
+        _gr3.gr3_getviewmatrix(view_matrix.ctypes.data_as(POINTER(c_float)))
+
+        return view_matrix
+
+
+if hasattr(_gr3, 'gr3_setviewmatrix'):
+    def setviewmatrix(view_matrix):
+        """
+        Set the current view matrix.
+
+        :param view_matrix: 4x4 NumPy array (does not need to be in column order)
+        """
+        _gr3.gr3_setviewmatrix(numpy.asfortranarray(view_matrix, dtype=numpy.float32).ctypes.data_as(POINTER(c_float)))
+
+
 _gr3.gr3_init.argtypes = [POINTER(c_int)]
 _gr3.gr3_terminate.argtypes = []
 _gr3.gr3_useframebuffer.argtypes = [c_uint]
@@ -1889,6 +1914,14 @@ if hasattr(_gr3, 'gr3_getlightparameters'):
 if hasattr(_gr3, 'gr3_setdefaultlightparameters'):
     _gr3.gr3_setdefaultlightparameters.restype = None
     _gr3.gr3_setdefaultlightparameters.argtypes = []
+
+if hasattr(_gr3, 'gr3_getviewmatrix'):
+    _gr3.gr3_getviewmatrix.restype = None
+    _gr3.gr3_getviewmatrix.argtypes = [POINTER(c_float)]
+
+if hasattr(_gr3, 'gr3_setviewmatrix'):
+    _gr3.gr3_setviewmatrix.restype = None
+    _gr3.gr3_setviewmatrix.argtypes = [POINTER(c_float)]
 
 for symbol in dir(_gr3):
     if symbol.startswith('gr3_') and symbol != 'gr3_geterror':
