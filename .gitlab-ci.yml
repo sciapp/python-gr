@@ -6,11 +6,11 @@ stages:
 
 build:
   stage: build
-  image: ubuntu:16.04
+  image: ubuntu:20.04
   script:
   - apt-get update
-  - apt-get install -y virtualenv python-pip git
-  - virtualenv env
+  - apt-get install -y python3-venv python3-pip git
+  - python3 -m venv env
   - env/bin/pip install --upgrade pip
   - env/bin/python setup.py sdist
   artifacts:
@@ -83,7 +83,7 @@ rebuild-images:
 
 check-codestyle:
   stage: build
-  image: ubuntu:18.04
+  image: ubuntu:20.04
   script:
   - apt-get update
   - apt-get install -y python3-venv python3-pip git
@@ -170,6 +170,24 @@ install-ubuntu1804-python3:
 install-ubuntu2004-python3:
   stage: install
   image: ubuntu:20.04
+  variables:
+    GIT_STRATEGY: none
+  script:
+  - rm -rf install && mkdir install && cd install
+  - apt-get update
+  - apt-get install -y python3-venv python3-pip
+  - python3 -m venv env
+  - env/bin/pip install --upgrade pip
+  - env/bin/pip install ../dist/gr-*.tar.gz
+  - GKS_WSTYPE=png env/bin/python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
+  - env/bin/python -c 'import gr3'
+  artifacts:
+    paths:
+    - install/gks.png
+
+install-ubuntu2204-python3:
+  stage: install
+  image: ubuntu:22.04
   variables:
     GIT_STRATEGY: none
   script:
@@ -344,7 +362,7 @@ install-freebsd13-python3:
 
 deploy-to-github:
   stage: deploy
-  image: ubuntu:16.04
+  image: ubuntu:20.04
   variables:
     GIT_STRATEGY: none
   only:
@@ -365,7 +383,7 @@ deploy-to-github:
 
 deploy-to-pypi:
   stage: deploy
-  image: ubuntu:18.04
+  image: ubuntu:20.04
   variables:
     GIT_STRATEGY: none
   only:
