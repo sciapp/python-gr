@@ -6,11 +6,11 @@ stages:
 
 build:
   stage: build
-  image: ubuntu:16.04
+  image: ubuntu:20.04
   script:
   - apt-get update
-  - apt-get install -y virtualenv python-pip git
-  - virtualenv env
+  - apt-get install -y python3-venv python3-pip git
+  - python3 -m venv env
   - env/bin/pip install --upgrade pip
   - env/bin/python setup.py sdist
   artifacts:
@@ -83,7 +83,7 @@ rebuild-images:
 
 check-codestyle:
   stage: build
-  image: ubuntu:18.04
+  image: ubuntu:20.04
   script:
   - apt-get update
   - apt-get install -y python3-venv python3-pip git
@@ -94,42 +94,6 @@ check-codestyle:
   # Ignore line length check (E501)
   # Ignore single-line docstring check (D200)
   - env/bin/python3 -m flake8 --ignore E501,D200 gr/pygr/mlab.py grm/*
-
-install-ubuntu1604-python2:
-  stage: install
-  image: ubuntu:16.04
-  variables:
-    GIT_STRATEGY: none
-  script:
-  - rm -rf install && mkdir install && cd install
-  - apt-get update
-  - apt-get install -y virtualenv python-pip
-  - virtualenv env
-  - env/bin/pip install --upgrade pip==20.3.4
-  - env/bin/pip install ../dist/gr-*.tar.gz
-  - GKS_WSTYPE=png env/bin/python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
-  - env/bin/python -c 'import gr3'
-  artifacts:
-    paths:
-    - install/gks.png
-
-install-ubuntu1604-python3:
-  stage: install
-  image: ubuntu:16.04
-  variables:
-    GIT_STRATEGY: none
-  script:
-  - rm -rf install && mkdir install && cd install
-  - apt-get update
-  - apt-get install -y python3-venv python3-pip
-  - python3 -m venv env
-  - env/bin/pip install --upgrade pip==20.3.4
-  - env/bin/pip install ../dist/gr-*.tar.gz
-  - GKS_WSTYPE=png env/bin/python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
-  - env/bin/python -c 'import gr3'
-  artifacts:
-    paths:
-    - install/gks.png
 
 install-ubuntu1804-python2:
   stage: install
@@ -185,27 +149,9 @@ install-ubuntu2004-python3:
     paths:
     - install/gks.png
 
-install-debian9-python2:
+install-ubuntu2204-python3:
   stage: install
-  image: debian:9
-  variables:
-    GIT_STRATEGY: none
-  script:
-  - rm -rf install && mkdir install && cd install
-  - apt-get update
-  - apt-get install -y virtualenv python-pip
-  - virtualenv env
-  - env/bin/pip install --upgrade pip==20.3.4
-  - env/bin/pip install ../dist/gr-*.tar.gz
-  - GKS_WSTYPE=png env/bin/python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
-  - env/bin/python -c 'import gr3'
-  artifacts:
-    paths:
-    - install/gks.png
-
-install-debian9-python3:
-  stage: install
-  image: debian:9
+  image: ubuntu:22.04
   variables:
     GIT_STRATEGY: none
   script:
@@ -221,9 +167,27 @@ install-debian9-python3:
     paths:
     - install/gks.png
 
-install-debian9-armhf-python3:
+install-debian11-python3:
   stage: install
-  image: debian:9
+  image: debian:11
+  variables:
+    GIT_STRATEGY: none
+  script:
+  - rm -rf install && mkdir install && cd install
+  - apt-get update
+  - apt-get install -y python3-venv python3-pip
+  - python3 -m venv env
+  - env/bin/pip install --upgrade pip
+  - env/bin/pip install ../dist/gr-*.tar.gz
+  - GKS_WSTYPE=png env/bin/python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
+  - env/bin/python -c 'import gr3'
+  artifacts:
+    paths:
+    - install/gks.png
+
+install-debian11-armhf-python3:
+  stage: install
+  image: debian:11
   tags:
     - armhf
   variables:
@@ -259,25 +223,25 @@ install-centos7-python2:
     paths:
     - install/gks.png
 
-install-fedora30-python2:
+install-rockylinux8-python3:
   stage: install
-  image: fedora:30
+  image: rockylinux:8
   variables:
     GIT_STRATEGY: none
   script:
   - rm -rf install && mkdir install && cd install
-  - dnf install -y python-pip
-  - pip install --upgrade pip==20.3.4
-  - pip install ../dist/gr-*.tar.gz
-  - GKS_WSTYPE=png python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
-  - python -c 'import gr3'
+  - dnf install -y python3-pip
+  - python3 -m pip install --upgrade pip
+  - python3 -m pip install ../dist/gr-*.tar.gz
+  - GKS_WSTYPE=png python3 -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
+  - python3 -c 'import gr3'
   artifacts:
     paths:
     - install/gks.png
 
-install-fedora30-python3:
+install-fedora36-python3:
   stage: install
-  image: fedora:30
+  image: fedora:36
   variables:
     GIT_STRATEGY: none
   script:
@@ -344,7 +308,7 @@ install-freebsd13-python3:
 
 deploy-to-github:
   stage: deploy
-  image: ubuntu:16.04
+  image: ubuntu:20.04
   variables:
     GIT_STRATEGY: none
   only:
@@ -365,7 +329,7 @@ deploy-to-github:
 
 deploy-to-pypi:
   stage: deploy
-  image: ubuntu:18.04
+  image: ubuntu:20.04
   variables:
     GIT_STRATEGY: none
   only:
@@ -411,6 +375,7 @@ deploy-to-aur:
     - develop@Scientific-IT-Systems/python-gr
     - tags@Scientific-IT-Systems/python-gr
   script:
+  - git config --global --add safe.directory "$(pwd)"
   - mkdir --mode=700 ~/.ssh/
   - (umask 0377 && echo "$AUR_GR_PRIVATE_KEY" > ~/.ssh/id_rsa
                 && echo "aur.archlinux.org $AUR_HOST_KEY" >> ~/.ssh/known_hosts)

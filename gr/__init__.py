@@ -1604,6 +1604,30 @@ def inqtextext(x, y, string):
 _axeslbl_callback = CFUNCTYPE(c_void_p, c_double, c_double, c_char_p, c_double)
 
 
+def setscientificformat(format_option):
+    """
+    Specify the format to be used when scientific notation is used.
+
+    **Parameters:**
+
+    `format_option` :
+        Format option to be used
+
+    Available format options:
+
+    +-----------------------------------+-------+
+    |format option                      |Value  |
+    +-----------------------------------+-------+
+    |SCIENTIFIC_FORMAT_OPTION_E         |1      |
+    +-----------------------------------+-------+
+    |SCIENTIFIC_FORMAT_OPTION_TEXTEX    |2      |
+    +-----------------------------------+-------+
+    |SCIENTIFIC_FORMAT_OPTION_MATHTEX   |3      |
+    +-----------------------------------+-------+
+    """
+    __gr.gr_setscientificformat(c_int(format_option))
+
+
 def axeslbl(x_tick, y_tick, x_org, y_org, major_x, major_y, tick_size,
             fpx=0, fpy=0):
     if fpx is None:
@@ -3972,6 +3996,10 @@ if _RUNTIME_VERSION >= (0, 58, 0, 0):
     __gr.gr_cpubasedvolume.argtypes = [c_int, c_int, c_int, POINTER(c_double), c_int, POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double)]
     __gr.gr_cpubasedvolume.restype = None
 
+if _RUNTIME_VERSION >= (0, 64, 2, 35):
+    __gr.gr_setscientificformat.argtypes = [c_int]
+    __gr.gr_setscientificformat.restype = None
+
 precision = __gr.gr_precision()
 text_maxsize = __gr.gr_text_maxsize()
 
@@ -4211,6 +4239,10 @@ FONT_ZAPFCHANCERY_MEDIUMITALIC = 130
 FONT_ZAPFDINGBATS = 131
 FONT_COMPUTERMODERN = 232
 FONT_DEJAVUSANS = 233
+
+SCIENTIFIC_FORMAT_OPTION_E = 1
+SCIENTIFIC_FORMAT_OPTION_TEXTEX = 2
+SCIENTIFIC_FORMAT_OPTION_MATHTEX = 3
 
 # gr.beginprint types
 PRINT_PS = "ps"
