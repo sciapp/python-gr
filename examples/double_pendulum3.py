@@ -82,7 +82,7 @@ gr3.init()
 gr3.setcameraprojectionparameters(45, 1, 100)
 gr3.cameralookat(6, -2, 4, 0, -2, 0, 0, 1, 0)
 gr3.setbackgroundcolor(1, 1, 1, 1)
-gr3.setlightdirection(1, 1, 10)
+gr3.setlightdirection(-1, -1, -10)
 
 now = perf_counter()
 
