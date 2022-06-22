@@ -59,7 +59,7 @@ class GRWidget(QWidget):
         self._mwidth = self._dwidth * 2.54 / self.physicalDpiX() / 100.
         self._mheight = self._dheight * 2.54 / self.physicalDpiY() / 100.
         self._keepRatio = False
-        self._bgColor = QtCore.Qt.white
+        self._bgColor = QtCore.Qt.GlobalColor.white
         os.environ["GKS_WSTYPE"] = "381" # GKS Qt Plugin
         os.environ["GKS_DOUBLE_BUF"] = "True"
 

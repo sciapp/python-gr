@@ -42,6 +42,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 QT_PYSIDE = "PySide"
 QT_PYQT4 = "PyQt4"
 QT_PYQT5 = "PyQt5"
+QT_PYQT6 = "PyQt6"
 
 # modules, functions and classes that we provide
 QtCore = None
@@ -59,6 +60,11 @@ uic = None
 
 getGKSConnectionId = None
 QtVersionTuple = None
+Modifier = None
+_Modifier = collections.namedtuple("Modifier", [
+    "ShiftModifier", "ControlModifier", "AltModifier", "MetaModifier",
+    "KeypadModifier", "GroupSwitchModifier",
+])
 
 # selecting the backend order:
 if hasattr(gr, "QT_BACKEND_ORDER"):
@@ -73,7 +79,7 @@ elif 'PyQt4' in sys.modules and 'PySide' not in sys.modules:
 else:
     # check which backend is already imported
     # fallback to default order if no import can be detected
-    QT_BACKEND_ORDER = [QT_PYQT4, QT_PYSIDE, QT_PYQT5]
+    QT_BACKEND_ORDER = [QT_PYQT4, QT_PYSIDE, QT_PYQT6, QT_PYQT5]
     for i, backend in enumerate(QT_BACKEND_ORDER[:]):
         if backend in sys.modules:
             QT_BACKEND_ORDER.insert(0, QT_BACKEND_ORDER.pop(i))
@@ -86,7 +92,7 @@ VersionTuple = collections.namedtuple('VersionTuple', ['major', 'minor', 'patch'
 def _importPySide():
     global QApplication, QtCore, QtGui, QtWidgets, QtPrintSupport, QWidget, \
         QGesture, QGestureRecognizer, QPainter, QPrinter, QPrintDialog, uic
-    global getGKSConnectionId, QtVersionTuple
+    global getGKSConnectionId, QtVersionTuple, Modifier
 
     from PySide import QtCore
     from PySide import QtGui
@@ -100,6 +106,14 @@ def _importPySide():
         import shiboken  # Anaconda
 
     QtVersionTuple = VersionTuple(*QtCore.__version_info__)
+    Modifier = _Modifier(
+        ShiftModifier = QtCore.Qt.ShiftModifier,
+        ControlModifier = QtCore.Qt.ControlModifier,
+        AltModifier = QtCore.Qt.AltModifier,
+        MetaModifier = QtCore.Qt.MetaModifier,
+        KeypadModifier = QtCore.Qt.KeypadModifier,
+        GroupSwitchModifier = QtCore.Qt.GroupSwitchModifier,
+    )
 
     # Load QtCore module (which is a c++ extension module) and export all
     # symbols globally
@@ -115,7 +129,7 @@ def _importPySide():
 def _importPyQt4():
     global QApplication, QtCore, QtGui, QtWidgets, QtPrintSupport, QWidget, \
         QGesture, QGestureRecognizer, QPainter, QPrinter, QPrintDialog, uic
-    global getGKSConnectionId, QtVersionTuple
+    global getGKSConnectionId, QtVersionTuple, Modifier
 
     from PyQt4 import QtCore
     from PyQt4 import QtGui
@@ -130,6 +144,14 @@ def _importPyQt4():
     QtCore.Signal = QtCore.pyqtSignal
 
     QtVersionTuple = VersionTuple(*map(int, QtCore.QT_VERSION_STR.split('.')))
+    Modifier = _Modifier(
+        ShiftModifier = QtCore.Qt.ShiftModifier,
+        ControlModifier = QtCore.Qt.ControlModifier,
+        AltModifier = QtCore.Qt.AltModifier,
+        MetaModifier = QtCore.Qt.MetaModifier,
+        KeypadModifier = QtCore.Qt.KeypadModifier,
+        GroupSwitchModifier = QtCore.Qt.GroupSwitchModifier,
+    )
 
     # Load QtCore module (which is a c++ extension module) and export all
     # symbols globally
@@ -145,7 +167,7 @@ def _importPyQt4():
 def _importPyQt5():
     global QApplication, QtCore, QtGui, QtWidgets, QtPrintSupport, QWidget, \
         QGesture, QGestureRecognizer, QPainter, QPrinter, QPrintDialog, uic
-    global getGKSConnectionId, QtVersionTuple
+    global getGKSConnectionId, QtVersionTuple, Modifier
 
     from PyQt5 import QtCore
     from PyQt5 import QtGui
@@ -161,6 +183,54 @@ def _importPyQt5():
     QtCore.Signal = QtCore.pyqtSignal
 
     QtVersionTuple = VersionTuple(*map(int, QtCore.QT_VERSION_STR.split('.')))
+    Modifier = _Modifier(
+        ShiftModifier = QtCore.Qt.ShiftModifier,
+        ControlModifier = QtCore.Qt.ControlModifier,
+        AltModifier = QtCore.Qt.AltModifier,
+        MetaModifier = QtCore.Qt.MetaModifier,
+        KeypadModifier = QtCore.Qt.KeypadModifier,
+        GroupSwitchModifier = QtCore.Qt.GroupSwitchModifier,
+    )
+
+    # Load QtCore module (which is a c++ extension module) and export all
+    # symbols globally
+    # -> The gks plugin loader can load the "qVersion" function with dlsym and
+    # determine the correct qt version
+    ctypes.CDLL(QtCore.__file__, ctypes.RTLD_GLOBAL)
+
+    def getGKSConnectionId(widget, painter):
+        return "%x!%x" % (sip.unwrapinstance(widget),
+                          sip.unwrapinstance(painter))
+
+
+def _importPyQt6():
+    global QApplication, QtCore, QtGui, QtWidgets, QtPrintSupport, QWidget, \
+        QGesture, QGestureRecognizer, QPainter, QPrinter, QPrintDialog, uic
+    global getGKSConnectionId, QtVersionTuple, Modifier
+
+    from PyQt6 import QtCore
+    from PyQt6 import QtGui
+    from PyQt6 import QtWidgets
+    from PyQt6 import QtPrintSupport
+    from PyQt6.QtGui import QPainter
+    from PyQt6.QtWidgets import QApplication, QWidget, QGesture, \
+        QGestureRecognizer
+    from PyQt6.QtPrintSupport import QPrinter, QPrintDialog
+    from PyQt6 import uic
+    from PyQt6 import sip
+
+    # a bit of compatibility...
+    QtCore.Signal = QtCore.pyqtSignal
+
+    QtVersionTuple = VersionTuple(*map(int, QtCore.QT_VERSION_STR.split('.')))
+    Modifier = _Modifier(
+        ShiftModifier = QtCore.Qt.KeyboardModifier.ShiftModifier,
+        ControlModifier = QtCore.Qt.KeyboardModifier.ControlModifier,
+        AltModifier = QtCore.Qt.KeyboardModifier.AltModifier,
+        MetaModifier = QtCore.Qt.KeyboardModifier.MetaModifier,
+        KeypadModifier = QtCore.Qt.KeyboardModifier.KeypadModifier,
+        GroupSwitchModifier = QtCore.Qt.KeyboardModifier.GroupSwitchModifier,
+    )
 
     # Load QtCore module (which is a c++ extension module) and export all
     # symbols globally
@@ -175,7 +245,8 @@ def _importPyQt5():
 
 _importers = {QT_PYSIDE: _importPySide,
               QT_PYQT4:  _importPyQt4,
-              QT_PYQT5:  _importPyQt5}
+              QT_PYQT5:  _importPyQt5,
+              QT_PYQT6: _importPyQt6}
 
 for backend in QT_BACKEND_ORDER:
     try:
