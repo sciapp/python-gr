@@ -1031,6 +1031,10 @@ def setcharheight(height):
     __gr.gr_setcharheight(c_double(height))
 
 
+def setwscharheight(chh, height):
+    __gr.gr_setwscharheight(c_double(chh), c_double(height))
+
+
 def setcharup(ux, uy):
     """
     Set the current character text angle up vector.
@@ -3773,6 +3777,7 @@ __gr.gr_setcharexpan.argtypes = [c_double]
 __gr.gr_setcharspace.argtypes = [c_double]
 __gr.gr_settextcolorind.argtypes = [c_int]
 __gr.gr_setcharheight.argtypes = [c_double]
+__gr.gr_setwscharheight.argtypes = [c_double, c_double]
 __gr.gr_setcharup.argtypes = [c_double, c_double]
 __gr.gr_settextpath.argtypes = [c_int]
 __gr.gr_settextalign.argtypes = [c_int, c_int]
