@@ -96,28 +96,31 @@ class PanGestureRecognizer(MouseGestureBaseRecognizer):
         gesture.lastStartPoint = None
 
     def recognize(self, gesture, watched, event):
-        result = QGestureRecognizer.Ignore
+        result = QGestureRecognizer.ResultFlag.Ignore
         type = event.type()
         if (type == MouseEvent.MOUSE_PRESS and
                 self.getButtons() == event.getButtons() and
                 self.getModifiers() == event.getModifiers()):
-            result = QGestureRecognizer.MayBeGesture
+            result = QGestureRecognizer.ResultFlag.MayBeGesture
             gesture.startPoint = event
             gesture.lastStartPoint = None
             _log.debug("%s: MayBeGesture", self.__class__.__name__)
-        elif type == MouseEvent.MOUSE_RELEASE:
+        elif (type == MouseEvent.MOUSE_RELEASE and
+                self.getButtons() == event.getButtons() and
+                self.getModifiers() == event.getModifiers()):
             # if gesture is not NoGesture (0) or GestureFinished
-            if gesture.state() not in (0, QtCore.Qt.GestureFinished):
+            if gesture.state() not in (
+                    0, QtCore.Qt.GestureState.GestureFinished):
                 _log.debug("%s: FinishGesture", self.__class__.__name__)
-                result = QGestureRecognizer.FinishGesture
+                result = QGestureRecognizer.ResultFlag.FinishGesture
                 gesture.endPoint = event
                 gesture.offset = gesture.endPoint.getNDC() - \
                                  gesture.startPoint.getNDC()
             else:
-                result = QGestureRecognizer.CancelGesture
+                result = QGestureRecognizer.ResultFlag.CancelGesture
         elif type == MouseEvent.MOUSE_MOVE:
             if gesture.startPoint:
-                result = QGestureRecognizer.TriggerGesture
+                result = QGestureRecognizer.ResultFlag.TriggerGesture
                 if gesture.lastStartPoint:
                     gesture.startPoint = gesture.lastStartPoint
                 gesture.endPoint = event
@@ -126,7 +129,7 @@ class PanGestureRecognizer(MouseGestureBaseRecognizer):
                 if gesture.offset.norm() > 1E-3:
                     gesture.lastStartPoint = event
                 else:
-                    result = QGestureRecognizer.MayBeGesture
+                    result = QGestureRecognizer.ResultFlag.MayBeGesture
         return result
 
 
@@ -139,30 +142,33 @@ class SelectGestureRecognizer(MouseGestureBaseRecognizer):
         MouseGestureBaseRecognizer.__init__(self, buttons, modifiers)
 
     def recognize(self, gesture, watched, event):
-        result = QGestureRecognizer.Ignore
+        result = QGestureRecognizer.ResultFlag.Ignore
         type = event.type()
         if (type == MouseEvent.MOUSE_PRESS and
                 self.getButtons() == event.getButtons() and
                 self.getModifiers() == event.getModifiers()):
-            result = QGestureRecognizer.MayBeGesture
+            result = QGestureRecognizer.ResultFlag.MayBeGesture
             gesture.startPoint = event
             _log.debug("%s: MayBeGesture", self.__class__.__name__)
-        elif type == MouseEvent.MOUSE_RELEASE:
+        elif (type == MouseEvent.MOUSE_RELEASE and
+                self.getButtons() == event.getButtons() and
+                self.getModifiers() == event.getModifiers()):
             # if gesture is not NoGesture (0) or GestureFinished
-            if gesture.state() not in (0, QtCore.Qt.GestureFinished):
+            if gesture.state() not in (
+                    0, QtCore.Qt.GestureState.GestureFinished):
                 _log.debug("%s: FinishGesture", self.__class__.__name__)
-                result = QGestureRecognizer.FinishGesture
+                result = QGestureRecognizer.ResultFlag.FinishGesture
                 gesture.endPoint = event
                 gesture.offset = gesture.endPoint.getNDC() - \
                                  gesture.startPoint.getNDC()
             else:
-                result = QGestureRecognizer.CancelGesture
+                result = QGestureRecognizer.ResultFlag.CancelGesture
         elif type == MouseEvent.MOUSE_MOVE:
             if gesture.startPoint:
-                result = QGestureRecognizer.TriggerGesture
+                result = QGestureRecognizer.ResultFlag.TriggerGesture
                 gesture.endPoint = event
                 gesture.offset = gesture.endPoint.getNDC() - \
                                  gesture.startPoint.getNDC()
                 if gesture.offset.norm() <= 1E-3:
-                    result = QGestureRecognizer.MayBeGesture
+                    result = QGestureRecognizer.ResultFlag.MayBeGesture
         return result
