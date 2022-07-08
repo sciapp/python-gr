@@ -1205,6 +1205,16 @@ def inqfillcolorind():
     return color.value
 
 
+def setresizebehaviour(flag):
+    __gr.gr_setresizebehaviour(1 if flag else 0)
+
+
+def inqresizebehaviour():
+    flag = c_int()
+    __gr.gr_inqresizebehaviour(byref(flag))
+    return True if flag else False
+
+
 def setcolorrep(index, red, green, blue):
     """
     `setcolorrep` allows to redefine an existing color index representation by specifying
@@ -3787,6 +3797,8 @@ __gr.gr_setfillstyle.argtypes = [c_int]
 __gr.gr_inqfillstyle.argtypes = [POINTER(c_int)]
 __gr.gr_setfillcolorind.argtypes = [c_int]
 __gr.gr_inqfillcolorind.argtypes = [POINTER(c_int)]
+__gr.gr_setresizebehaviour.argtypes = [c_int]
+__gr.gr_inqresizebehaviour.argtypes = [POINTER(c_int)]
 __gr.gr_setcolorrep.argtypes = [c_int, c_double, c_double, c_double]
 __gr.gr_setwindow.argtypes = [c_double, c_double, c_double, c_double]
 __gr.gr_inqwindow.argtypes = [POINTER(c_double), POINTER(c_double),
