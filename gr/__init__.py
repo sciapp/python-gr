@@ -1031,6 +1031,10 @@ def setcharheight(height):
     __gr.gr_setcharheight(c_double(height))
 
 
+def setwscharheight(chh, height):
+    __gr.gr_setwscharheight(c_double(chh), c_double(height))
+
+
 def setcharup(ux, uy):
     """
     Set the current character text angle up vector.
@@ -1199,6 +1203,16 @@ def inqfillcolorind():
     color = c_int()
     __gr.gr_inqfillcolorind(byref(color))
     return color.value
+
+
+def setresizebehaviour(flag):
+    __gr.gr_setresizebehaviour(1 if flag else 0)
+
+
+def inqresizebehaviour():
+    flag = c_int()
+    __gr.gr_inqresizebehaviour(byref(flag))
+    return True if flag else False
 
 
 def setcolorrep(index, red, green, blue):
@@ -3773,6 +3787,7 @@ __gr.gr_setcharexpan.argtypes = [c_double]
 __gr.gr_setcharspace.argtypes = [c_double]
 __gr.gr_settextcolorind.argtypes = [c_int]
 __gr.gr_setcharheight.argtypes = [c_double]
+__gr.gr_setwscharheight.argtypes = [c_double, c_double]
 __gr.gr_setcharup.argtypes = [c_double, c_double]
 __gr.gr_settextpath.argtypes = [c_int]
 __gr.gr_settextalign.argtypes = [c_int, c_int]
@@ -3782,6 +3797,8 @@ __gr.gr_setfillstyle.argtypes = [c_int]
 __gr.gr_inqfillstyle.argtypes = [POINTER(c_int)]
 __gr.gr_setfillcolorind.argtypes = [c_int]
 __gr.gr_inqfillcolorind.argtypes = [POINTER(c_int)]
+__gr.gr_setresizebehaviour.argtypes = [c_int]
+__gr.gr_inqresizebehaviour.argtypes = [POINTER(c_int)]
 __gr.gr_setcolorrep.argtypes = [c_int, c_double, c_double, c_double]
 __gr.gr_setwindow.argtypes = [c_double, c_double, c_double, c_double]
 __gr.gr_inqwindow.argtypes = [POINTER(c_double), POINTER(c_double),
