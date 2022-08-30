@@ -5,7 +5,7 @@ from ctypes import c_int, c_char_p
 from ctypes import POINTER, CFUNCTYPE
 from ctypes import Union, Structure
 from enum import Enum
-from typing import Dict, Callable, Union as UnionT
+from typing import Callable, Union as UnionT
 
 from gr import _require_runtime_version, _RUNTIME_VERSION
 
