@@ -1,23 +1,25 @@
-from __future__ import print_function
-
 import os
 import shutil
 import platform
+import sys
 
+import numpy as np
 import pytest
 
+if sys.version_info.major < 3:
+    pytest.skip(allow_module_level=True)
+
 from gr_test import CompareResult
-from gr_test import python_image as image_data
-from gr_test import python_video as video_data
-from gr_test.entry_points import safe_mkdir
+from gr_test import PythonTestCase, WSType
+from gr_test.entry_points import safe_mkdirs
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def base_dir():
-    base_path = os.path.abspath(os.path.dirname(os.path.realpath(__name__)) + '/../../test_result/')
+    base_path = os.path.abspath(os.path.dirname(os.path.realpath(__name__)) + "/../../test_result/")
 
-    if 'GR_TEST_BASE_PATH' in os.environ:
-        base_path = os.path.abspath(os.environ['GR_TEST_BASE_PATH'])
+    if "GR_TEST_BASE_PATH" in os.environ:
+        base_path = os.path.abspath(os.environ["GR_TEST_BASE_PATH"])
 
     try:
         os.mkdir(base_path)
@@ -26,9 +28,9 @@ def base_dir():
     return base_path
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def results_dir(base_dir):
-    results_path = os.path.abspath(base_dir + '/' + platform.python_version())
+    results_path = os.path.abspath(base_dir + "/" + platform.python_version())
 
     try:
         os.mkdir(results_path)
@@ -37,41 +39,77 @@ def results_dir(base_dir):
     return results_path
 
 
-def test_images(results_dir):
-    image_data.create_files('TEST')
-    consistency, pairs = image_data.get_test_data()
-    for x in consistency:
-        assert x is None
-    for dir, _, ref_name, test_name, base_name in pairs:
-        compare(dir, ref_name, test_name, base_name, results_dir)
+test_cases = [
+    (test_case, wstype)
+    for x in PythonTestCase.gather_test_cases().values()
+    for test_case in x
+    for wstype in test_case.plugin.get_ws_types()
+]
 
 
-def test_video(results_dir):
-    video_data.create_files('TEST')
-    consistency, pairs = video_data.get_test_data()
-    for x in consistency:
-        assert x is None
-    for dir, _, ref_name, test_name, base_name in pairs:
-        compare(dir, ref_name, test_name, base_name, results_dir)
+def idfn(x):
+    return x.dst_ext if isinstance(x, WSType) else x.name
 
 
-def compare(dir, ref_name, test_name, base_name, results_dir):
-    this_path = os.path.join(results_dir, dir)
-    # e.g. REFERENCE.pdf.png or frame-1.mov.png
-    file_name = os.path.basename(test_name)
+@pytest.mark.parametrize("test_case, wstype", test_cases, ids=idfn)
+def test_python_test_case(test_case, wstype, results_dir):
+    test_case.generate("TEST", wstype)
 
-    result = CompareResult(ref_name, test_name)
+    p = test_case.get_pairs("REFERENCE", "TEST", wstype)
 
-    if not result.is_equal():
-        safe_mkdir(this_path)
+    errors = []
 
-        out_name = '%s/%s_diff.png' % (this_path, file_name)
-        result.make_diff_png(out_name)
+    for x, y in p:
+        err = compare(test_case, wstype, x, y, results_dir)
+        if err:
+            errors.append(err)
 
-        # Copy generated files to output directory
-        shutil.copy(test_name, '%s/%s' % (this_path, file_name))
+    if errors:
+        pytest.fail("Comparing failed: " + ", ".join(errors), pytrace=False)
+
+
+def compare(test_case, wstype, ref, test, results_dir):
+    base_name = test_case.get_base_name(wstype, test)
+
+    try:
+        result = CompareResult(ref, test)
+
+        if result.is_equal():
+            return None
+    except FileNotFoundError as ex:
+        this_out_dir = os.path.join(results_dir, test_case.name, wstype.dst_ext)
+        safe_mkdirs(this_out_dir)
+
+        # Conversion might have failed, copy base file
         if base_name is not None:
-            shutil.copy(base_name, '%s/%s' % (this_path, os.path.basename(base_name)))
-        print("diff png: %s" % out_name)
+            shutil.copy(base_name, os.path.join(this_out_dir, os.path.basename(base_name)))
 
-    assert result.is_equal()
+        return f"{test_case.name}/{wstype.dst_ext}/{file_name} (missing)"
+
+    this_out_dir = os.path.join(results_dir, test_case.name, wstype.dst_ext)
+    safe_mkdirs(this_out_dir)
+
+    # diff was found, make diff and copy base & generated test file
+
+    file_name = os.path.basename(test)
+    diff_path = os.path.join(this_out_dir, f"{file_name}_diff.png")
+    result.make_diff_png(diff_path)
+    print(
+        f"FAIL! Not equal: {os.path.relpath(ref, results_dir)} {os.path.relpath(test, results_dir)} View diffs in: {os.path.relpath(diff_path, results_dir)}"
+    )
+
+    # copy base
+    if base_name is not None:
+        shutil.copy(base_name, os.path.join(this_out_dir, os.path.basename(base_name)))
+
+    # copy test file
+    shutil.copy(test, os.path.join(this_out_dir, file_name))
+
+    stats = result.diff_stats()
+    with np.printoptions(precision=3, suppress=True):
+        print(f" max  {stats[0]}")
+        print(f" mean {stats[1]}")
+        print(f" std  {stats[2]}")
+        print(f" sum  {stats[3]}")
+
+    return f"{test_case.name}/{wstype.dst_ext}/{file_name}"
