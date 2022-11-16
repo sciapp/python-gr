@@ -9,6 +9,7 @@ from setuptools.command.sdist import sdist
 
 import glob
 import hashlib
+import re
 import sys
 import os
 import tarfile
@@ -166,7 +167,7 @@ class DownloadBinaryDistribution(build_py):
         if sys.platform.startswith('freebsd'):
             if os.access('/etc/os-release', os.R_OK):
                 with open('/etc/os-release', 'r') as f:
-                    release_info = {key: value for key, value in (line.split('=')[:2] for line in f)}
+                    release_info = {key: value for key, value in (re.split(r"=[\"']?", line)[:2] for line in f)}
                 if 'VERSION' in release_info:
                     major_version_str = release_info['VERSION'].split('.')[0]
                     if major_version_str.isdigit():
