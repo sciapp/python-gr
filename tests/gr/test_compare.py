@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 import shutil
 import platform
@@ -84,7 +86,7 @@ def compare(test_case, wstype, ref, test, results_dir):
         if base_name is not None:
             shutil.copy(base_name, os.path.join(this_out_dir, os.path.basename(base_name)))
 
-        return f"{test_case.name}/{wstype.dst_ext}/{file_name} (missing)"
+        return "%s/%s/%s (missing)" % (test_case.name, wstype.dst_ext, file_name)
 
     this_out_dir = os.path.join(results_dir, test_case.name, wstype.dst_ext)
     safe_mkdirs(this_out_dir)
@@ -92,10 +94,11 @@ def compare(test_case, wstype, ref, test, results_dir):
     # diff was found, make diff and copy base & generated test file
 
     file_name = os.path.basename(test)
-    diff_path = os.path.join(this_out_dir, f"{file_name}_diff.png")
+    diff_path = os.path.join(this_out_dir, "%s_diff.png" % file_name)
     result.make_diff_png(diff_path)
     print(
-        f"FAIL! Not equal: {os.path.relpath(ref, results_dir)} {os.path.relpath(test, results_dir)} View diffs in: {os.path.relpath(diff_path, results_dir)}"
+        "FAIL! Not equal: %s %s View diffs in: %s" %
+        (os.path.relpath(ref, results_dir), os.path.relpath(test, results_dir), os.path.relpath(diff_path, results_dir))
     )
 
     # copy base
@@ -107,9 +110,9 @@ def compare(test_case, wstype, ref, test, results_dir):
 
     stats = result.diff_stats()
     with np.printoptions(precision=3, suppress=True):
-        print(f" max  {stats[0]}")
-        print(f" mean {stats[1]}")
-        print(f" std  {stats[2]}")
-        print(f" sum  {stats[3]}")
+        print(" max  %s" % stats[0])
+        print(" mean %s" % stats[1])
+        print(" std  %s" % stats[2])
+        print(" sum  %s" % stats[3])
 
-    return f"{test_case.name}/{wstype.dst_ext}/{file_name}"
+    return "%s/%s/%s" % (test_case.name, wstype.dst_ext, file_name)
