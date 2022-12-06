@@ -2018,7 +2018,7 @@ def field_of_view(field_of_view):
     >>> mlab.field_of_view(None)
     >>> mlab.plot3(x, y, z)
     """
-    _plot_data(tilt=tilt)
+    _plot_data(field_of_view=field_of_view)
 
 
 @_close_gks_on_error
@@ -2659,7 +2659,7 @@ def _set_window(kind):
             gr.setwindow3d(x_min, x_max, y_min, y_max, z_min, z_max)
             gr.setwindow(-1, 1, -1, 1)
             rotation %= 360
-            tilt %= 380
+            tilt %= 180
             tilt = min(max(tilt, 0), 180)
             gr.setspace3d(-rotation, tilt, fov, 0)
 
@@ -2724,7 +2724,7 @@ def _draw_axes(kind, pass_=1):
             rotation = _plt.kwargs.get('rotation', 40)
             tilt = _plt.kwargs.get('tilt', 70)
             rotation %= 360
-            tilt %= 380
+            tilt %= 180
             tilt = min(max(tilt, 0), 180)
             zi = 0 if 0 <= tilt <= 90 else 1
             if pass_ == 1:
@@ -3281,12 +3281,12 @@ def _plot_data(**kwargs):
             width, height, device_pixel_ratio = gr.inqvpsize()
             gr.setpicturesizeforvolume(int(width * device_pixel_ratio), int(height * device_pixel_ratio))
             dmin, dmax = gr.volume(c, algorithm=_algorithm, dmin=dmin, dmax=dmax)
+            _draw_axes(kind, 2)
             prev_zrange = _plt.kwargs.get('zrange', None)
             _plt.kwargs['zrange'] = (dmin, dmax)
             if colorbar or colorbar is None:
                 _colorbar(0.05, label_name='dlabel')
             _plt.kwargs['zrange'] = prev_zrange
-            _draw_axes(kind, 2)
         elif kind == 'polar':
             gr.uselinespec(spec)
             _plot_polar(x, y)
