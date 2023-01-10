@@ -8,7 +8,7 @@ import numpy as np
 from ctypes import c_int, c_uint, c_double, c_char_p, c_void_p
 from ctypes import POINTER, create_string_buffer
 
-from typing import Union, Tuple, List, Dict, Optional, Any
+from typing import Union, Tuple, List, Dict, Optional
 
 from gr import _require_runtime_version, _RUNTIME_VERSION
 

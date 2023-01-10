@@ -2,7 +2,6 @@ stages:
 - build
 - install
 - deploy
-- deploy-to-aur
 
 build:
   stage: build
@@ -94,42 +93,6 @@ check-codestyle:
   # Ignore line length check (E501)
   # Ignore single-line docstring check (D200)
   - env/bin/python3 -m flake8 --ignore E501,D200 gr/pygr/mlab.py grm/*
-
-install-ubuntu1804-python2:
-  stage: install
-  image: ubuntu:18.04
-  variables:
-    GIT_STRATEGY: none
-  script:
-  - rm -rf install && mkdir install && cd install
-  - apt-get update
-  - apt-get install -y virtualenv python-pip
-  - virtualenv env
-  - env/bin/pip install --upgrade pip==20.3.4
-  - env/bin/pip install ../dist/gr-*.tar.gz
-  - GKS_WSTYPE=png env/bin/python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
-  - env/bin/python -c 'import gr3'
-  artifacts:
-    paths:
-    - install/gks.png
-
-install-ubuntu1804-python3:
-  stage: install
-  image: ubuntu:18.04
-  variables:
-    GIT_STRATEGY: none
-  script:
-  - rm -rf install && mkdir install && cd install
-  - apt-get update
-  - apt-get install -y python3-venv python3-pip
-  - python3 -m venv env
-  - env/bin/pip install --upgrade pip
-  - env/bin/pip install ../dist/gr-*.tar.gz
-  - GKS_WSTYPE=png env/bin/python -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
-  - env/bin/python -c 'import gr3'
-  artifacts:
-    paths:
-    - install/gks.png
 
 install-ubuntu2004-python3:
   stage: install
@@ -296,7 +259,7 @@ install-freebsd13-python3:
     GIT_STRATEGY: none
   script:
   - rm -rf install && mkdir install && cd install
-  - sudo pkg install -y python3 py38-pip
+  - sudo pkg install -y python3 py39-pip
   - python3 -m venv env
   - env/bin/pip install --upgrade pip
   - env/bin/pip install ../dist/gr-*.tar.gz
@@ -369,7 +332,9 @@ deploy-to-obs:
   - osc commit science\:gr-framework/python-gr/_service -m "Release $CI_COMMIT_TAG"
 
 deploy-to-aur:
-  stage: deploy-to-aur
+  stage: deploy
+  needs:
+  - deploy-to-github
   image: iffregistry.fz-juelich.de/docker-images/gr-build-images/$CI_JOB_NAME
   only:
     - develop@Scientific-IT-Systems/python-gr

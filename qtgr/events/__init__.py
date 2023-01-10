@@ -5,7 +5,7 @@ import logging
 # local library
 import gr
 from gr.pygr import DeviceCoordConverter
-from qtgr.backend import QtCore, backend, QT_PYQT5
+from qtgr.backend import QtCore, Modifier, backend, QT_PYQT5, QT_PYQT6
 from qtgr.events.mouse import MouseEvent, WheelEvent, PickEvent, LegendEvent,\
     ROIEvent, MouseGestureEvent
 from qtgr.events.gestures import MouseGestureBase, PanGesture, SelectGesture
@@ -67,26 +67,27 @@ class EventFilter(QtCore.QObject):
     def wheelEvent(self, type, target, event):
         """transform QWheelEvent to WheelEvent"""
         btn_mask = MouseEvent.NO_BUTTON
-        if event.buttons() & QtCore.Qt.LeftButton:
+        if event.buttons() & QtCore.Qt.MouseButton.LeftButton:
             btn_mask |= MouseEvent.LEFT_BUTTON
-        if event.buttons() & QtCore.Qt.RightButton:
+        if event.buttons() & QtCore.Qt.MouseButton.RightButton:
             btn_mask |= MouseEvent.RIGHT_BUTTON
 
-        if backend == QT_PYQT5:
+        if backend in (QT_PYQT5, QT_PYQT6):
             delta = event.angleDelta().y()
         else:
             delta = event.delta()
 
-        return WheelEvent(type, target.dwidth, target.dheight, event.x(),
-                          event.y(), btn_mask, delta)
+        return WheelEvent(type, target.dwidth, target.dheight,
+                          event.position().x(), event.position().y(),
+                          btn_mask, delta)
 
     def mouseEvent(self, type, target, event):
         """transform QMouseEvent to MouseEvent"""
         btn_mask = MouseEvent.NO_BUTTON
         mod_mask = MouseEvent.NO_MODIFIER
-        if event.buttons() & QtCore.Qt.LeftButton:
+        if event.buttons() & QtCore.Qt.MouseButton.LeftButton:
             btn_mask |= MouseEvent.LEFT_BUTTON
-        if event.buttons() & QtCore.Qt.RightButton:
+        if event.buttons() & QtCore.Qt.MouseButton.RightButton:
             btn_mask |= MouseEvent.RIGHT_BUTTON
 
         # special case: store last btn_mask in MouseEvent of type MOUSE_RELEASE
@@ -95,17 +96,17 @@ class EventFilter(QtCore.QObject):
             btn_mask == MouseEvent.NO_BUTTON):
             btn_mask = self._last_btn_mask
 
-        if event.modifiers() & QtCore.Qt.ShiftModifier:
+        if event.modifiers() & Modifier.ShiftModifier:
             mod_mask |= MouseEvent.SHIFT_MODIFIER
-        if event.modifiers() & QtCore.Qt.ControlModifier:
+        if event.modifiers() & Modifier.ControlModifier:
             mod_mask |= MouseEvent.CONTROL_MODIFIER
-        if event.modifiers() & QtCore.Qt.AltModifier:
+        if event.modifiers() & Modifier.AltModifier:
             mod_mask |= MouseEvent.ALT_MODIFIER
-        if event.modifiers() & QtCore.Qt.MetaModifier:
+        if event.modifiers() & Modifier.MetaModifier:
             mod_mask |= MouseEvent.META_MODIFIER
-        if event.modifiers() & QtCore.Qt.KeypadModifier:
+        if event.modifiers() & Modifier.KeypadModifier:
             mod_mask |= MouseEvent.KEYPAD_MODIFIER
-        if event.modifiers() & QtCore.Qt.GroupSwitchModifier:
+        if event.modifiers() & Modifier.GroupSwitchModifier:
             mod_mask |= MouseEvent.GROUP_SWITCH_MODIFIER
 
         # In order to support multiple plots in one widget
@@ -113,7 +114,7 @@ class EventFilter(QtCore.QObject):
         # `PlotAxes` below the cursor. Otherwise the window will be determined
         # using the internal state machine of ``gr``.
         coords = DeviceCoordConverter(target.dwidth, target.dheight)
-        coords.setDC(event.x(), event.y())
+        coords.setDC(event.pos().x(), event.pos().y())
         plots = target._getPlotsForPoint(coords.getNDC())
         window, scale = None, None
         if plots and len(plots) == 1:  # unambitious plot
@@ -124,8 +125,8 @@ class EventFilter(QtCore.QObject):
                 gr.setscale(axes.scale)
 
         mEvent = MouseEvent(type, target.dwidth, target.dheight,
-                            event.x(), event.y(), btn_mask, mod_mask,
-                            window=window, scale=scale)
+                            event.pos().x(), event.pos().y(), btn_mask,
+                            mod_mask, window=window, scale=scale)
         # special case:
         # save last btn_mask for handling in MouseEvent.MOUSE_RELEASE
         self._last_btn_mask = btn_mask
@@ -139,7 +140,7 @@ class EventFilter(QtCore.QObject):
         for g in gestures:
             if isinstance(g, MouseGestureBase):
                 etype = None
-                finish = (g.state() == QtCore.Qt.GestureFinished)
+                finish = (g.state() == QtCore.Qt.GestureState.GestureFinished)
                 p0 = g.startPoint.getDC()
                 if isinstance(g, PanGesture):
                     etype = MouseGestureEvent.MOUSE_PAN
@@ -157,15 +158,15 @@ class EventFilter(QtCore.QObject):
     def eventFilter(self, target, event):
         type = event.type()
         newevent = None
-        if type == QtCore.QEvent.MouseMove:
+        if type == QtCore.QEvent.Type.MouseMove:
             newevent = self.mouseEvent(MouseEvent.MOUSE_MOVE, target, event)
-        elif type == QtCore.QEvent.MouseButtonPress:
+        elif type == QtCore.QEvent.Type.MouseButtonPress:
             newevent = self.mouseEvent(MouseEvent.MOUSE_PRESS, target, event)
-        elif type == QtCore.QEvent.MouseButtonRelease:
+        elif type == QtCore.QEvent.Type.MouseButtonRelease:
             newevent = self.mouseEvent(MouseEvent.MOUSE_RELEASE, target, event)
-        elif type == QtCore.QEvent.Wheel:
+        elif type == QtCore.QEvent.Type.Wheel:
             newevent = self.wheelEvent(WheelEvent.WHEEL_MOVE, target, event)
-        elif type == QtCore.QEvent.Gesture:
+        elif type == QtCore.QEvent.Type.Gesture:
             self.handleGesture(target, event)
             # Intercept Gesture events only once otherwise new events may be
             # posted multiple times to the Event-Loop.

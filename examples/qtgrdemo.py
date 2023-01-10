@@ -254,6 +254,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self._chkLogY.setChecked(bool)
 
 if __name__ == '__main__':
+    # import qtgr
     # logging.basicConfig(level=logging.CRITICAL)
     # for name in [__name__, qtgr.__name__, qtgr.events.__name__,
     #              qtgr.events.base.__name__,
@@ -262,4 +263,4 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     mainWin = MainWindow()
     mainWin.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())

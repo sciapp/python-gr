@@ -12,8 +12,8 @@ import sys
 import warnings
 import numpy as np
 from numpy import array, ndarray, float64, int32, empty, prod
-from ctypes import c_int, c_double, c_char_p, c_void_p, c_uint8, c_uint
-from ctypes import byref, POINTER, addressof, CDLL, CFUNCTYPE
+from ctypes import c_int, c_double, c_char_p, c_void_p, c_uint8, c_uint, c_ulong
+from ctypes import byref, POINTER, addressof, CDLL, CFUNCTYPE, Structure
 from ctypes import create_string_buffer, cast
 from sys import version_info, platform
 from platform import python_implementation
@@ -1031,6 +1031,10 @@ def setcharheight(height):
     __gr.gr_setcharheight(c_double(height))
 
 
+def setwscharheight(chh, height):
+    __gr.gr_setwscharheight(c_double(chh), c_double(height))
+
+
 def setcharup(ux, uy):
     """
     Set the current character text angle up vector.
@@ -1199,6 +1203,16 @@ def inqfillcolorind():
     color = c_int()
     __gr.gr_inqfillcolorind(byref(color))
     return color.value
+
+
+def setresizebehaviour(flag):
+    __gr.gr_setresizebehaviour(1 if flag else 0)
+
+
+def inqresizebehaviour():
+    flag = c_int()
+    __gr.gr_inqresizebehaviour(byref(flag))
+    return True if flag else False
 
 
 def setcolorrep(index, red, green, blue):
@@ -3699,6 +3713,103 @@ def cpubasedvolume(data, algorithm, dmin, dmax, min_val, max_val):
 
     return dmin.value, dmax.value
 
+class _point3d_t(Structure):
+    _fields_ = [("x", c_double),
+                ("y", c_double),
+                ("z", c_double)]
+
+class _data_point3d_t(Structure):
+    _fields_ = [("pt", _point3d_t),
+                ("data", c_double),
+                ("extra_data", c_void_p)]
+
+_kernel_f = CFUNCTYPE(c_double, POINTER(_data_point3d_t), c_void_p, POINTER(_point3d_t), POINTER(_point3d_t))
+_radius_f = CFUNCTYPE(c_double, POINTER(_data_point3d_t), c_void_p)
+
+
+@_require_runtime_version(0, 67, 0, 0)
+def volume_nogrid(data, algorithm, kernel, radius, extra_data=None):
+    """
+    Draws a volume that is represented without a grid using Splatting and the given algorithm.
+
+    See also `volume_interp_tri_linear_init` to initialize trilinear interpolation and `volume_interp_gauss_init`.
+
+    **Parameters:**
+
+    `data` :
+        a list of points to be drawn, e.g. [(x, y, z, intensity), (x, y, z, intensity), ...]
+    `algorithm` :
+        the algorithm to reduce the volume data. Selectable options are `VOLUME_EMISSION` and `VOLUME_ABSORPTION`
+    `kernel` :
+        The interpolation kernel to use. Can be "trilinear" or "gauss" or custom, but performance will be low using a custom kernel
+    `radius` :
+        Radius of each data point to be taken into account. Intensity outside of the radius can be left out.
+    `extra_data` :
+        Custom data to be passed to a custom kernel function.
+    """
+    if kernel == "trilinear":
+        kernel = cast(__gr.gr_volume_interp_tri_linear, _kernel_f)
+    elif kernel == "gauss":
+        kernel = cast(__gr.gr_volume_interp_gauss, _kernel_f)
+    else:
+        kernel = _kernel_f(kernel)
+
+    radius_d = 1
+    radius_f = 0
+
+    if type(radius) == int or type(radius) == float:
+        radius_d = radius
+    else:
+        radius_f = radius
+
+    radius_f = _radius_f(radius_f)
+
+    dmin = c_double(-1)
+    dmax = c_double(-1)
+
+    data = np.array(data, copy=False, ndmin=2)
+    shape = data.shape
+    if len(shape) != 2 and shape[1] != 4:
+        raise ValueError("Data must be in shape (n, 4)!")
+
+    cnt = shape[0]
+    _data = floatarray(cnt * 4, data)
+
+    __gr.gr_volume_nogrid(cnt, cast(_data.data, POINTER(_data_point3d_t)), c_void_p(extra_data), algorithm, kernel, byref(dmin), byref(dmax), radius_d, radius_f)
+
+    return dmin.value, dmax.value
+
+
+@_require_runtime_version(0, 67, 0, 0)
+def volume_interp_tri_linear_init(dist_x, dist_y, dist_z):
+    """
+    Initializes the trilinear interpolation funciton for `volume_nogrid` with the three axis-aligned distances
+
+    **Parameters:**
+
+    `dist_x`, `dist_y`, `dist_z` :
+        The distance between two density points. The extent of one point is 2 * dist_x, 2 * dist_y, 2 * dist_z
+    """
+    __gr.gr_volume_interp_tri_linear_init(c_double(dist_x), c_double(dist_y), c_double(dist_z))
+
+@_require_runtime_version(0, 67, 0, 0)
+def volume_interp_gauss_init(det, sigma_inv_1_2):
+    """
+    Initializes the gaussian interpolation kernel with the given covariance matrix (as sigma^(-1/2)) and det as `|sigma|`
+
+    The density of a data point will be distributed according to a gaussian density with the given matrix.
+
+    **Parameters:**
+
+    `det` :
+        The determinant of the covariance matrix
+    `sigma_inv_1_2` :
+        The inverted and square rooted covariance matrix.
+    """
+    sigma_inv_1_2 = np.array(sigma_inv_1_2, copy=False, ndmin=3)
+    _s = floatarray(9, sigma_inv_1_2)
+
+    __gr.gr_volume_interp_gauss_init(c_double(det), _s.data)
 
 def wrapper_version():
     """
@@ -3773,6 +3884,7 @@ __gr.gr_setcharexpan.argtypes = [c_double]
 __gr.gr_setcharspace.argtypes = [c_double]
 __gr.gr_settextcolorind.argtypes = [c_int]
 __gr.gr_setcharheight.argtypes = [c_double]
+__gr.gr_setwscharheight.argtypes = [c_double, c_double]
 __gr.gr_setcharup.argtypes = [c_double, c_double]
 __gr.gr_settextpath.argtypes = [c_int]
 __gr.gr_settextalign.argtypes = [c_int, c_int]
@@ -3782,6 +3894,8 @@ __gr.gr_setfillstyle.argtypes = [c_int]
 __gr.gr_inqfillstyle.argtypes = [POINTER(c_int)]
 __gr.gr_setfillcolorind.argtypes = [c_int]
 __gr.gr_inqfillcolorind.argtypes = [POINTER(c_int)]
+__gr.gr_setresizebehaviour.argtypes = [c_int]
+__gr.gr_inqresizebehaviour.argtypes = [POINTER(c_int)]
 __gr.gr_setcolorrep.argtypes = [c_int, c_double, c_double, c_double]
 __gr.gr_setwindow.argtypes = [c_double, c_double, c_double, c_double]
 __gr.gr_inqwindow.argtypes = [POINTER(c_double), POINTER(c_double),
@@ -3999,6 +4113,22 @@ if _RUNTIME_VERSION >= (0, 58, 0, 0):
 if _RUNTIME_VERSION >= (0, 64, 2, 35):
     __gr.gr_setscientificformat.argtypes = [c_int]
     __gr.gr_setscientificformat.restype = None
+
+if _RUNTIME_VERSION >= (0, 67, 0, 0):
+    __gr.gr_volume_nogrid.argtypes = [c_ulong, POINTER(_data_point3d_t), c_void_p, c_int, _kernel_f, POINTER(c_double), POINTER(c_double), c_double, c_void_p]
+    __gr.gr_volume_nogrid.restype = None
+
+    __gr.gr_volume_interp_tri_linear_init.argtypes = [c_double, c_double, c_double]
+    __gr.gr_volume_interp_tri_linear_init.restype = None
+
+    __gr.gr_volume_interp_tri_linear.argtypes = [POINTER(_data_point3d_t), c_void_p, POINTER(_point3d_t), POINTER(_point3d_t)]
+    __gr.gr_volume_interp_tri_linear.restype = c_double
+
+    __gr.gr_volume_interp_gauss_init.argtypes = [c_double, POINTER(c_double)]
+    __gr.gr_volume_interp_gauss_init.restype = None
+
+    __gr.gr_volume_interp_gauss.argtypes = [POINTER(_data_point3d_t), c_void_p, POINTER(_point3d_t), POINTER(_point3d_t)]
+    __gr.gr_volume_interp_gauss.restype = c_double
 
 precision = __gr.gr_precision()
 text_maxsize = __gr.gr_text_maxsize()

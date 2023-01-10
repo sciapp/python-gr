@@ -35,6 +35,7 @@ tstart = timer()
 line, = plot(x, sin(x))
 for i in range(num_frames):
     line.set_ydata(sin(x + i / 10.0))
+    line.axes.figure.canvas.draw()
     draw()
     pause(0.0001)
 

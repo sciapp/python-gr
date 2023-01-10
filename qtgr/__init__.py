@@ -59,7 +59,8 @@ class GRWidget(QWidget):
         self._mwidth = self._dwidth * 2.54 / self.physicalDpiX() / 100.
         self._mheight = self._dheight * 2.54 / self.physicalDpiY() / 100.
         self._keepRatio = False
-        self._bgColor = QtCore.Qt.white
+        self._bgColor = QtCore.Qt.GlobalColor.white
+        self._screen_changed_signal_connected = False
         os.environ["GKS_WSTYPE"] = "381" # GKS Qt Plugin
         os.environ["GKS_DOUBLE_BUF"] = "True"
 
@@ -99,8 +100,17 @@ class GRWidget(QWidget):
                 self._sizex = 1.
             self._sizey = 1.
 
-    def screenChangedEvent(self, event):
+    def showEvent(self, event):
+        if self._screen_changed_signal_connected:
+            return
+        window_handle = self.window().windowHandle()
+        if window_handle is not None:
+            window_handle.screenChanged.connect(self._screenChanged)
+            self._screen_changed_signal_connected = True
+
+    def _screenChanged(self, event):
         gr.configurews()
+        self.resizeEvent(None)
         self.update()
 
     def setBackground(self, qcolor):
