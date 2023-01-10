@@ -109,7 +109,6 @@ class GRWidget(QWidget):
             self._screen_changed_signal_connected = True
 
     def _screenChanged(self, event):
-        print("screenChanged!")
         gr.configurews()
         self.resizeEvent(None)
         self.update()
