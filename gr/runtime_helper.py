@@ -10,7 +10,7 @@ import sys
 
 def required_runtime_version():
     # TODO: load runtime version from file
-    return '0.70.0'
+    return '0.71.3'
 
 
 def version_string_to_tuple(version_string):
@@ -101,5 +101,10 @@ FreeBSD: pkg install libXt libXrender libXext mesa-libs qt5
 def register_gksterm():
     if sys.platform == 'darwin':
         # register GKSTerm.app on macOS
-        app = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'GKSTerm.app'))
-        os.system('/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f {}'.format(app))
+        for app in [
+            os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'GKSTerm.app')),
+            os.path.abspath(os.path.join(os.path.dirname(__file__), 'Applications', 'GKSTerm.app'))
+        ]:
+            if os.path.isdir(app):
+                os.system('/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f {}'.format(app))
+                return
