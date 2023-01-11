@@ -101,5 +101,10 @@ FreeBSD: pkg install libXt libXrender libXext mesa-libs qt5
 def register_gksterm():
     if sys.platform == 'darwin':
         # register GKSTerm.app on macOS
-        app = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'GKSTerm.app'))
-        os.system('/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f {}'.format(app))
+        for app in [
+            os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'GKSTerm.app')),
+            os.path.abspath(os.path.join(os.path.dirname(__file__), 'Applications', 'GKSTerm.app'))
+        ]:
+            if os.path.isdir(app):
+                os.system('/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f {}'.format(app))
+                return
