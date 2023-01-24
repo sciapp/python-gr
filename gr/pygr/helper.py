@@ -55,24 +55,17 @@ class DomainChecker(object):
 
 class ColorIndexGenerator(object):
 
-    _distinct_colors = range(980, 1000)
-    _n = len(_distinct_colors)
-    _curIdx = 0
-
     def __init__(self):
         self._i = 0
-
-    @staticmethod
-    def nextColorIndex():
-        idx = ColorIndexGenerator._distinct_colors[ColorIndexGenerator._curIdx]
-        ColorIndexGenerator._curIdx = ((ColorIndexGenerator._curIdx + 1)
-                                       % ColorIndexGenerator._n)
-        return idx
+        self._distinct_colors = range(980, 1000)
+        self._n = len(self._distinct_colors)
+        self._curIdx = self._distinct_colors[self._i]
 
     def getNextColorIndex(self):
-        idx = ColorIndexGenerator._distinct_colors[self._i]
-        self._i = (self._i + 1) % ColorIndexGenerator._n
-        return idx
+        self._curIdx = self._distinct_colors[self._i]
+        self._i = (self._i + 1) % self._n
+        return self._curIdx
 
     def reset(self):
         self._i = 0
+        self._curIdx = self._distinct_colors[self._i]
