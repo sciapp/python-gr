@@ -400,8 +400,8 @@ class DeviceCoordConverter(CoordConverter):
 
     def getDC(self):
         self._checkRaiseXY()
-        return Point(self._p.x / self._sizex * self._width,
-                     (1. - self._p.y / self._sizey) * self._height)
+        return Point(int(self._p.x / self._sizex * self._width),
+                     int((1. - self._p.y / self._sizey) * self._height))
 
 
 class Text(GRVisibility, Point, GRMeta):
