@@ -1,54 +1,52 @@
-#!/usr/bin/env python3
-"""
-[GRM] Resizing plots after input and changing series
-"""
-import math
-import sys
-import numpy as np
+from math import pi, sin, cos
+from typing import Dict, List
+
 import grm
 
 
-print("filling argument container...")
+LENGTH = 1000
 
-n = 1000
-x_vals = np.linspace(0, 2 * math.pi, n)
-plots = [[x_vals, np.sin(x_vals)], [x_vals, np.cos(x_vals)]]
 
-series = [{"x": plots[0][0], "y": plots[0][1]}, {"x": plots[1][0], "y": plots[1][1]}]
+def test_hold_append() -> None:
+    plot_x = [i * 2 * pi / LENGTH for i in range(LENGTH)]
+    plot_sin = [sin(i * 2 * pi / LENGTH) for i in range(LENGTH)]
+    plot_cos = [cos(i * 2 * pi / LENGTH) for i in range(LENGTH)]
 
-args = grm.args.new(
-    {
-        "append_plots": 1,  # Automatically create new plots, if no `plot_id` is given
-        "hold_plots": 1,  # Do not delete contents of the default plot automatically
+    series: List[Dict[str, grm.args._ElemType]] = [
+        {
+            "x": plot_x,
+            "y": plot_sin
+        },
+        {
+            "x": plot_x,
+            "y": plot_cos
+        }
+    ]
+    args: Dict[str, grm.args._ElemType] = {
+        "append_plots": True,
+        "hold_plots": True,
+        "series": series[0]
     }
-)
-grm.plot.merge(args)
-args["series"] = series[0]
+    grm.plot.plot(args)
+    input("Press enter to continue")
 
-print("plotting data...")
-grm.plot.plot(args)
-print("Press any key to continue...")
-sys.stdin.read(1)
-args2 = args
-# del args
+    args.clear()
+    args = {
+        "size": (800.0, 800.0),
+        "plot_id": 0
+    }
+    grm.plot.plot(args)
+    input("Press enter to continue")
 
-args = grm.args.new({"size": [800.0, 800.0], "plot_id": 0})  # Avoid creating a new plot
+    args.clear()
+    args = {
+        "series": series[1]
+    }
+    grm.plot.merge(args)
+    grm.plot.switch(1)
+    grm.plot.plot(None)
+    input("Press enter to continue")
 
-print("plotting data...")
-grm.plot.plot(args)
-print("Press any key to continue...")
-sys.stdin.read(1)
 
-del args
-args = grm.args.new({"series": series[1]})
-grm.plot.merge(args)
-# This call will create a new plot with id `1`
-print("plotting data...")
-grm.plot.switch(1)
-grm.plot.plot(None)
-print("Press any key to continue...")
-sys.stdin.read(1)
-#
-# args.delete()
-#
-# grm.finalize()
+if __name__ == "__main__":
+    test_hold_append()

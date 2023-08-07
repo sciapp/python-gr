@@ -1,75 +1,86 @@
-#!/usr/bin/env python3
-"""
-[GRM] Contourf and series legend example
-"""
-import math
-import sys
-import numpy as np
-import grm
+from math import pi, sin, cos
 from random import random
+from typing import Dict, List
+
+import grm
 
 
-def test_consecutive_plots():
-    n = 1000
-    x_vals = np.linspace(0, 2 * math.pi, n)
-    plots = [[x_vals, 2 * np.sin(x_vals)], [x_vals, np.sin(x_vals)]]
-
-    print("filling argument container...")
-
-    args = grm.args.new()
-    for i in range(0, 2):
-        args["x"] = plots[i][0]
-        args["y"] = plots[i][1]
-        grm.plot.plot(args)
-        print("Press any key to continue...")
-        sys.stdin.read(1)
+LENGTH = 1000
 
 
-def test_line():
-    n = 1000
-    x_vals = np.linspace(0, 2 * math.pi, n)
+def test_consecutive_plots() -> None:
+    print("test_consecutive_plots")
+    plot_x = [i * 2 * pi / LENGTH for i in range(LENGTH)]
+    plot_sin = [sin(i * 2 * pi / LENGTH) for i in range(LENGTH)]
+    plot_cos = [cos(i * 2 * pi / LENGTH) for i in range(LENGTH)]
 
-    print("filling argument container...")
-
-    args = grm.args.new()
-    args["series"] = [{"x": x_vals, "y": np.sin(x_vals)}, {"x": x_vals, "y": np.cos(x_vals)}]
-    args["labels"] = ["sin", "cos"]
-    args["kind"] = "line"
-
-    print("plotting data...")
-
+    args: Dict[str, grm.args._ElemType] = {
+        "x": plot_x,
+        "y": plot_sin
+    }
     grm.plot.plot(args)
+    input("Press enter to continue")
 
-    print("Press any key to continue...")
-    sys.stdin.read(1)
-
-
-def test_contourf():
-    x = []
-    y = []
-
-    n = 100
-
-    for i in range(0, n):
-        x.append(random() * 8.0 - 4.0)
-        y.append(random() * 8.0 - 4.0)
-
-    z = np.sin(x) + np.cos(y)
-
-    print("filling argument container...")
-
-    args = grm.args.new({"subplots": {"series": {"x": x, "y": y, "z": z}, "kind": "contourf"}})
-
-    print("plotting data...")
-
+    args["y"] = plot_cos
     grm.plot.plot(args)
+    input("Press enter to continue")
 
-    print("Press any key to continue...")
-    sys.stdin.read(1)
+
+def test_line() -> None:
+    print("test_line")
+    plot_x = [i * 2 * pi / LENGTH for i in range(LENGTH)]
+    plot_sin = [sin(i * 2 * pi / LENGTH) for i in range(LENGTH)]
+    plot_cos = [cos(i * 2 * pi / LENGTH) for i in range(LENGTH)]
+
+    labels = ["sin", "cos"]
+
+    series: List[Dict[str, grm.args._ElemType]] = [
+        {"x": plot_x, "y": plot_sin},
+        {"x": plot_x, "y": plot_cos}
+    ]
+    args: Dict[str, grm.args._ElemType] = {
+        "series": series,
+        "labels": labels
+    }
+    grm.plot.line(args)
+    input("Press enter to continue")
+
+
+def test_line3d() -> None:
+    print("test_line3d")
+    x = [i * 30.0 / LENGTH for i in range(LENGTH)]
+    y = [cos(x[i]) * x[i] for i in range(LENGTH)]
+    z = [sin(x[i]) * x[i] for i in range(LENGTH)]
+
+    args: Dict[str, grm.args._ElemType] = {
+        "x": x,
+        "y": y,
+        "z": z
+    }
+    grm.plot.plot3(args)
+    input("Press enter to continue")
+
+
+def test_contourf() -> None:
+    print("test_contourf")
+    x = [random() * 8 - 4 for _ in range(100)]
+    y = [random() * 8 - 4 for _ in range(100)]
+    z = [sin(x[i]) + cos(y[i]) for i in range(100)]
+
+    series = {
+        "x": x,
+        "y": y,
+        "z": z
+    }
+    subplot = {
+        "series": series,
+    }
+    grm.plot.contourf(subplots=subplot)
+    input("Press enter to continue")
 
 
 if __name__ == "__main__":
-    test_line()
     test_consecutive_plots()
+    test_line()
+    test_line3d()
     test_contourf()
-    grm.plot.finalize()
