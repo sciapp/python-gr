@@ -1,15 +1,243 @@
 """
 This module provides access to the various plotting-related functions.
 """
-
+from typing import overload, Union, Mapping, Iterable, Any, Optional
 from ctypes import c_int, c_char_p, c_void_p, c_uint
 from gr import _require_runtime_version, _RUNTIME_VERSION
 
 from . import _grm, _encode_str_to_char_p, args
 
 
+@overload
+def plot(
+        args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
+) -> int:
+    ...
+@overload
+def plot(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
+        *,
+        append_plots: args._ElemType = ...,
+        hold_plots: args._ElemType = ...,
+        plots: args._ElemType = ...,
+        clear: args._ElemType = ...,
+        figsize: args._ElemType = ...,
+        raw: args._ElemType = ...,
+        size: args._ElemType = ...,
+        subplots: args._ElemType = ...,
+        update: args._ElemType = ...,
+        accelerate: args._ElemType = ...,
+        adjust_xlim: args._ElemType = ...,
+        adjust_ylim: args._ElemType = ...,
+        adjust_zlim: args._ElemType = ...,
+        alpha: args._ElemType = ...,
+        angle_ticks: args._ElemType = ...,
+        backgroundcolor: args._ElemType = ...,
+        bar_color: args._ElemType = ...,
+        bar_width: args._ElemType = ...,
+        colormap: args._ElemType = ...,
+        font_precision: args._ElemType = ...,
+        font: args._ElemType = ...,
+        grplot: args._ElemType = ...,
+        ind_bar_color: args._ElemType = ...,
+        ind_edge_color: args._ElemType = ...,
+        ind_edge_width: args._ElemType = ...,
+        keep_aspect_ratio: args._ElemType = ...,
+        kind: args._ElemType = ...,
+        labels: args._ElemType = ...,
+        levels: args._ElemType = ...,
+        location: args._ElemType = ...,
+        marginalheatmap_kind: args._ElemType = ...,
+        normalization: args._ElemType = ...,
+        orientation: args._ElemType = ...,
+        panzoom: args._ElemType = ...,
+        phiflip: args._ElemType = ...,
+        resample_method: args._ElemType = ...,
+        reset_ranges: args._ElemType = ...,
+        rings: args._ElemType = ...,
+        rotation: args._ElemType = ...,
+        series: args._ElemType = ...,
+        style: args._ElemType= ...,
+        subplot: args._ElemType = ...,
+        tilt: args._ElemType = ...,
+        title: args._ElemType = ...,
+        xbins: args._ElemType = ...,
+        xflip: args._ElemType = ...,
+        xform: args._ElemType = ...,
+        xgrid: args._ElemType = ...,
+        xind: args._ElemType = ...,
+        xlabel: args._ElemType = ...,
+        xlim: args._ElemType = ...,
+        xlog: args._ElemType = ...,
+        xticklabels: args._ElemType = ...,
+        ybins: args._ElemType = ...,
+        yflip: args._ElemType = ...,
+        ygrid: args._ElemType = ...,
+        yind: args._ElemType = ...,
+        ylabel: args._ElemType = ...,
+        ylim: args._ElemType = ...,
+        ylog: args._ElemType = ...,
+        zflip: args._ElemType = ...,
+        zgrid: args._ElemType = ...,
+        zlabel: args._ElemType = ...,
+        zlim: args._ElemType = ...,
+        zlog: args._ElemType = ...,
+        a: args._ElemType = ...,
+        algorithm: args._ElemType = ...,
+        bin_counts: args._ElemType = ...,
+        bin_edges: args._ElemType = ...,
+        bin_width: args._ElemType = ...,
+        c_dims: args._ElemType = ...,
+        c: args._ElemType = ...,
+        crange: args._ElemType = ...,
+        dmax: args._ElemType = ...,
+        dmin: args._ElemType = ...,
+        draw_edges: args._ElemType = ...,  # bool?
+        edge_color: args._ElemType = ...,
+        edge_width: args._ElemType = ...,
+        error: args._ElemType = ...,
+        face_color: args._ElemType = ...,
+        foreground_color: args._ElemType = ...,
+        indices: args._ElemType = ...,
+        inner_series: args._ElemType = ...,
+        isovalue: args._ElemType = ...,
+        markertype: args._ElemType = ...,
+        nbins: args._ElemType = ...,
+        philim: args._ElemType = ...,
+        rgb: args._ElemType = ...,
+        rlim: args._ElemType = ...,
+        s: args._ElemType = ...,
+        spec: args._ElemType = ...,
+        stairs: args._ElemType = ...,
+        step_where: args._ElemType = ...,
+        u: args._ElemType = ...,
+        v: args._ElemType = ...,
+        weights: args._ElemType = ...,
+        x: args._ElemType = ...,
+        xcolormap: args._ElemType = ...,
+        xrange: args._ElemType = ...,
+        y: args._ElemType = ...,
+        ycolormap: args._ElemType = ...,
+        ylabels: args._ElemType = ...,
+        yrange: args._ElemType = ...,
+        z_dims: args._ElemType = ...,
+        z: args._ElemType = ...,
+        zrange: args._ElemType = ...,
+
+        # append_plots: bool = ...,
+        # hold_plots: bool = ...,
+        # plots: args._ElemType = ...,
+        # clear: bool = ...,
+        # figsize: Iterable[float] = ...,
+        # raw: str = ...,
+        # size: Union[Iterable[float], Iterable[int], Mapping[str, args._ElemType], args._ArgumentContainer] = ...,
+        # subplots: args._ElemType = ...,
+        # update: bool = ...,
+        # accelerate: bool = ...,
+        # adjust_xlim: bool = ...,
+        # adjust_ylim: bool = ...,
+        # adjust_zlim: bool = ...,
+        # alpha: float = ...,
+        # angle_ticks: int = ...,
+        # backgroundcolor: int = ...,
+        # bar_color: Union[Iterable[float], int] = ...,
+        # bar_width: float = ...,
+        # colormap: int = ...,
+        # font_precision: int = ...,
+        # font: int = ...,
+        # grplot: int = ...,
+        # ind_bar_color: Union[Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        # ind_edge_color: Union[Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        # ind_edge_width: Union[Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        # keep_aspect_ratio: bool = ...,
+        # kind: str = ...,
+        # labels: Iterable[str] = ...,
+        # levels: int = ...,
+        # location: int = ...,
+        # marginalheatmap_kind: str = ...,
+        # normalization: str = ...,
+        # orientation: str = ...,
+        # panzoom: Iterable[float] = ...,
+        # phiflip: bool = ...,
+        # resample_method: Union[str, int] = ...,
+        # reset_ranges: bool = ...,
+        # rings: int = ...,
+        # rotation: float = ...,
+        # series: args._ElemType = ...,
+        # style: str = ...,
+        # subplot: Iterable[float] = ...,
+        # tilt: float = ...,
+        # title: str = ...,
+        # xbins: int = ...,
+        # xflip: bool = ...,
+        # xform: int = ...,
+        # xgrid: int = ...,
+        # xind: int = ...,
+        # xlabel: str = ...,
+        # xlim: Iterable[float] = ...,
+        # xlog: bool = ...,
+        # xticklabels: args._ElemType = ...,
+        # ybins: int = ...,
+        # yflip: bool = ...,
+        # ygrid: int = ...,
+        # yind: int = ...,
+        # ylabel: str = ...,
+        # ylim: Iterable[float] = ...,
+        # ylog: bool = ...,
+        # zflip: bool = ...,
+        # zgrid: int = ...,
+        # zlabel: str = ...,
+        # zlim: Iterable[float] = ...,
+        # zlog: bool = ...,
+        # a: Union[Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        # algorithm: Union[str, int] = ...,
+        # bin_counts: int = ...,
+        # bin_edges: Iterable[float] = ...,
+        # bin_width: float = ...,
+        # c_dims: Iterable[int] = ...,
+        # c: Union[Iterable[float], Iterable[int]] = ...,
+        # crange: Iterable[float] = ...,
+        # dmax: float = ...,
+        # dmin: float = ...,
+        # draw_edges: int = ...,  # bool?
+        # edge_color: Union[Iterable[float], int] = ...,
+        # edge_width: float = ...,
+        # error: Union[Mapping[str, args._ElemType], args._ArgumentContainer] = ...,
+        # face_color: int = ...,
+        # foreground_color: Iterable[float] = ...,
+        # indices: Iterable[int] = ...,
+        # inner_series: Union[Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        # isovalue: float = ...,
+        # markertype: int = ...,
+        # nbins: int = ...,
+        # philim: Iterable[float] = ...,
+        # rgb: Iterable[float] = ...,
+        # rlim: Iterable[float] = ...,
+        # s: args._ElemType = ...,
+        # spec: str = ...,
+        # stairs: int = ...,
+        # step_where: str = ...,
+        # u: Iterable[float] = ...,
+        # v: Iterable[float] = ...,
+        # weights: Iterable[float] = ...,
+        # x: Union[Iterable[int], Iterable[float]] = ...,
+        # xcolormap: int = ...,
+        # xrange: Iterable[float] = ...,
+        # y: Iterable[float] = ...,
+        # ycolormap: int = ...,
+        # ylabels: Iterable[str] = ...,
+        # yrange: Iterable[float] = ...,
+        # z_dims: Iterable[int] = ...,
+        # z: Iterable[float] = ...,
+        # zrange: Iterable[float] = ...,
+        **kwargs: args._ElemType
+) -> int:
+    ...
 @_require_runtime_version(0, 47, 0)
-def plot(args_container: args._ArgumentContainer) -> int:
+def plot(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
+        **kwargs: args._ElemType
+) -> int:
     """
     Update the internal data container with the given data and draw the plot after it.
 
@@ -18,10 +246,1813 @@ def plot(args_container: args._ArgumentContainer) -> int:
     :raises TypeError: if the args_container is not a valid :class:`grm.args._ArgumentContainer`
     """
     if args_container is None:
+        if kwargs:
+            a = args.new(kwargs)
+            return _grm.grm_plot(a.ptr)
         return _grm.grm_plot(c_void_p(0x0))
-    if not isinstance(args_container, args._ArgumentContainer):
-        raise TypeError("Given parameter is not a valid ArgumentContainer!")
-    return _grm.grm_plot(args_container.ptr)
+    if isinstance(args_container, args._ArgumentContainer):
+        for key in kwargs:
+            args_container.push(key, kwargs[key])
+        return _grm.grm_plot(args_container.ptr)
+    elif isinstance(args_container, dict):
+        args_container = args_container | kwargs
+        a = args.new(args_container)
+        return _grm.grm_plot(a.ptr)
+    else:
+        raise TypeError('args_container is not a valid args._argumentConainer or dict')
+
+
+        # adjust_xlim: bool = ...,
+        # adjust_ylim: bool = ...,
+        # alpha: float = ...,
+        # append_plots: bool = ...,
+        # backgroundcolor: int = ...,
+        # clear: bool = ...,
+        # colormap: int = ...,
+        # figsize: Iterable[float] = ...,
+        # font: int = ...,
+        # font_precision: int = ...,
+        # hold_plots: bool = ...,
+        # keep_aspect_ratio: bool = ...,
+        # panzoom: Iterable[float] = ...,
+        # resample_method: Union[str, int] = ...,
+        # reset_ranges: bool = ...,
+        # size: Union[Iterable[float], Iterable[int], Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        # subplot: Iterable[float] = ...,
+        # title: str = ...,
+        # update: bool = ...,
+        # xflip: bool = ...,
+        # xlabel: str = ...,
+        # xlim: Iterable[float] = ...,
+        # xlog: bool = ...,
+        # xrange: Iterable[float] = ...,
+        # yflip: bool = ...,
+        # ylabel: str = ...,
+        # ylim: Iterable[float] = ...,
+        # ylog: bool = ...,
+        # yrange: Iterable[float] = ...
+
+
+@overload
+def barplot(
+        args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
+) -> int:
+    ...
+@overload
+def barplot(
+        *,
+        y: Iterable[float] = ...,
+        bar_color: Union[Iterable[float], int] = ...,
+        bar_width: float = ...,
+        c: Union[Iterable[float], Iterable[int]] = ...,
+        edge_color: Union[Iterable[float], int] = ...,
+        edge_width: float = ...,
+        error: Union[Mapping[str, args._ElemType], args._ArgumentContainer] = ...,
+        ind_bar_color: Union[Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        ind_edge_color: Union[Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        ind_edge_width: Union[Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        indices: Iterable[int] = ...,
+        inner_series: Union[Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        orientation: str = ...,
+        rgb: Iterable[float] = ...,
+        style: str = ...,
+        xgrid: int = ...,
+        xticklabels: Any = ...,
+        ygrid: int = ...,
+        ylabels: Iterable[str] = ...,
+
+        adjust_xlim: bool = ...,
+        adjust_ylim: bool = ...,
+        alpha: float = ...,
+        append_plots: bool = ...,
+        backgroundcolor: int = ...,
+        clear: bool = ...,
+        colormap: int = ...,
+        figsize: Iterable[float] = ...,
+        font: int = ...,
+        font_precision: int = ...,
+        hold_plots: bool = ...,
+        keep_aspect_ratio: bool = ...,
+        panzoom: Iterable[float] = ...,
+        resample_method: Union[str, int] = ...,
+        reset_ranges: bool = ...,
+        size: Union[Iterable[float], Iterable[int], Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        subplot: Iterable[float] = ...,
+        title: str = ...,
+        update: bool = ...,
+        xflip: bool = ...,
+        xlabel: str = ...,
+        xlim: Iterable[float] = ...,
+        xlog: bool = ...,
+        xrange: Iterable[float] = ...,
+        yflip: bool = ...,
+        ylabel: str = ...,
+        ylim: Iterable[float] = ...,
+        ylog: bool = ...,
+        yrange: Iterable[float] = ...
+) -> int:
+    ...
+@overload
+def barplot(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
+        **kwargs: args._ElemType
+) -> int:
+    ...
+def barplot(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
+        **kwargs: args._ElemType
+) -> int:
+    return plot(args_container, kind="barplot", **kwargs)
+
+
+@overload
+def contour(
+        args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
+) -> int:
+    ...
+@overload
+def contour(
+        *,
+        levels: int = ...,
+        x: Union[Iterable[float], Iterable[int]] = ...,
+        xgrid: int = ...,
+        y: Iterable[float] = ...,
+        ygrid: int = ...,
+        z: Iterable[float] = ...,
+        zgrid: int = ...,
+        zlabel: str = ...,
+
+        adjust_xlim: bool = ...,
+        adjust_ylim: bool = ...,
+        alpha: float = ...,
+        append_plots: bool = ...,
+        backgroundcolor: int = ...,
+        clear: bool = ...,
+        colormap: int = ...,
+        figsize: Iterable[float] = ...,
+        font: int = ...,
+        font_precision: int = ...,
+        hold_plots: bool = ...,
+        keep_aspect_ratio: bool = ...,
+        panzoom: Iterable[float] = ...,
+        resample_method: Union[str, int] = ...,
+        reset_ranges: bool = ...,
+        size: Union[Iterable[float], Iterable[int], Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        subplot: Iterable[float] = ...,
+        title: str = ...,
+        update: bool = ...,
+        xflip: bool = ...,
+        xlabel: str = ...,
+        xlim: Iterable[float] = ...,
+        xlog: bool = ...,
+        xrange: Iterable[float] = ...,
+        yflip: bool = ...,
+        ylabel: str = ...,
+        ylim: Iterable[float] = ...,
+        ylog: bool = ...,
+        yrange: Iterable[float] = ...
+) -> int:
+    ...
+@overload
+def contour(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
+        **kwargs: args._ElemType
+) -> int:
+    ...
+def contour(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
+        **kwargs: args._ElemType
+) -> int:
+    return plot(args_container, kind="contour", **kwargs)
+
+
+@overload
+def contourf(
+        args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
+) -> int:
+    ...
+@overload
+def contourf(
+        *,
+        levels: int = ...,
+        x: Union[Iterable[float], Iterable[int]] = ...,
+        xgrid: int = ...,
+        y: Iterable[float] = ...,
+        ygrid: int = ...,
+        z: Iterable[float] = ...,
+        zgrid: int = ...,
+        zlabel: str = ...,
+
+        adjust_xlim: bool = ...,
+        adjust_ylim: bool = ...,
+        alpha: float = ...,
+        append_plots: bool = ...,
+        backgroundcolor: int = ...,
+        clear: bool = ...,
+        colormap: int = ...,
+        figsize: Iterable[float] = ...,
+        font: int = ...,
+        font_precision: int = ...,
+        hold_plots: bool = ...,
+        keep_aspect_ratio: bool = ...,
+        panzoom: Iterable[float] = ...,
+        resample_method: Union[str, int] = ...,
+        reset_ranges: bool = ...,
+        size: Union[Iterable[float], Iterable[int], Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        subplot: Iterable[float] = ...,
+        title: str = ...,
+        update: bool = ...,
+        xflip: bool = ...,
+        xlabel: str = ...,
+        xlim: Iterable[float] = ...,
+        xlog: bool = ...,
+        xrange: Iterable[float] = ...,
+        yflip: bool = ...,
+        ylabel: str = ...,
+        ylim: Iterable[float] = ...,
+        ylog: bool = ...,
+        yrange: Iterable[float] = ...
+) -> int:
+    ...
+@overload
+def contourf(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
+        **kwargs: args._ElemType
+) -> int:
+    ...
+def contourf(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
+        **kwargs: args._ElemType
+) -> int:
+    return plot(args_container, kind="contourf", **kwargs)
+
+
+@overload
+def heatmap(
+        args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
+) -> int:
+    ...
+@overload
+def heatmap(
+        *,
+        crange: Iterable[float] = ...,
+        x: Union[Iterable[float], Iterable[int]] = ...,
+        xgrid: int = ...,
+        y: Iterable[float] = ...,
+        ygrid: int = ...,
+        z_dims: Iterable[int] = ...,
+        zlog: bool = ...,
+        zrange: Iterable[float] = ...,
+
+        adjust_xlim: bool = ...,
+        adjust_ylim: bool = ...,
+        alpha: float = ...,
+        append_plots: bool = ...,
+        backgroundcolor: int = ...,
+        clear: bool = ...,
+        colormap: int = ...,
+        figsize: Iterable[float] = ...,
+        font: int = ...,
+        font_precision: int = ...,
+        hold_plots: bool = ...,
+        keep_aspect_ratio: bool = ...,
+        panzoom: Iterable[float] = ...,
+        resample_method: Union[str, int] = ...,
+        reset_ranges: bool = ...,
+        size: Union[Iterable[float], Iterable[int], Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        subplot: Iterable[float] = ...,
+        title: str = ...,
+        update: bool = ...,
+        xflip: bool = ...,
+        xlabel: str = ...,
+        xlim: Iterable[float] = ...,
+        xlog: bool = ...,
+        xrange: Iterable[float] = ...,
+        yflip: bool = ...,
+        ylabel: str = ...,
+        ylim: Iterable[float] = ...,
+        ylog: bool = ...,
+        yrange: Iterable[float] = ...
+) -> int:
+    ...
+@overload
+def heatmap(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
+        **kwargs: args._ElemType
+) -> int:
+    ...
+def heatmap(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
+        **kwargs: args._ElemType
+) -> int:
+    return plot(args_container, kind="heatmap", **kwargs)
+
+
+@overload
+def nonuniformheatmap(
+        args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
+) -> int:
+    ...
+@overload
+def nonuniformheatmap(
+        *,
+        crange: Iterable[float] = ...,
+        x: Union[Iterable[float], Iterable[int]] = ...,
+        xgrid: int = ...,
+        y: Iterable[float] = ...,
+        ygrid: int = ...,
+        z_dims: Iterable[int] = ...,
+        zlog: bool = ...,
+
+        adjust_xlim: bool = ...,
+        adjust_ylim: bool = ...,
+        alpha: float = ...,
+        append_plots: bool = ...,
+        backgroundcolor: int = ...,
+        clear: bool = ...,
+        colormap: int = ...,
+        figsize: Iterable[float] = ...,
+        font: int = ...,
+        font_precision: int = ...,
+        hold_plots: bool = ...,
+        keep_aspect_ratio: bool = ...,
+        panzoom: Iterable[float] = ...,
+        resample_method: Union[str, int] = ...,
+        reset_ranges: bool = ...,
+        size: Union[Iterable[float], Iterable[int], Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        subplot: Iterable[float] = ...,
+        title: str = ...,
+        update: bool = ...,
+        xflip: bool = ...,
+        xlabel: str = ...,
+        xlim: Iterable[float] = ...,
+        xlog: bool = ...,
+        xrange: Iterable[float] = ...,
+        yflip: bool = ...,
+        ylabel: str = ...,
+        ylim: Iterable[float] = ...,
+        ylog: bool = ...,
+        yrange: Iterable[float] = ...
+) -> int:
+    ...
+@overload
+def nonuniformheatmap(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
+        **kwargs: args._ElemType
+) -> int:
+    ...
+def nonuniformheatmap(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
+        **kwargs: args._ElemType
+) -> int:
+    return plot(args_container, kind="nonuniformheatmap", **kwargs)
+
+
+@overload
+def hexbin(
+        args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
+) -> int:
+    ...
+@overload
+def hexbin(
+        *,
+        nbins: int = ...,
+        x: Union[Iterable[float], Iterable[int]] = ...,
+        xgrid: int = ...,
+        y: Iterable[float] = ...,
+        ygrid: int = ...,
+
+        adjust_xlim: bool = ...,
+        adjust_ylim: bool = ...,
+        alpha: float = ...,
+        append_plots: bool = ...,
+        backgroundcolor: int = ...,
+        clear: bool = ...,
+        colormap: int = ...,
+        figsize: Iterable[float] = ...,
+        font: int = ...,
+        font_precision: int = ...,
+        hold_plots: bool = ...,
+        keep_aspect_ratio: bool = ...,
+        panzoom: Iterable[float] = ...,
+        resample_method: Union[str, int] = ...,
+        reset_ranges: bool = ...,
+        size: Union[Iterable[float], Iterable[int], Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        subplot: Iterable[float] = ...,
+        title: str = ...,
+        update: bool = ...,
+        xflip: bool = ...,
+        xlabel: str = ...,
+        xlim: Iterable[float] = ...,
+        xlog: bool = ...,
+        xrange: Iterable[float] = ...,
+        yflip: bool = ...,
+        ylabel: str = ...,
+        ylim: Iterable[float] = ...,
+        ylog: bool = ...,
+        yrange: Iterable[float] = ...
+) -> int:
+    ...
+@overload
+def hexbin(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
+        **kwargs: args._ElemType
+) -> int:
+    ...
+def hexbin(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
+        **kwargs: args._ElemType
+) -> int:
+    return plot(args_container, kind="hexbin", **kwargs)
+
+
+@overload
+def hist(
+        args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
+) -> int:
+    ...
+@overload
+def hist(
+        *,
+        bar_color: Union[Iterable[float], int] = ...,
+        edge_color: Union[Iterable[float], int] = ...,
+        orientation: str = ...,
+        weights: Iterable[float] = ...,
+        xgrid: int = ...,
+        xind: int = ...,
+        ygrid: int = ...,
+        yind: int = ...,
+
+        adjust_xlim: bool = ...,
+        adjust_ylim: bool = ...,
+        alpha: float = ...,
+        append_plots: bool = ...,
+        backgroundcolor: int = ...,
+        clear: bool = ...,
+        colormap: int = ...,
+        figsize: Iterable[float] = ...,
+        font: int = ...,
+        font_precision: int = ...,
+        hold_plots: bool = ...,
+        keep_aspect_ratio: bool = ...,
+        panzoom: Iterable[float] = ...,
+        resample_method: Union[str, int] = ...,
+        reset_ranges: bool = ...,
+        size: Union[Iterable[float], Iterable[int], Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        subplot: Iterable[float] = ...,
+        title: str = ...,
+        update: bool = ...,
+        xflip: bool = ...,
+        xlabel: str = ...,
+        xlim: Iterable[float] = ...,
+        xlog: bool = ...,
+        xrange: Iterable[float] = ...,
+        yflip: bool = ...,
+        ylabel: str = ...,
+        ylim: Iterable[float] = ...,
+        ylog: bool = ...,
+        yrange: Iterable[float] = ...
+) -> int:
+    ...
+@overload
+def hist(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
+        **kwargs: args._ElemType
+) -> int:
+    ...
+def hist(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
+        **kwargs: args._ElemType
+) -> int:
+    return plot(args_container, kind="hist", **kwargs)
+
+
+@overload
+def imshow(
+        args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
+) -> int:
+    ...
+@overload
+def imshow(
+        *,
+        c: Union[Iterable[float], Iterable[int]] = ...,
+        c_dims: Iterable[int] = ...,
+        xflip: bool = ...,
+        yflip: bool = ...,
+
+        adjust_xlim: bool = ...,
+        adjust_ylim: bool = ...,
+        alpha: float = ...,
+        append_plots: bool = ...,
+        backgroundcolor: int = ...,
+        clear: bool = ...,
+        colormap: int = ...,
+        figsize: Iterable[float] = ...,
+        font: int = ...,
+        font_precision: int = ...,
+        hold_plots: bool = ...,
+        keep_aspect_ratio: bool = ...,
+        panzoom: Iterable[float] = ...,
+        resample_method: Union[str, int] = ...,
+        reset_ranges: bool = ...,
+        size: Union[Iterable[float], Iterable[int], Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        subplot: Iterable[float] = ...,
+        title: str = ...,
+        update: bool = ...,
+        # xflip: bool = ...,
+        xlabel: str = ...,
+        xlim: Iterable[float] = ...,
+        xlog: bool = ...,
+        xrange: Iterable[float] = ...,
+        # yflip: bool = ...,
+        ylabel: str = ...,
+        ylim: Iterable[float] = ...,
+        ylog: bool = ...,
+        yrange: Iterable[float] = ...
+) -> int:
+    ...
+@overload
+def imshow(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
+        **kwargs: args._ElemType
+) -> int:
+    ...
+def imshow(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
+        **kwargs: args._ElemType
+) -> int:
+    return plot(args_container, kind="imshow", **kwargs)
+
+
+@overload
+def isosurface(
+        args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
+) -> int:
+    ...
+@overload
+def isosurface(
+        *,
+        c: Union[Iterable[float], Iterable[int]] = ...,
+        c_dims: Iterable[int] = ...,
+        foreground_color: Iterable[float] = ...,
+        isovalue: float = ...,
+        rotation: float = ...,
+        tilt: float = ...,
+
+        adjust_xlim: bool = ...,
+        adjust_ylim: bool = ...,
+        alpha: float = ...,
+        append_plots: bool = ...,
+        backgroundcolor: int = ...,
+        clear: bool = ...,
+        colormap: int = ...,
+        figsize: Iterable[float] = ...,
+        font: int = ...,
+        font_precision: int = ...,
+        hold_plots: bool = ...,
+        keep_aspect_ratio: bool = ...,
+        panzoom: Iterable[float] = ...,
+        resample_method: Union[str, int] = ...,
+        reset_ranges: bool = ...,
+        size: Union[Iterable[float], Iterable[int], Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        subplot: Iterable[float] = ...,
+        title: str = ...,
+        update: bool = ...,
+        xflip: bool = ...,
+        xlabel: str = ...,
+        xlim: Iterable[float] = ...,
+        xlog: bool = ...,
+        xrange: Iterable[float] = ...,
+        yflip: bool = ...,
+        ylabel: str = ...,
+        ylim: Iterable[float] = ...,
+        ylog: bool = ...,
+        yrange: Iterable[float] = ...
+) -> int:
+    ...
+@overload
+def isosurface(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
+        **kwargs: args._ElemType
+) -> int:
+    ...
+def isosurface(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
+        **kwargs: args._ElemType
+) -> int:
+    return plot(args_container, kind="isosurface", **kwargs)
+
+
+@overload
+def line(
+        args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
+) -> int:
+    ...
+@overload
+def line(
+        *,
+        labels: Iterable[str] = ...,
+        location: int = ...,
+        markertype: int = ...,
+        orientation: str = ...,
+        spec: str = ...,
+        x: Union[Iterable[float], Iterable[int]] = ...,
+        xgrid: int = ...,
+        y: Iterable[float] = ...,
+        ygrid: int = ...,
+
+        adjust_xlim: bool = ...,
+        adjust_ylim: bool = ...,
+        alpha: float = ...,
+        append_plots: bool = ...,
+        backgroundcolor: int = ...,
+        clear: bool = ...,
+        colormap: int = ...,
+        figsize: Iterable[float] = ...,
+        font: int = ...,
+        font_precision: int = ...,
+        hold_plots: bool = ...,
+        keep_aspect_ratio: bool = ...,
+        panzoom: Iterable[float] = ...,
+        resample_method: Union[str, int] = ...,
+        reset_ranges: bool = ...,
+        size: Union[Iterable[float], Iterable[int], Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        subplot: Iterable[float] = ...,
+        title: str = ...,
+        update: bool = ...,
+        xflip: bool = ...,
+        xlabel: str = ...,
+        xlim: Iterable[float] = ...,
+        xlog: bool = ...,
+        xrange: Iterable[float] = ...,
+        yflip: bool = ...,
+        ylabel: str = ...,
+        ylim: Iterable[float] = ...,
+        ylog: bool = ...,
+        yrange: Iterable[float] = ...
+) -> int:
+    ...
+@overload
+def line(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
+        **kwargs: args._ElemType
+) -> int:
+    ...
+def line(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
+        **kwargs: args._ElemType
+) -> int:
+    return plot(args_container, kind="line", **kwargs)
+
+
+@overload
+def marginalheatmap(
+        args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
+) -> int:
+    ...
+@overload
+def marginalheatmap(
+        *,
+        algorithm: Union[int, str] = ...,
+        marginalheatmap_kind: str = ...,
+        orientation: str = ...,
+        x: Union[Iterable[float], Iterable[int]] = ...,
+        xflip: bool = ...,
+        xgrid: int = ...,
+        xind: int = ...,
+        y: Iterable[float] = ...,
+        yflip: bool = ...,
+        ygrid: int = ...,
+        yind: int = ...,
+        z: Iterable[float] = ...,
+        zgrid: int = ...,
+        zlabel: str = ...,
+
+        adjust_xlim: bool = ...,
+        adjust_ylim: bool = ...,
+        alpha: float = ...,
+        append_plots: bool = ...,
+        backgroundcolor: int = ...,
+        clear: bool = ...,
+        colormap: int = ...,
+        figsize: Iterable[float] = ...,
+        font: int = ...,
+        font_precision: int = ...,
+        hold_plots: bool = ...,
+        keep_aspect_ratio: bool = ...,
+        panzoom: Iterable[float] = ...,
+        resample_method: Union[str, int] = ...,
+        reset_ranges: bool = ...,
+        size: Union[Iterable[float], Iterable[int], Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        subplot: Iterable[float] = ...,
+        title: str = ...,
+        update: bool = ...,
+        # xflip: bool = ...,
+        xlabel: str = ...,
+        xlim: Iterable[float] = ...,
+        xlog: bool = ...,
+        xrange: Iterable[float] = ...,
+        # yflip: bool = ...,
+        ylabel: str = ...,
+        ylim: Iterable[float] = ...,
+        ylog: bool = ...,
+        yrange: Iterable[float] = ...
+) -> int:
+    ...
+@overload
+def marginalheatmap(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
+        **kwargs: args._ElemType
+) -> int:
+    ...
+def marginalheatmap(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
+        **kwargs: args._ElemType
+) -> int:
+    return plot(args_container, kind="marginalheatmap", **kwargs)
+
+
+@overload
+def pie(
+        args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
+) -> int:
+    ...
+@overload
+def pie(
+        *,
+        labels: Iterable[str] = ...,
+        x: Union[Iterable[float], Iterable[int]] = ...,
+
+        adjust_xlim: bool = ...,
+        adjust_ylim: bool = ...,
+        alpha: float = ...,
+        append_plots: bool = ...,
+        backgroundcolor: int = ...,
+        clear: bool = ...,
+        colormap: int = ...,
+        figsize: Iterable[float] = ...,
+        font: int = ...,
+        font_precision: int = ...,
+        hold_plots: bool = ...,
+        keep_aspect_ratio: bool = ...,
+        panzoom: Iterable[float] = ...,
+        resample_method: Union[str, int] = ...,
+        reset_ranges: bool = ...,
+        size: Union[Iterable[float], Iterable[int], Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        subplot: Iterable[float] = ...,
+        title: str = ...,
+        update: bool = ...,
+        xflip: bool = ...,
+        xlabel: str = ...,
+        xlim: Iterable[float] = ...,
+        xlog: bool = ...,
+        xrange: Iterable[float] = ...,
+        yflip: bool = ...,
+        ylabel: str = ...,
+        ylim: Iterable[float] = ...,
+        ylog: bool = ...,
+        yrange: Iterable[float] = ...
+) -> int:
+    ...
+@overload
+def pie(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
+        **kwargs: args._ElemType
+) -> int:
+    ...
+def pie(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
+        **kwargs: args._ElemType
+) -> int:
+    return plot(args_container, kind="pie", **kwargs)
+
+
+@overload
+def plot3(
+        args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
+) -> int:
+    ...
+@overload
+def plot3(
+        *,
+        adjust_zlim: bool = ...,
+        rotation: float = ...,
+        tilt: float = ...,
+        x: Union[Iterable[float], Iterable[int]] = ...,
+        xgrid: int = ...,
+        y: Iterable[float] = ...,
+        ygrid: int = ...,
+        z: Iterable[float] = ...,
+        zflip: bool = ...,
+        zgrid: int = ...,
+        zlabel: str = ...,
+        zlim: Iterable[float] = ...,
+        zlog: bool = ...,
+        zrange: Iterable[float] = ...,
+
+        adjust_xlim: bool = ...,
+        adjust_ylim: bool = ...,
+        alpha: float = ...,
+        append_plots: bool = ...,
+        backgroundcolor: int = ...,
+        clear: bool = ...,
+        colormap: int = ...,
+        figsize: Iterable[float] = ...,
+        font: int = ...,
+        font_precision: int = ...,
+        hold_plots: bool = ...,
+        keep_aspect_ratio: bool = ...,
+        panzoom: Iterable[float] = ...,
+        resample_method: Union[str, int] = ...,
+        reset_ranges: bool = ...,
+        size: Union[Iterable[float], Iterable[int], Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        subplot: Iterable[float] = ...,
+        title: str = ...,
+        update: bool = ...,
+        xflip: bool = ...,
+        xlabel: str = ...,
+        xlim: Iterable[float] = ...,
+        xlog: bool = ...,
+        xrange: Iterable[float] = ...,
+        yflip: bool = ...,
+        ylabel: str = ...,
+        ylim: Iterable[float] = ...,
+        ylog: bool = ...,
+        yrange: Iterable[float] = ...
+) -> int:
+    ...
+@overload
+def plot3(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
+        **kwargs: args._ElemType
+) -> int:
+    ...
+def plot3(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
+        **kwargs: args._ElemType
+) -> int:
+    return plot(args_container, kind="plot3", **kwargs)
+
+
+@overload
+def polar(
+        args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
+) -> int:
+    ...
+@overload
+def polar(
+        *,
+        angle_ticks: int = ...,
+        rings: int = ...,
+        spec: str = ...,
+        x: Union[Iterable[float], Iterable[int]] = ...,
+        xgrid: int = ...,
+        y: Iterable[float] = ...,
+        ygrid: int = ...,
+
+        adjust_xlim: bool = ...,
+        adjust_ylim: bool = ...,
+        alpha: float = ...,
+        append_plots: bool = ...,
+        backgroundcolor: int = ...,
+        clear: bool = ...,
+        colormap: int = ...,
+        figsize: Iterable[float] = ...,
+        font: int = ...,
+        font_precision: int = ...,
+        hold_plots: bool = ...,
+        keep_aspect_ratio: bool = ...,
+        panzoom: Iterable[float] = ...,
+        resample_method: Union[str, int] = ...,
+        reset_ranges: bool = ...,
+        size: Union[Iterable[float], Iterable[int], Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        subplot: Iterable[float] = ...,
+        title: str = ...,
+        update: bool = ...,
+        xflip: bool = ...,
+        xlabel: str = ...,
+        xlim: Iterable[float] = ...,
+        xlog: bool = ...,
+        xrange: Iterable[float] = ...,
+        yflip: bool = ...,
+        ylabel: str = ...,
+        ylim: Iterable[float] = ...,
+        ylog: bool = ...,
+        yrange: Iterable[float] = ...
+) -> int:
+    ...
+@overload
+def polar(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
+        **kwargs: args._ElemType
+) -> int:
+    ...
+def polar(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
+        **kwargs: args._ElemType
+) -> int:
+    return plot(args_container, kind="polar", **kwargs)
+
+
+@overload
+def polar_heatmap(
+        args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
+) -> int:
+    ...
+@overload
+def polar_heatmap(
+        *,
+        crange: Iterable[float] = ...,
+        x: Union[Iterable[float], Iterable[int]] = ...,
+        y: Iterable[float] = ...,
+        z: Iterable[float] = ...,
+        z_dims: Iterable[int] = ...,
+        zlabel: str = ...,
+        zlog: bool = ...,
+        zrange: Iterable[float] = ...,
+
+        adjust_xlim: bool = ...,
+        adjust_ylim: bool = ...,
+        alpha: float = ...,
+        append_plots: bool = ...,
+        backgroundcolor: int = ...,
+        clear: bool = ...,
+        colormap: int = ...,
+        figsize: Iterable[float] = ...,
+        font: int = ...,
+        font_precision: int = ...,
+        hold_plots: bool = ...,
+        keep_aspect_ratio: bool = ...,
+        panzoom: Iterable[float] = ...,
+        resample_method: Union[str, int] = ...,
+        reset_ranges: bool = ...,
+        size: Union[Iterable[float], Iterable[int], Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        subplot: Iterable[float] = ...,
+        title: str = ...,
+        update: bool = ...,
+        xflip: bool = ...,
+        xlabel: str = ...,
+        xlim: Iterable[float] = ...,
+        xlog: bool = ...,
+        xrange: Iterable[float] = ...,
+        yflip: bool = ...,
+        ylabel: str = ...,
+        ylim: Iterable[float] = ...,
+        ylog: bool = ...,
+        yrange: Iterable[float] = ...
+) -> int:
+    ...
+@overload
+def polar_heatmap(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
+        **kwargs: args._ElemType
+) -> int:
+    ...
+def polar_heatmap(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
+        **kwargs: args._ElemType
+) -> int:
+    return plot(args_container, kind="polar_heatmap", **kwargs)
+
+
+@overload
+def nonuniformpolar_heatmap(
+        args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
+) -> int:
+    ...
+@overload
+def nonuniformpolar_heatmap(
+        *,
+        crange: Iterable[float] = ...,
+        x: Union[Iterable[float], Iterable[int]] = ...,
+        y: Iterable[float] = ...,
+        z: Iterable[float] = ...,
+        z_dims: Iterable[int] = ...,
+        zlabel: str = ...,
+        zlog: bool = ...,
+        zrange: Iterable[float] = ...,
+
+        adjust_xlim: bool = ...,
+        adjust_ylim: bool = ...,
+        alpha: float = ...,
+        append_plots: bool = ...,
+        backgroundcolor: int = ...,
+        clear: bool = ...,
+        colormap: int = ...,
+        figsize: Iterable[float] = ...,
+        font: int = ...,
+        font_precision: int = ...,
+        hold_plots: bool = ...,
+        keep_aspect_ratio: bool = ...,
+        panzoom: Iterable[float] = ...,
+        resample_method: Union[str, int] = ...,
+        reset_ranges: bool = ...,
+        size: Union[Iterable[float], Iterable[int], Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        subplot: Iterable[float] = ...,
+        title: str = ...,
+        update: bool = ...,
+        xflip: bool = ...,
+        xlabel: str = ...,
+        xlim: Iterable[float] = ...,
+        xlog: bool = ...,
+        xrange: Iterable[float] = ...,
+        yflip: bool = ...,
+        ylabel: str = ...,
+        ylim: Iterable[float] = ...,
+        ylog: bool = ...,
+        yrange: Iterable[float] = ...
+) -> int:
+    ...
+@overload
+def nonuniformpolar_heatmap(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
+        **kwargs: args._ElemType
+) -> int:
+    ...
+def nonuniformpolar_heatmap(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
+        **kwargs: args._ElemType
+) -> int:
+    return plot(args_container, kind="nonuniformpolar_heatmap", **kwargs)
+
+
+@overload
+def polar_histogram(
+        args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
+) -> int:
+    ...
+@overload
+def polar_histogram(
+        *,
+        angle_ticks: int = ...,
+        bin_counts: int = ...,
+        bin_edges: Iterable[float] = ...,
+        bin_width: float = ...,
+        draw_edges: int = ...,
+        edge_color: Union[Iterable[float], int] = ...,
+        face_alpha: float = ...,
+        face_color: int = ...,
+        nbins: int = ...,
+        normalization: str = ...,
+        phiflip: bool = ...,
+        philim: Iterable[float] = ...,
+        rings: int = ...,
+        rlim: Iterable[float] = ...,
+        stairs: int = ...,
+        xcolormap: int = ...,
+        xgrid: int = ...,
+        ycolormap: int = ...,
+        ygrid: int = ...,
+        zgrid: int = ...,
+
+        adjust_xlim: bool = ...,
+        adjust_ylim: bool = ...,
+        alpha: float = ...,
+        append_plots: bool = ...,
+        backgroundcolor: int = ...,
+        clear: bool = ...,
+        colormap: int = ...,
+        figsize: Iterable[float] = ...,
+        font: int = ...,
+        font_precision: int = ...,
+        hold_plots: bool = ...,
+        keep_aspect_ratio: bool = ...,
+        panzoom: Iterable[float] = ...,
+        resample_method: Union[str, int] = ...,
+        reset_ranges: bool = ...,
+        size: Union[Iterable[float], Iterable[int], Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        subplot: Iterable[float] = ...,
+        title: str = ...,
+        update: bool = ...,
+        xflip: bool = ...,
+        xlabel: str = ...,
+        xlim: Iterable[float] = ...,
+        xlog: bool = ...,
+        xrange: Iterable[float] = ...,
+        yflip: bool = ...,
+        ylabel: str = ...,
+        ylim: Iterable[float] = ...,
+        ylog: bool = ...,
+        yrange: Iterable[float] = ...
+) -> int:
+    ...
+@overload
+def polar_histogram(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
+        **kwargs: args._ElemType
+) -> int:
+    ...
+def polar_histogram(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
+        **kwargs: args._ElemType
+) -> int:
+    return plot(args_container, kind="polar_histogram", **kwargs)
+
+
+@overload
+def quiver(
+        args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
+) -> int:
+    ...
+@overload
+def quiver(
+        *,
+        u: Iterable[float] = ...,
+        v: Iterable[float] = ...,
+        x: Union[Iterable[float], Iterable[int]] = ...,
+        xgrid: int = ...,
+        y: Iterable[float] = ...,
+        ygrid: int = ...,
+
+        adjust_xlim: bool = ...,
+        adjust_ylim: bool = ...,
+        alpha: float = ...,
+        append_plots: bool = ...,
+        backgroundcolor: int = ...,
+        clear: bool = ...,
+        colormap: int = ...,
+        figsize: Iterable[float] = ...,
+        font: int = ...,
+        font_precision: int = ...,
+        hold_plots: bool = ...,
+        keep_aspect_ratio: bool = ...,
+        panzoom: Iterable[float] = ...,
+        resample_method: Union[str, int] = ...,
+        reset_ranges: bool = ...,
+        size: Union[Iterable[float], Iterable[int], Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        subplot: Iterable[float] = ...,
+        title: str = ...,
+        update: bool = ...,
+        xflip: bool = ...,
+        xlabel: str = ...,
+        xlim: Iterable[float] = ...,
+        xlog: bool = ...,
+        xrange: Iterable[float] = ...,
+        yflip: bool = ...,
+        ylabel: str = ...,
+        ylim: Iterable[float] = ...,
+        ylog: bool = ...,
+        yrange: Iterable[float] = ...
+) -> int:
+    ...
+@overload
+def quiver(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
+        **kwargs: args._ElemType
+) -> int:
+    ...
+def quiver(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
+        **kwargs: args._ElemType
+) -> int:
+    return plot(args_container, kind="quiver", **kwargs)
+
+
+@overload
+def scatter(
+        args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
+) -> int:
+    ...
+@overload
+def scatter(
+        *,
+        c: Union[Iterable[float], Iterable[int]] = ...,
+        labels: Iterable[str] = ...,
+        location: int = ...,
+        markertype: int = ...,
+        orientation: str = ...,
+        x: Union[Iterable[float], Iterable[int]] = ...,
+        xgrid: int = ...,
+        y: Iterable[float] = ...,
+        ygrid: int = ...,
+        z: Iterable[float] = ...,
+        zgrid: int = ...,
+        zlabel: str = ...,
+
+        adjust_xlim: bool = ...,
+        adjust_ylim: bool = ...,
+        alpha: float = ...,
+        append_plots: bool = ...,
+        backgroundcolor: int = ...,
+        clear: bool = ...,
+        colormap: int = ...,
+        figsize: Iterable[float] = ...,
+        font: int = ...,
+        font_precision: int = ...,
+        hold_plots: bool = ...,
+        keep_aspect_ratio: bool = ...,
+        panzoom: Iterable[float] = ...,
+        resample_method: Union[str, int] = ...,
+        reset_ranges: bool = ...,
+        size: Union[Iterable[float], Iterable[int], Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        subplot: Iterable[float] = ...,
+        title: str = ...,
+        update: bool = ...,
+        xflip: bool = ...,
+        xlabel: str = ...,
+        xlim: Iterable[float] = ...,
+        xlog: bool = ...,
+        xrange: Iterable[float] = ...,
+        yflip: bool = ...,
+        ylabel: str = ...,
+        ylim: Iterable[float] = ...,
+        ylog: bool = ...,
+        yrange: Iterable[float] = ...
+) -> int:
+    ...
+@overload
+def scatter(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
+        **kwargs: args._ElemType
+) -> int:
+    ...
+def scatter(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
+        **kwargs: args._ElemType
+) -> int:
+    return plot(args_container, kind="scatter", **kwargs)
+
+
+@overload
+def scatter3(
+        args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
+) -> int:
+    ...
+@overload
+def scatter3(
+        *,
+        adjust_zlim: bool = ...,
+        c: Union[Iterable[float], Iterable[int]] = ...,
+        rotation: float = ...,
+        tilt: float = ...,
+        x: Union[Iterable[float], Iterable[int]] = ...,
+        xgrid: int = ...,
+        y: Iterable[float] = ...,
+        ygrid: int = ...,
+        z: Iterable[float] = ...,
+        zflip: bool = ...,
+        zgrid: int = ...,
+        zlabel: str = ...,
+        zlim: Iterable[float] = ...,
+        zlog: bool = ...,
+        zrange: Iterable[float] = ...,
+
+        adjust_xlim: bool = ...,
+        adjust_ylim: bool = ...,
+        alpha: float = ...,
+        append_plots: bool = ...,
+        backgroundcolor: int = ...,
+        clear: bool = ...,
+        colormap: int = ...,
+        figsize: Iterable[float] = ...,
+        font: int = ...,
+        font_precision: int = ...,
+        hold_plots: bool = ...,
+        keep_aspect_ratio: bool = ...,
+        panzoom: Iterable[float] = ...,
+        resample_method: Union[str, int] = ...,
+        reset_ranges: bool = ...,
+        size: Union[Iterable[float], Iterable[int], Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        subplot: Iterable[float] = ...,
+        title: str = ...,
+        update: bool = ...,
+        xflip: bool = ...,
+        xlabel: str = ...,
+        xlim: Iterable[float] = ...,
+        xlog: bool = ...,
+        xrange: Iterable[float] = ...,
+        yflip: bool = ...,
+        ylabel: str = ...,
+        ylim: Iterable[float] = ...,
+        ylog: bool = ...,
+        yrange: Iterable[float] = ...
+) -> int:
+    ...
+@overload
+def scatter3(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
+        **kwargs: args._ElemType
+) -> int:
+    ...
+def scatter3(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
+        **kwargs: args._ElemType
+) -> int:
+    return plot(args_container, kind="scatter3", **kwargs)
+
+
+@overload
+def shade(
+        args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
+) -> int:
+    ...
+@overload
+def shade(
+        *,
+        x: Union[Iterable[float], Iterable[int]] = ...,
+        xbins: int = ...,
+        xform: int = ...,
+        xgrid: int = ...,
+        y: Iterable[float] = ...,
+        ybins: int = ...,
+        ygrid: int = ...,
+
+        adjust_xlim: bool = ...,
+        adjust_ylim: bool = ...,
+        alpha: float = ...,
+        append_plots: bool = ...,
+        backgroundcolor: int = ...,
+        clear: bool = ...,
+        colormap: int = ...,
+        figsize: Iterable[float] = ...,
+        font: int = ...,
+        font_precision: int = ...,
+        hold_plots: bool = ...,
+        keep_aspect_ratio: bool = ...,
+        panzoom: Iterable[float] = ...,
+        resample_method: Union[str, int] = ...,
+        reset_ranges: bool = ...,
+        size: Union[Iterable[float], Iterable[int], Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        subplot: Iterable[float] = ...,
+        title: str = ...,
+        update: bool = ...,
+        xflip: bool = ...,
+        xlabel: str = ...,
+        xlim: Iterable[float] = ...,
+        xlog: bool = ...,
+        xrange: Iterable[float] = ...,
+        yflip: bool = ...,
+        ylabel: str = ...,
+        ylim: Iterable[float] = ...,
+        ylog: bool = ...,
+        yrange: Iterable[float] = ...
+) -> int:
+    ...
+@overload
+def shade(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
+        **kwargs: args._ElemType
+) -> int:
+    ...
+def shade(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
+        **kwargs: args._ElemType
+) -> int:
+    return plot(args_container, kind="shade", **kwargs)
+
+
+@overload
+def stairs(
+        args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
+) -> int:
+    ...
+@overload
+def stairs(
+        *,
+        labels: Iterable[str] = ...,
+        location: int = ...,
+        orientation: str = ...,
+        step_where: str = ...,
+        x: Union[Iterable[float], Iterable[int]] = ...,
+        xgrid: int = ...,
+        y: Iterable[float] = ...,
+        ygrid: int = ...,
+
+        adjust_xlim: bool = ...,
+        adjust_ylim: bool = ...,
+        alpha: float = ...,
+        append_plots: bool = ...,
+        backgroundcolor: int = ...,
+        clear: bool = ...,
+        colormap: int = ...,
+        figsize: Iterable[float] = ...,
+        font: int = ...,
+        font_precision: int = ...,
+        hold_plots: bool = ...,
+        keep_aspect_ratio: bool = ...,
+        panzoom: Iterable[float] = ...,
+        resample_method: Union[str, int] = ...,
+        reset_ranges: bool = ...,
+        size: Union[Iterable[float], Iterable[int], Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        subplot: Iterable[float] = ...,
+        title: str = ...,
+        update: bool = ...,
+        xflip: bool = ...,
+        xlabel: str = ...,
+        xlim: Iterable[float] = ...,
+        xlog: bool = ...,
+        xrange: Iterable[float] = ...,
+        yflip: bool = ...,
+        ylabel: str = ...,
+        ylim: Iterable[float] = ...,
+        ylog: bool = ...,
+        yrange: Iterable[float] = ...
+) -> int:
+    ...
+@overload
+def stairs(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
+        **kwargs: args._ElemType
+) -> int:
+    ...
+def stairs(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
+        **kwargs: args._ElemType
+) -> int:
+    return plot(args_container, kind="stairs", **kwargs)
+
+
+@overload
+def stem(
+        args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
+) -> int:
+    ...
+@overload
+def stem(
+        *,
+        labels: Iterable[str] = ...,
+        location: int = ...,
+        orientation: str = ...,
+        spec: str = ...,
+        x: Union[Iterable[float], Iterable[int]] = ...,
+        xgrid: int = ...,
+        y: Iterable[float] = ...,
+        ygrid: int = ...,
+
+        adjust_xlim: bool = ...,
+        adjust_ylim: bool = ...,
+        alpha: float = ...,
+        append_plots: bool = ...,
+        backgroundcolor: int = ...,
+        clear: bool = ...,
+        colormap: int = ...,
+        figsize: Iterable[float] = ...,
+        font: int = ...,
+        font_precision: int = ...,
+        hold_plots: bool = ...,
+        keep_aspect_ratio: bool = ...,
+        panzoom: Iterable[float] = ...,
+        resample_method: Union[str, int] = ...,
+        reset_ranges: bool = ...,
+        size: Union[Iterable[float], Iterable[int], Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        subplot: Iterable[float] = ...,
+        title: str = ...,
+        update: bool = ...,
+        xflip: bool = ...,
+        xlabel: str = ...,
+        xlim: Iterable[float] = ...,
+        xlog: bool = ...,
+        xrange: Iterable[float] = ...,
+        yflip: bool = ...,
+        ylabel: str = ...,
+        ylim: Iterable[float] = ...,
+        ylog: bool = ...,
+        yrange: Iterable[float] = ...
+) -> int:
+    ...
+@overload
+def stem(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
+        **kwargs: args._ElemType
+) -> int:
+    ...
+def stem(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
+        **kwargs: args._ElemType
+) -> int:
+    return plot(args_container, kind="stem", **kwargs)
+
+
+@overload
+def surface(
+        args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
+) -> int:
+    ...
+@overload
+def surface(
+        *,
+        accelerate: bool = ...,
+        adjust_zlim: bool = ...,
+        rotation: float = ...,
+        tilt: float = ...,
+        x: Union[Iterable[float], Iterable[int]] = ...,
+        xgrid: int = ...,
+        y: Iterable[float] = ...,
+        ygrid: int = ...,
+        z: Iterable[float] = ...,
+        z_dims: Iterable[int] = ...,
+        zflip: bool = ...,
+        zgrid: int = ...,
+        zlabel: str = ...,
+        zlim: Iterable[float] = ...,
+        zlog: bool = ...,
+        zrange: Iterable[float] = ...,
+
+        adjust_xlim: bool = ...,
+        adjust_ylim: bool = ...,
+        alpha: float = ...,
+        append_plots: bool = ...,
+        backgroundcolor: int = ...,
+        clear: bool = ...,
+        colormap: int = ...,
+        figsize: Iterable[float] = ...,
+        font: int = ...,
+        font_precision: int = ...,
+        hold_plots: bool = ...,
+        keep_aspect_ratio: bool = ...,
+        panzoom: Iterable[float] = ...,
+        resample_method: Union[str, int] = ...,
+        reset_ranges: bool = ...,
+        size: Union[Iterable[float], Iterable[int], Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        subplot: Iterable[float] = ...,
+        title: str = ...,
+        update: bool = ...,
+        xflip: bool = ...,
+        xlabel: str = ...,
+        xlim: Iterable[float] = ...,
+        xlog: bool = ...,
+        xrange: Iterable[float] = ...,
+        yflip: bool = ...,
+        ylabel: str = ...,
+        ylim: Iterable[float] = ...,
+        ylog: bool = ...,
+        yrange: Iterable[float] = ...
+) -> int:
+    ...
+@overload
+def surface(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
+        **kwargs: args._ElemType
+) -> int:
+    ...
+def surface(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
+        **kwargs: args._ElemType
+) -> int:
+    return plot(args_container, kind="surface", **kwargs)
+
+
+@overload
+def tricont(
+        args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
+) -> int:
+    ...
+@overload
+def tricont(
+        *,
+        levels: int = ...,
+        x: Union[Iterable[float], Iterable[int]] = ...,
+        xgrid: int = ...,
+        y: Iterable[float] = ...,
+        ygrid: int = ...,
+        z: Iterable[float] = ...,
+        zgrid: int = ...,
+        zlabel: str = ...,
+
+        adjust_xlim: bool = ...,
+        adjust_ylim: bool = ...,
+        alpha: float = ...,
+        append_plots: bool = ...,
+        backgroundcolor: int = ...,
+        clear: bool = ...,
+        colormap: int = ...,
+        figsize: Iterable[float] = ...,
+        font: int = ...,
+        font_precision: int = ...,
+        hold_plots: bool = ...,
+        keep_aspect_ratio: bool = ...,
+        panzoom: Iterable[float] = ...,
+        resample_method: Union[str, int] = ...,
+        reset_ranges: bool = ...,
+        size: Union[Iterable[float], Iterable[int], Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        subplot: Iterable[float] = ...,
+        title: str = ...,
+        update: bool = ...,
+        xflip: bool = ...,
+        xlabel: str = ...,
+        xlim: Iterable[float] = ...,
+        xlog: bool = ...,
+        xrange: Iterable[float] = ...,
+        yflip: bool = ...,
+        ylabel: str = ...,
+        ylim: Iterable[float] = ...,
+        ylog: bool = ...,
+        yrange: Iterable[float] = ...
+) -> int:
+    ...
+@overload
+def tricont(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
+        **kwargs: args._ElemType
+) -> int:
+    ...
+def tricont(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
+        **kwargs: args._ElemType
+) -> int:
+    return plot(args_container, kind="tricont", **kwargs)
+
+
+@overload
+def trisurf(
+        args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
+) -> int:
+    ...
+@overload
+def trisurf(
+        *,
+        adjust_zlim: bool = ...,
+        rotation: float = ...,
+        tilt: float = ...,
+        x: Union[Iterable[float], Iterable[int]] = ...,
+        xgrid: int = ...,
+        y: Iterable[float] = ...,
+        ygrid: int = ...,
+        z: Iterable[float] = ...,
+        zflip: bool = ...,
+        zgrid: int = ...,
+        zlabel: str = ...,
+        zlim: Iterable[float] = ...,
+        zlog: bool = ...,
+        zrange: Iterable[float] = ...,
+
+        adjust_xlim: bool = ...,
+        adjust_ylim: bool = ...,
+        alpha: float = ...,
+        append_plots: bool = ...,
+        backgroundcolor: int = ...,
+        clear: bool = ...,
+        colormap: int = ...,
+        figsize: Iterable[float] = ...,
+        font: int = ...,
+        font_precision: int = ...,
+        hold_plots: bool = ...,
+        keep_aspect_ratio: bool = ...,
+        panzoom: Iterable[float] = ...,
+        resample_method: Union[str, int] = ...,
+        reset_ranges: bool = ...,
+        size: Union[Iterable[float], Iterable[int], Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        subplot: Iterable[float] = ...,
+        title: str = ...,
+        update: bool = ...,
+        xflip: bool = ...,
+        xlabel: str = ...,
+        xlim: Iterable[float] = ...,
+        xlog: bool = ...,
+        xrange: Iterable[float] = ...,
+        yflip: bool = ...,
+        ylabel: str = ...,
+        ylim: Iterable[float] = ...,
+        ylog: bool = ...,
+        yrange: Iterable[float] = ...
+) -> int:
+    ...
+@overload
+def trisurf(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
+        **kwargs: args._ElemType
+) -> int:
+    ...
+def trisurf(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
+        **kwargs: args._ElemType
+) -> int:
+    return plot(args_container, kind="trisurf", **kwargs)
+
+
+@overload
+def volume(
+        args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
+) -> int:
+    ...
+@overload
+def volume(
+        *,
+        adjust_zlim: bool = ...,
+        algorithm: Union[int, str] = ...,
+        c: Union[Iterable[float], Iterable[int]] = ...,
+        c_dims: Iterable[int] = ...,
+        dmax: float = ...,
+        dmin: float = ...,
+        rotation: float = ...,
+        tilt: float = ...,
+        xgrid: int = ...,
+        ygrid: int = ...,
+        zflip: bool = ...,
+        zgrid: int = ...,
+        zlim: Iterable[float] = ...,
+        zlog: bool = ...,
+        zrange: Iterable[float] = ...,
+
+        adjust_xlim: bool = ...,
+        adjust_ylim: bool = ...,
+        alpha: float = ...,
+        append_plots: bool = ...,
+        backgroundcolor: int = ...,
+        clear: bool = ...,
+        colormap: int = ...,
+        figsize: Iterable[float] = ...,
+        font: int = ...,
+        font_precision: int = ...,
+        hold_plots: bool = ...,
+        keep_aspect_ratio: bool = ...,
+        panzoom: Iterable[float] = ...,
+        resample_method: Union[str, int] = ...,
+        reset_ranges: bool = ...,
+        size: Union[Iterable[float], Iterable[int], Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        subplot: Iterable[float] = ...,
+        title: str = ...,
+        update: bool = ...,
+        xflip: bool = ...,
+        xlabel: str = ...,
+        xlim: Iterable[float] = ...,
+        xlog: bool = ...,
+        xrange: Iterable[float] = ...,
+        yflip: bool = ...,
+        ylabel: str = ...,
+        ylim: Iterable[float] = ...,
+        ylog: bool = ...,
+        yrange: Iterable[float] = ...
+) -> int:
+    ...
+@overload
+def volume(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
+        **kwargs: args._ElemType
+) -> int:
+    ...
+def volume(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
+        **kwargs: args._ElemType
+) -> int:
+    return plot(args_container, kind="volume", **kwargs)
+
+
+@overload
+def wireframe(
+        args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
+) -> int:
+    ...
+@overload
+def wireframe(
+        *,
+        adjust_zlim: bool = ...,
+        rotation: float = ...,
+        tilt: float = ...,
+        x: Union[Iterable[float], Iterable[int]] = ...,
+        xgrid: int = ...,
+        y: Iterable[float] = ...,
+        ygrid: int = ...,
+        z: Iterable[float] = ...,
+        zflip: bool = ...,
+        zgrid: int = ...,
+        zlabel: str = ...,
+        zlim: Iterable[float] = ...,
+        zlog: bool = ...,
+        zrange: Iterable[float] = ...,
+
+        adjust_xlim: bool = ...,
+        adjust_ylim: bool = ...,
+        alpha: float = ...,
+        append_plots: bool = ...,
+        backgroundcolor: int = ...,
+        clear: bool = ...,
+        colormap: int = ...,
+        figsize: Iterable[float] = ...,
+        font: int = ...,
+        font_precision: int = ...,
+        hold_plots: bool = ...,
+        keep_aspect_ratio: bool = ...,
+        panzoom: Iterable[float] = ...,
+        resample_method: Union[str, int] = ...,
+        reset_ranges: bool = ...,
+        size: Union[Iterable[float], Iterable[int], Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
+        subplot: Iterable[float] = ...,
+        title: str = ...,
+        update: bool = ...,
+        xflip: bool = ...,
+        xlabel: str = ...,
+        xlim: Iterable[float] = ...,
+        xlog: bool = ...,
+        xrange: Iterable[float] = ...,
+        yflip: bool = ...,
+        ylabel: str = ...,
+        ylim: Iterable[float] = ...,
+        ylog: bool = ...,
+        yrange: Iterable[float] = ...
+) -> int:
+    ...
+@overload
+def wireframe(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
+        **kwargs: args._ElemType
+) -> int:
+    ...
+def wireframe(
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
+        **kwargs: args._ElemType
+) -> int:
+    return plot(args_container, kind="wireframe", **kwargs)
 
 
 @_require_runtime_version(0, 47, 0)

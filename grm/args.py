@@ -8,11 +8,12 @@ import numpy as np
 from ctypes import c_int, c_uint, c_double, c_char_p, c_void_p
 from ctypes import POINTER, create_string_buffer
 
-from typing import Union, Tuple, List, Dict, Optional
+from typing import Union, Tuple, Dict, Optional, Any, Iterable, Mapping
 
 from gr import _require_runtime_version, _RUNTIME_VERSION
 
 from . import _grm, _encode_str_to_char_p
+
 
 _ElemType = Union[
     np.ndarray,
@@ -21,12 +22,12 @@ _ElemType = Union[
     str,
     dict,
     "_ArgumentContainer",
-    List[Union[int, float]],
-    List[str],
-    List[Union[dict, "_ArgumentContainer"]],
+    Iterable[Union[int, float]],
+    Iterable[str],
+    Iterable[Union[Mapping, "_ArgumentContainer"]],
     Tuple[Union[int, float], ...],
     Tuple[str, ...],
-    Tuple[Union[dict, "_ArgumentContainer"], ...],
+    Tuple[Union[Mapping, "_ArgumentContainer"], ...]
 ]
 
 
@@ -294,4 +295,4 @@ if _RUNTIME_VERSION >= (0, 47, 0, 0):
     _grm.grm_args_delete.restype = None
 
 
-__all__ = ["new"]
+__all__ = ["new", "_ElemType"]
