@@ -154,7 +154,7 @@ class _ArgumentContainer:
         if not isinstance(name, str):
             raise TypeError("Name must be a string!")
 
-        if isinstance(values, (int, float, str, dict, _ArgumentContainer)):
+        if isinstance(values, (int, float, str, bool, dict, _ArgumentContainer)):
             values = [values]
 
         if not isinstance(values, (tuple, list, np.ndarray)):
@@ -204,20 +204,20 @@ class _ArgumentContainer:
             for x in values:
                 if typ is None:
                     typ = type(x)
-                elif typ == type(x):
+                elif typ is type(x):
                     pass
-                elif typ == int and isinstance(x, float):
+                elif typ is int and isinstance(x, float):
                     typ = float
-                elif typ == float and isinstance(x, int):
+                elif typ is float and isinstance(x, int):
                     pass
-                elif typ == dict and isinstance(x, _ArgumentContainer):
+                elif typ is dict and isinstance(x, _ArgumentContainer):
                     pass
-                elif typ == _ArgumentContainer and isinstance(x, dict):
+                elif typ is _ArgumentContainer and isinstance(x, dict):
                     typ = dict
                 else:
                     raise TypeError("All values in the array must be of the same type!")
 
-            if typ == int:
+            if typ == int or typ == bool:
                 type_spec = create_string_buffer(b"nI")
                 values = (c_int * len(values))(*values)
                 self._bufs[name] = values
