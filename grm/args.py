@@ -24,15 +24,15 @@ _ElemType = Union[
     "_ArgumentContainer",
     Iterable[Union[int, float]],
     Iterable[str],
-    Iterable[Union[Mapping, "_ArgumentContainer"]],
+    Iterable[Union[Mapping[str, "_ElemType"], "_ArgumentContainer"]],
     Tuple[Union[int, float], ...],
     Tuple[str, ...],
-    Tuple[Union[Mapping, "_ArgumentContainer"], ...]
+    Tuple[Union[Mapping[str, "_ElemType"], "_ArgumentContainer"], ...]
 ]
 
 
 class _ArgumentContainer:
-    def __init__(self, ptr: c_void_p, params: Optional[Dict[str, _ElemType]] = None) -> None:
+    def __init__(self, ptr: c_void_p, params: Optional[Mapping[str, _ElemType]] = None) -> None:
         """
         Initialize the class using the given pointer and optional params to insert directly.
 
@@ -45,7 +45,7 @@ class _ArgumentContainer:
         if params is not None:
             self.update(params)
 
-    def update(self, params: Dict[str, _ElemType]) -> None:
+    def update(self, params: Mapping[str, _ElemType]) -> None:
         """
         Update the argument container with the given dictionary params, by calling self.push(k, v) on each item.
 
@@ -262,7 +262,7 @@ class _ArgumentContainer:
 
 
 @_require_runtime_version(0, 47, 0)
-def new(params: Optional[Dict[str, _ElemType]] = None) -> _ArgumentContainer:
+def new(params: Optional[Mapping[str, _ElemType]] = None) -> _ArgumentContainer:
     """
     Initialise a new argument container with optional initialization data.
 
