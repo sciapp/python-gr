@@ -2296,7 +2296,7 @@ def max_plotid() -> int:
 
 
 @_require_runtime_version(0, 47, 0)
-def merge(args_container: args._ArgumentContainer) -> int:
+def merge(args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]) -> int:
     """
     Store the args_container into the internal, possibly clearing the internal values.
 
@@ -2304,9 +2304,13 @@ def merge(args_container: args._ArgumentContainer) -> int:
 
     :raises TypeError: if the args_container is not a valid :class:`grm.args._ArgumentContainer`
     """
-    if not isinstance(args_container, args._ArgumentContainer):
-        raise TypeError("The given parameter is not a valid ArgumentContainer")
-    return _grm.grm_merge(args_container.ptr)
+    if isinstance(args_container, dict):
+        a = args.new(args_container)
+        return _grm.grm_merge(a.ptr)
+    elif isinstance(args_container, args._ArgumentContainer):
+        return _grm.grm_merge(args_container.ptr)
+    else:
+        raise TypeError("The given parameter is not a valid ArgumentContainer or Dict")
 
 
 @_require_runtime_version(0, 47, 0)
