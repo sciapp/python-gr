@@ -411,6 +411,10 @@ def barplot(
 @overload
 def barplot(
         *,
+        plots: args._ElemType = ...,
+        subplots: args._ElemType = ...,
+        series: args._ElemType = ...,
+
         bar_color: Union[Iterable[float], int] = ...,
         bar_width: float = ...,
         c: Union[Iterable[float], Iterable[int]] = ...,
@@ -446,7 +450,6 @@ def barplot(
         panzoom: Iterable[float] = ...,
         resample_method: Union[str, int] = ...,
         reset_ranges: bool = ...,
-        series: Iterable[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = ...,
         size: Union[Iterable[float], Iterable[int], Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
         subplot: Iterable[float] = ...,
         title: str = ...,
@@ -484,6 +487,10 @@ def contour(
 @overload
 def contour(
         *,
+        plots: args._ElemType = ...,
+        subplots: args._ElemType = ...,
+        series: args._ElemType = ...,
+
         levels: int = ...,
         x: Union[Iterable[float], Iterable[int]] = ...,
         xgrid: int = ...,
@@ -545,6 +552,10 @@ def contourf(
 @overload
 def contourf(
         *,
+        plots: args._ElemType = ...,
+        subplots: args._ElemType = ...,
+        series: args._ElemType = ...,
+
         levels: int = ...,
         x: Union[Iterable[float], Iterable[int]] = ...,
         xgrid: int = ...,
@@ -606,6 +617,10 @@ def heatmap(
 @overload
 def heatmap(
         *,
+        plots: args._ElemType = ...,
+        subplots: args._ElemType = ...,
+        series: args._ElemType = ...,
+
         crange: Iterable[float] = ...,
         x: Union[Iterable[float], Iterable[int]] = ...,
         xgrid: int = ...,
@@ -631,7 +646,6 @@ def heatmap(
         panzoom: Iterable[float] = ...,
         resample_method: Union[str, int] = ...,
         reset_ranges: bool = ...,
-        series: Iterable[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = ...,
         size: Union[Iterable[float], Iterable[int], Iterable[Mapping[str, args._ElemType]], Iterable[args._ArgumentContainer]] = ...,
         subplot: Iterable[float] = ...,
         title: str = ...,
@@ -669,6 +683,10 @@ def nonuniformheatmap(
 @overload
 def nonuniformheatmap(
         *,
+        plots: args._ElemType = ...,
+        subplots: args._ElemType = ...,
+        series: args._ElemType = ...,
+
         crange: Iterable[float] = ...,
         x: Union[Iterable[float], Iterable[int]] = ...,
         xgrid: int = ...,
@@ -729,6 +747,10 @@ def hexbin(
 @overload
 def hexbin(
         *,
+        plots: args._ElemType = ...,
+        subplots: args._ElemType = ...,
+        series: args._ElemType = ...,
+
         nbins: int = ...,
         x: Union[Iterable[float], Iterable[int]] = ...,
         xgrid: int = ...,
@@ -787,6 +809,10 @@ def hist(
 @overload
 def hist(
         *,
+        plots: args._ElemType = ...,
+        subplots: args._ElemType = ...,
+        series: args._ElemType = ...,
+
         bar_color: Union[Iterable[float], int] = ...,
         edge_color: Union[Iterable[float], int] = ...,
         orientation: str = ...,
@@ -848,6 +874,10 @@ def imshow(
 @overload
 def imshow(
         *,
+        plots: args._ElemType = ...,
+        subplots: args._ElemType = ...,
+        series: args._ElemType = ...,
+
         c: Union[Iterable[float], Iterable[int]] = ...,
         c_dims: Iterable[int] = ...,
         xflip: bool = ...,
@@ -905,6 +935,10 @@ def isosurface(
 @overload
 def isosurface(
         *,
+        plots: args._ElemType = ...,
+        subplots: args._ElemType = ...,
+        series: args._ElemType = ...,
+
         c: Union[Iterable[float], Iterable[int]] = ...,
         c_dims: Iterable[int] = ...,
         foreground_color: Iterable[float] = ...,
@@ -964,6 +998,10 @@ def line(
 @overload
 def line(
         *,
+        plots: args._ElemType = ...,
+        subplots: args._ElemType = ...,
+        series: args._ElemType = ...,
+
         labels: Iterable[str] = ...,
         location: int = ...,
         markertype: int = ...,
@@ -1026,6 +1064,10 @@ def marginalheatmap(
 @overload
 def marginalheatmap(
         *,
+        plots: args._ElemType = ...,
+        subplots: args._ElemType = ...,
+        series: args._ElemType = ...,
+
         algorithm: Union[int, str] = ...,
         marginalheatmap_kind: str = ...,
         orientation: str = ...,
@@ -1093,6 +1135,10 @@ def pie(
 @overload
 def pie(
         *,
+        plots: args._ElemType = ...,
+        subplots: args._ElemType = ...,
+        series: args._ElemType = ...,
+
         labels: Iterable[str] = ...,
         x: Union[Iterable[float], Iterable[int]] = ...,
 
@@ -1148,6 +1194,10 @@ def plot3(
 @overload
 def plot3(
         *,
+        plots: args._ElemType = ...,
+        subplots: args._ElemType = ...,
+        series: args._ElemType = ...,
+
         adjust_zlim: bool = ...,
         rotation: float = ...,
         tilt: float = ...,
@@ -1215,6 +1265,10 @@ def polar(
 @overload
 def polar(
         *,
+        plots: args._ElemType = ...,
+        subplots: args._ElemType = ...,
+        series: args._ElemType = ...,
+
         angle_ticks: int = ...,
         rings: int = ...,
         spec: str = ...,
@@ -1275,6 +1329,10 @@ def polar_heatmap(
 @overload
 def polar_heatmap(
         *,
+        plots: args._ElemType = ...,
+        subplots: args._ElemType = ...,
+        series: args._ElemType = ...,
+
         crange: Iterable[float] = ...,
         x: Union[Iterable[float], Iterable[int]] = ...,
         y: Iterable[float] = ...,
@@ -1336,6 +1394,10 @@ def nonuniformpolar_heatmap(
 @overload
 def nonuniformpolar_heatmap(
         *,
+        plots: args._ElemType = ...,
+        subplots: args._ElemType = ...,
+        series: args._ElemType = ...,
+
         crange: Iterable[float] = ...,
         x: Union[Iterable[float], Iterable[int]] = ...,
         y: Iterable[float] = ...,
@@ -1397,6 +1459,10 @@ def polar_histogram(
 @overload
 def polar_histogram(
         *,
+        plots: args._ElemType = ...,
+        subplots: args._ElemType = ...,
+        series: args._ElemType = ...,
+
         x: Iterable[float] = ...,
         angle_ticks: int = ...,
         bin_counts: int = ...,
@@ -1471,6 +1537,10 @@ def quiver(
 @overload
 def quiver(
         *,
+        plots: args._ElemType = ...,
+        subplots: args._ElemType = ...,
+        series: args._ElemType = ...,
+
         u: Iterable[float] = ...,
         v: Iterable[float] = ...,
         x: Union[Iterable[float], Iterable[int]] = ...,
@@ -1530,6 +1600,10 @@ def scatter(
 @overload
 def scatter(
         *,
+        plots: args._ElemType = ...,
+        subplots: args._ElemType = ...,
+        series: args._ElemType = ...,
+
         c: Union[Iterable[float], Iterable[int]] = ...,
         labels: Iterable[str] = ...,
         location: int = ...,
@@ -1595,6 +1669,10 @@ def scatter3(
 @overload
 def scatter3(
         *,
+        plots: args._ElemType = ...,
+        subplots: args._ElemType = ...,
+        series: args._ElemType = ...,
+
         adjust_zlim: bool = ...,
         c: Union[Iterable[float], Iterable[int]] = ...,
         rotation: float = ...,
@@ -1663,6 +1741,10 @@ def shade(
 @overload
 def shade(
         *,
+        plots: args._ElemType = ...,
+        subplots: args._ElemType = ...,
+        series: args._ElemType = ...,
+
         x: Union[Iterable[float], Iterable[int]] = ...,
         xbins: int = ...,
         xform: int = ...,
@@ -1723,6 +1805,10 @@ def stairs(
 @overload
 def stairs(
         *,
+        plots: args._ElemType = ...,
+        subplots: args._ElemType = ...,
+        series: args._ElemType = ...,
+
         labels: Iterable[str] = ...,
         location: int = ...,
         orientation: str = ...,
@@ -1784,6 +1870,10 @@ def stem(
 @overload
 def stem(
         *,
+        plots: args._ElemType = ...,
+        subplots: args._ElemType = ...,
+        series: args._ElemType = ...,
+
         labels: Iterable[str] = ...,
         location: int = ...,
         orientation: str = ...,
@@ -1845,6 +1935,10 @@ def surface(
 @overload
 def surface(
         *,
+        plots: args._ElemType = ...,
+        subplots: args._ElemType = ...,
+        series: args._ElemType = ...,
+
         accelerate: bool = ...,
         adjust_zlim: bool = ...,
         rotation: float = ...,
@@ -1914,6 +2008,10 @@ def tricont(
 @overload
 def tricont(
         *,
+        plots: args._ElemType = ...,
+        subplots: args._ElemType = ...,
+        series: args._ElemType = ...,
+
         levels: int = ...,
         x: Union[Iterable[float], Iterable[int]] = ...,
         xgrid: int = ...,
@@ -1975,6 +2073,10 @@ def trisurf(
 @overload
 def trisurf(
         *,
+        plots: args._ElemType = ...,
+        subplots: args._ElemType = ...,
+        series: args._ElemType = ...,
+
         adjust_zlim: bool = ...,
         rotation: float = ...,
         tilt: float = ...,
@@ -2042,6 +2144,10 @@ def volume(
 @overload
 def volume(
         *,
+        plots: args._ElemType = ...,
+        subplots: args._ElemType = ...,
+        series: args._ElemType = ...,
+
         adjust_zlim: bool = ...,
         algorithm: Union[int, str] = ...,
         c: Union[Iterable[float], Iterable[int]] = ...,
@@ -2110,6 +2216,10 @@ def wireframe(
 @overload
 def wireframe(
         *,
+        plots: args._ElemType = ...,
+        subplots: args._ElemType = ...,
+        series: args._ElemType = ...,
+
         adjust_zlim: bool = ...,
         rotation: float = ...,
         tilt: float = ...,
