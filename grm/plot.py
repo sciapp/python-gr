@@ -11,7 +11,7 @@ from . import _grm, _encode_str_to_char_p, args
 @overload
 def plot(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
-) -> int:
+) -> bool:
     ...
 @overload
 def plot(
@@ -123,7 +123,7 @@ def plot(
         z: args._ElemType = ...,
         zrange: args._ElemType = ...,
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     ...
 @overload
 def plot(
@@ -341,13 +341,13 @@ def plot(
         # z: Iterable[float] = ...,
         # zrange: Iterable[float] = ...,
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     ...
 @_require_runtime_version(0, 47, 0)
 def plot(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     """
     Update the internal data container with the given data and draw the plot after it.
 
@@ -358,16 +358,16 @@ def plot(
     if args_container is None:
         if kwargs:
             a = args.new(kwargs)
-            return _grm.grm_plot(a.ptr)
-        return _grm.grm_plot(c_void_p(0x0))
+            return bool(_grm.grm_plot(a.ptr))
+        return bool(_grm.grm_plot(c_void_p(0x0)))
     if isinstance(args_container, args._ArgumentContainer):
         for key in kwargs:
             args_container.push(key, kwargs[key])
-        return _grm.grm_plot(args_container.ptr)
+        return bool(_grm.grm_plot(args_container.ptr))
     elif isinstance(args_container, dict):
         args_container = args_container | kwargs
         a = args.new(args_container)
-        return _grm.grm_plot(a.ptr)
+        return bool(_grm.grm_plot(a.ptr))
     else:
         raise TypeError('args_container is not a valid args._argumentConainer or dict')
 
@@ -406,7 +406,7 @@ def plot(
 @overload
 def barplot(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
-) -> int:
+) -> bool:
     ...
 @overload
 def barplot(
@@ -464,25 +464,25 @@ def barplot(
         ylim: Iterable[float] = ...,
         ylog: bool = ...,
         yrange: Iterable[float] = ...
-) -> int:
+) -> bool:
     ...
 @overload
 def barplot(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     ...
 def barplot(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     return plot(args_container, kind="barplot", **kwargs)
 
 
 @overload
 def contour(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
-) -> int:
+) -> bool:
     ...
 @overload
 def contour(
@@ -529,25 +529,25 @@ def contour(
         ylim: Iterable[float] = ...,
         ylog: bool = ...,
         yrange: Iterable[float] = ...
-) -> int:
+) -> bool:
     ...
 @overload
 def contour(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     ...
 def contour(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     return plot(args_container, kind="contour", **kwargs)
 
 
 @overload
 def contourf(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
-) -> int:
+) -> bool:
     ...
 @overload
 def contourf(
@@ -594,25 +594,25 @@ def contourf(
         ylim: Iterable[float] = ...,
         ylog: bool = ...,
         yrange: Iterable[float] = ...
-) -> int:
+) -> bool:
     ...
 @overload
 def contourf(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     ...
 def contourf(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     return plot(args_container, kind="contourf", **kwargs)
 
 
 @overload
 def heatmap(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
-) -> int:
+) -> bool:
     ...
 @overload
 def heatmap(
@@ -660,25 +660,25 @@ def heatmap(
         ylim: Iterable[float] = ...,
         ylog: bool = ...,
         yrange: Iterable[float] = ...
-) -> int:
+) -> bool:
     ...
 @overload
 def heatmap(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     ...
 def heatmap(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     return plot(args_container, kind="heatmap", **kwargs)
 
 
 @overload
 def nonuniformheatmap(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
-) -> int:
+) -> bool:
     ...
 @overload
 def nonuniformheatmap(
@@ -724,25 +724,25 @@ def nonuniformheatmap(
         ylim: Iterable[float] = ...,
         ylog: bool = ...,
         yrange: Iterable[float] = ...
-) -> int:
+) -> bool:
     ...
 @overload
 def nonuniformheatmap(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     ...
 def nonuniformheatmap(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     return plot(args_container, kind="nonuniformheatmap", **kwargs)
 
 
 @overload
 def hexbin(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
-) -> int:
+) -> bool:
     ...
 @overload
 def hexbin(
@@ -786,25 +786,25 @@ def hexbin(
         ylim: Iterable[float] = ...,
         ylog: bool = ...,
         yrange: Iterable[float] = ...
-) -> int:
+) -> bool:
     ...
 @overload
 def hexbin(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     ...
 def hexbin(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     return plot(args_container, kind="hexbin", **kwargs)
 
 
 @overload
 def hist(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
-) -> int:
+) -> bool:
     ...
 @overload
 def hist(
@@ -851,25 +851,25 @@ def hist(
         ylim: Iterable[float] = ...,
         ylog: bool = ...,
         yrange: Iterable[float] = ...
-) -> int:
+) -> bool:
     ...
 @overload
 def hist(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     ...
 def hist(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     return plot(args_container, kind="hist", **kwargs)
 
 
 @overload
 def imshow(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
-) -> int:
+) -> bool:
     ...
 @overload
 def imshow(
@@ -912,25 +912,25 @@ def imshow(
         ylim: Iterable[float] = ...,
         ylog: bool = ...,
         yrange: Iterable[float] = ...
-) -> int:
+) -> bool:
     ...
 @overload
 def imshow(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     ...
 def imshow(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     return plot(args_container, kind="imshow", **kwargs)
 
 
 @overload
 def isosurface(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
-) -> int:
+) -> bool:
     ...
 @overload
 def isosurface(
@@ -975,25 +975,25 @@ def isosurface(
         ylim: Iterable[float] = ...,
         ylog: bool = ...,
         yrange: Iterable[float] = ...
-) -> int:
+) -> bool:
     ...
 @overload
 def isosurface(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     ...
 def isosurface(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     return plot(args_container, kind="isosurface", **kwargs)
 
 
 @overload
 def line(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
-) -> int:
+) -> bool:
     ...
 @overload
 def line(
@@ -1041,25 +1041,25 @@ def line(
         ylim: Iterable[float] = ...,
         ylog: bool = ...,
         yrange: Iterable[float] = ...
-) -> int:
+) -> bool:
     ...
 @overload
 def line(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     ...
 def line(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     return plot(args_container, kind="line", **kwargs)
 
 
 @overload
 def marginalheatmap(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
-) -> int:
+) -> bool:
     ...
 @overload
 def marginalheatmap(
@@ -1112,25 +1112,25 @@ def marginalheatmap(
         ylim: Iterable[float] = ...,
         ylog: bool = ...,
         yrange: Iterable[float] = ...
-) -> int:
+) -> bool:
     ...
 @overload
 def marginalheatmap(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     ...
 def marginalheatmap(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     return plot(args_container, kind="marginalheatmap", **kwargs)
 
 
 @overload
 def pie(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
-) -> int:
+) -> bool:
     ...
 @overload
 def pie(
@@ -1171,25 +1171,25 @@ def pie(
         ylim: Iterable[float] = ...,
         ylog: bool = ...,
         yrange: Iterable[float] = ...
-) -> int:
+) -> bool:
     ...
 @overload
 def pie(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     ...
 def pie(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     return plot(args_container, kind="pie", **kwargs)
 
 
 @overload
 def plot3(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
-) -> int:
+) -> bool:
     ...
 @overload
 def plot3(
@@ -1242,25 +1242,25 @@ def plot3(
         ylim: Iterable[float] = ...,
         ylog: bool = ...,
         yrange: Iterable[float] = ...
-) -> int:
+) -> bool:
     ...
 @overload
 def plot3(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     ...
 def plot3(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     return plot(args_container, kind="plot3", **kwargs)
 
 
 @overload
 def polar(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
-) -> int:
+) -> bool:
     ...
 @overload
 def polar(
@@ -1306,25 +1306,25 @@ def polar(
         ylim: Iterable[float] = ...,
         ylog: bool = ...,
         yrange: Iterable[float] = ...
-) -> int:
+) -> bool:
     ...
 @overload
 def polar(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     ...
 def polar(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     return plot(args_container, kind="polar", **kwargs)
 
 
 @overload
 def polar_heatmap(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
-) -> int:
+) -> bool:
     ...
 @overload
 def polar_heatmap(
@@ -1371,25 +1371,25 @@ def polar_heatmap(
         ylim: Iterable[float] = ...,
         ylog: bool = ...,
         yrange: Iterable[float] = ...
-) -> int:
+) -> bool:
     ...
 @overload
 def polar_heatmap(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     ...
 def polar_heatmap(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     return plot(args_container, kind="polar_heatmap", **kwargs)
 
 
 @overload
 def nonuniformpolar_heatmap(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
-) -> int:
+) -> bool:
     ...
 @overload
 def nonuniformpolar_heatmap(
@@ -1436,25 +1436,25 @@ def nonuniformpolar_heatmap(
         ylim: Iterable[float] = ...,
         ylog: bool = ...,
         yrange: Iterable[float] = ...
-) -> int:
+) -> bool:
     ...
 @overload
 def nonuniformpolar_heatmap(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     ...
 def nonuniformpolar_heatmap(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     return plot(args_container, kind="nonuniformpolar_heatmap", **kwargs)
 
 
 @overload
 def polar_histogram(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
-) -> int:
+) -> bool:
     ...
 @overload
 def polar_histogram(
@@ -1514,25 +1514,25 @@ def polar_histogram(
         ylim: Iterable[float] = ...,
         ylog: bool = ...,
         yrange: Iterable[float] = ...
-) -> int:
+) -> bool:
     ...
 @overload
 def polar_histogram(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     ...
 def polar_histogram(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     return plot(args_container, kind="polar_histogram", **kwargs)
 
 
 @overload
 def quiver(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
-) -> int:
+) -> bool:
     ...
 @overload
 def quiver(
@@ -1577,25 +1577,25 @@ def quiver(
         ylim: Iterable[float] = ...,
         ylog: bool = ...,
         yrange: Iterable[float] = ...
-) -> int:
+) -> bool:
     ...
 @overload
 def quiver(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     ...
 def quiver(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     return plot(args_container, kind="quiver", **kwargs)
 
 
 @overload
 def scatter(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
-) -> int:
+) -> bool:
     ...
 @overload
 def scatter(
@@ -1646,25 +1646,25 @@ def scatter(
         ylim: Iterable[float] = ...,
         ylog: bool = ...,
         yrange: Iterable[float] = ...
-) -> int:
+) -> bool:
     ...
 @overload
 def scatter(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     ...
 def scatter(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     return plot(args_container, kind="scatter", **kwargs)
 
 
 @overload
 def scatter3(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
-) -> int:
+) -> bool:
     ...
 @overload
 def scatter3(
@@ -1718,25 +1718,25 @@ def scatter3(
         ylim: Iterable[float] = ...,
         ylog: bool = ...,
         yrange: Iterable[float] = ...
-) -> int:
+) -> bool:
     ...
 @overload
 def scatter3(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     ...
 def scatter3(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     return plot(args_container, kind="scatter3", **kwargs)
 
 
 @overload
 def shade(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
-) -> int:
+) -> bool:
     ...
 @overload
 def shade(
@@ -1782,25 +1782,25 @@ def shade(
         ylim: Iterable[float] = ...,
         ylog: bool = ...,
         yrange: Iterable[float] = ...
-) -> int:
+) -> bool:
     ...
 @overload
 def shade(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     ...
 def shade(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     return plot(args_container, kind="shade", **kwargs)
 
 
 @overload
 def stairs(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
-) -> int:
+) -> bool:
     ...
 @overload
 def stairs(
@@ -1847,25 +1847,25 @@ def stairs(
         ylim: Iterable[float] = ...,
         ylog: bool = ...,
         yrange: Iterable[float] = ...
-) -> int:
+) -> bool:
     ...
 @overload
 def stairs(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     ...
 def stairs(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     return plot(args_container, kind="stairs", **kwargs)
 
 
 @overload
 def stem(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
-) -> int:
+) -> bool:
     ...
 @overload
 def stem(
@@ -1912,25 +1912,25 @@ def stem(
         ylim: Iterable[float] = ...,
         ylog: bool = ...,
         yrange: Iterable[float] = ...
-) -> int:
+) -> bool:
     ...
 @overload
 def stem(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     ...
 def stem(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     return plot(args_container, kind="stem", **kwargs)
 
 
 @overload
 def surface(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
-) -> int:
+) -> bool:
     ...
 @overload
 def surface(
@@ -1985,25 +1985,25 @@ def surface(
         ylim: Iterable[float] = ...,
         ylog: bool = ...,
         yrange: Iterable[float] = ...
-) -> int:
+) -> bool:
     ...
 @overload
 def surface(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     ...
 def surface(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     return plot(args_container, kind="surface", **kwargs)
 
 
 @overload
 def tricont(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
-) -> int:
+) -> bool:
     ...
 @overload
 def tricont(
@@ -2050,25 +2050,25 @@ def tricont(
         ylim: Iterable[float] = ...,
         ylog: bool = ...,
         yrange: Iterable[float] = ...
-) -> int:
+) -> bool:
     ...
 @overload
 def tricont(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     ...
 def tricont(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     return plot(args_container, kind="tricont", **kwargs)
 
 
 @overload
 def trisurf(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
-) -> int:
+) -> bool:
     ...
 @overload
 def trisurf(
@@ -2121,25 +2121,25 @@ def trisurf(
         ylim: Iterable[float] = ...,
         ylog: bool = ...,
         yrange: Iterable[float] = ...
-) -> int:
+) -> bool:
     ...
 @overload
 def trisurf(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     ...
 def trisurf(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     return plot(args_container, kind="trisurf", **kwargs)
 
 
 @overload
 def volume(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
-) -> int:
+) -> bool:
     ...
 @overload
 def volume(
@@ -2193,25 +2193,25 @@ def volume(
         ylim: Iterable[float] = ...,
         ylog: bool = ...,
         yrange: Iterable[float] = ...
-) -> int:
+) -> bool:
     ...
 @overload
 def volume(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     ...
 def volume(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     return plot(args_container, kind="volume", **kwargs)
 
 
 @overload
 def wireframe(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
-) -> int:
+) -> bool:
     ...
 @overload
 def wireframe(
@@ -2264,27 +2264,27 @@ def wireframe(
         ylim: Iterable[float] = ...,
         ylog: bool = ...,
         yrange: Iterable[float] = ...
-) -> int:
+) -> bool:
     ...
 @overload
 def wireframe(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     ...
 def wireframe(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
-) -> int:
+) -> bool:
     return plot(args_container, kind="wireframe", **kwargs)
 
 
 @_require_runtime_version(0, 47, 0)
-def clear() -> int:
+def clear() -> bool:
     """
     Clear all plots.
     """
-    return _grm.grm_clear()
+    return bool(_grm.grm_clear())
 
 
 @_require_runtime_version(0, 47, 0)
@@ -2292,11 +2292,11 @@ def max_plotid() -> int:
     """
     Index of the highest active plot.
     """
-    return _grm.grm_max_plotid()
+    return int(_grm.grm_max_plotid())
 
 
 @_require_runtime_version(0, 47, 0)
-def merge(args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]) -> int:
+def merge(args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]) -> bool:
     """
     Store the args_container into the internal, possibly clearing the internal values.
 
@@ -2306,15 +2306,15 @@ def merge(args_container: Union[Mapping[str, args._ElemType], args._ArgumentCont
     """
     if isinstance(args_container, dict):
         a = args.new(args_container)
-        return _grm.grm_merge(a.ptr)
+        return bool(_grm.grm_merge(a.ptr))
     elif isinstance(args_container, args._ArgumentContainer):
-        return _grm.grm_merge(args_container.ptr)
+        return bool(_grm.grm_merge(args_container.ptr))
     else:
         raise TypeError("The given parameter is not a valid ArgumentContainer or Dict")
 
 
 @_require_runtime_version(0, 47, 0)
-def merge_extended(args_container: args._ArgumentContainer, hold: bool, identificator: str) -> int:
+def merge_extended(args_container: args._ArgumentContainer, hold: bool, identificator: str) -> bool:
     """
     Merge the args_container into the internal, like merge_named, but hold specifies if the internal container should not be cleared.
 
@@ -2331,11 +2331,11 @@ def merge_extended(args_container: args._ArgumentContainer, hold: bool, identifi
     ):
         raise TypeError("The given parameters do not match the types required.")
 
-    return _grm.grm_merge_extended(args_container.ptr, c_int(1 if hold else 0), _encode_str_to_char_p(identificator))
+    return bool(_grm.grm_merge_extended(args_container.ptr, c_int(1 if hold else 0), _encode_str_to_char_p(identificator)))
 
 
 @_require_runtime_version(0, 47, 0)
-def merge_hold(args_container: args._ArgumentContainer) -> int:
+def merge_hold(args_container: args._ArgumentContainer) -> bool:
     """
     Merge the container while preserving the internally stored values.
 
@@ -2345,11 +2345,11 @@ def merge_hold(args_container: args._ArgumentContainer) -> int:
     """
     if not isinstance(args_container, args._ArgumentContainer):
         raise TypeError("The given parameter is not a valid ArgumentContainer.")
-    return _grm.grm_merge_hold(args_container.ptr)
+    return bool(_grm.grm_merge_hold(args_container.ptr))
 
 
 @_require_runtime_version(0, 47, 0)
-def merge_named(args_container: args._ArgumentContainer, identificator: str) -> int:
+def merge_named(args_container: args._ArgumentContainer, identificator: str) -> bool:
     """
     Merge the container, and the MERGE_END event is called with identificator set to the argument.
 
@@ -2364,11 +2364,11 @@ def merge_named(args_container: args._ArgumentContainer, identificator: str) -> 
     if not isinstance(identificator, str):
         raise TypeError("The given identificator is not a valid string.")
 
-    return _grm.grm.merge_named(args_container.ptr, _encode_str_to_char_p(identificator))
+    return bool(_grm.grm.merge_named(args_container.ptr, _encode_str_to_char_p(identificator)))
 
 
 @_require_runtime_version(0, 47, 0)
-def switch(plot_id: int) -> int:
+def switch(plot_id: int) -> bool:
     """
     Switches the default plot id.
 
@@ -2380,7 +2380,7 @@ def switch(plot_id: int) -> int:
         raise TypeError("Given parameter is not a valid integer!")
     if plot_id < 0:
         raise TypeError("Given parameter is not unsigned.")
-    return _grm.grm_switch(c_uint(plot_id))
+    return bool(_grm.grm_switch(c_uint(plot_id)))
 
 
 @_require_runtime_version(0, 47, 0)

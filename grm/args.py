@@ -95,7 +95,7 @@ class _ArgumentContainer:
 
         :raises ValueError: if the container was already deleted.
         """
-        return _grm.grm_args_contains(self.ptr, _encode_str_to_char_p(name)) == 1
+        return bool(_grm.grm_args_contains(self.ptr, _encode_str_to_char_p(name)))
 
     def __setitem__(self, key: str, value: _ElemType) -> None:
         self.push(key, value)
