@@ -99,7 +99,7 @@ def register(
         Callable[[EVENT_UPDATE_PLOT], None],
         Callable[[EVENT_MERGE_END], None],
     ],
-) -> int:
+) -> bool:
     """
     Register a callback for the specified event type.
 
@@ -137,7 +137,7 @@ def register(
 
     c_func = _event_callback_t(i_callback)
     _registered_events[event_type] = c_func
-    return _grm.grm_register(c_int(event_type.value), c_func)
+    return bool(_grm.grm_register(c_int(event_type.value), c_func))
 
 
 @_require_runtime_version(0, 47, 0)
@@ -153,7 +153,7 @@ def unregister(event_type: EventType) -> int:
         raise TypeError("event_type must be a value out of EventType!")
 
     del _registered_events[event_type]
-    return _grm.grm_unregister(c_int(event_type.value))
+    return bool(_grm.grm_unregister(c_int(event_type.value)))
 
 
 if _RUNTIME_VERSION >= (0, 47, 0, 0):

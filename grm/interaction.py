@@ -15,7 +15,7 @@ _c_int_p = POINTER(c_int)
 
 
 @_require_runtime_version(0, 47, 0)
-def input(args_container: args._ArgumentContainer) -> int:
+def input(args_container: args._ArgumentContainer) -> bool:
     """
     Perform specific actions based on user interaction with the gui.
 
@@ -50,7 +50,7 @@ def input(args_container: args._ArgumentContainer) -> int:
     if not isinstance(args_container, args._ArgumentContainer):
         raise TypeError("args_container must be an ArgumentContainer!")
 
-    return _grm.grm_input(args_container.ptr)
+    return bool(_grm.grm_input(args_container.ptr))
 
 
 @_require_runtime_version(0, 47, 0)

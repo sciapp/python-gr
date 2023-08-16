@@ -181,9 +181,9 @@ class _ArgumentContainer:
                         )
 
                     self._bufs[name] = [values_1, values_2]
-                    result = _grm.grm_args_push(
+                    result = int(_grm.grm_args_push(
                         self.ptr, _encode_str_to_char_p(name), type_spec, c_uint(values.shape[1]), values_1, values_2
-                    )
+                    ))
                     return result != 0  # TODO: Exceptions
 
                 self[name + "_dims"] = values.shape
