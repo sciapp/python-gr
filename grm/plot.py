@@ -10,9 +10,11 @@ from . import _grm, _encode_str_to_char_p, args
 
 @overload
 def plot(
-        args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
+        args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]]
 ) -> bool:
     ...
+
+
 @overload
 def plot(
         args_container: None = None,
@@ -57,7 +59,7 @@ def plot(
         rings: args._ElemType = ...,
         rotation: args._ElemType = ...,
         series: args._ElemType = ...,
-        style: args._ElemType= ...,
+        style: args._ElemType = ...,
         subplot: args._ElemType = ...,
         tilt: args._ElemType = ...,
         title: args._ElemType = ...,
@@ -125,6 +127,8 @@ def plot(
         **kwargs: args._ElemType
 ) -> bool:
     ...
+
+
 @overload
 def plot(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
@@ -169,7 +173,7 @@ def plot(
         rings: args._ElemType = ...,
         rotation: args._ElemType = ...,
         series: args._ElemType = ...,
-        style: args._ElemType= ...,
+        style: args._ElemType = ...,
         subplot: args._ElemType = ...,
         tilt: args._ElemType = ...,
         title: args._ElemType = ...,
@@ -343,6 +347,8 @@ def plot(
         **kwargs: args._ElemType
 ) -> bool:
     ...
+
+
 @_require_runtime_version(0, 47, 0)
 def plot(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
@@ -370,8 +376,6 @@ def plot(
         return bool(_grm.grm_plot(a.ptr))
     else:
         raise TypeError('args_container is not a valid args._argumentConainer or dict')
-
-
         # adjust_xlim: bool = ...,
         # adjust_ylim: bool = ...,
         # alpha: float = ...,
@@ -408,6 +412,8 @@ def barplot(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
 ) -> bool:
     ...
+
+
 @overload
 def barplot(
         *,
@@ -466,12 +472,16 @@ def barplot(
         yrange: Iterable[float] = ...
 ) -> bool:
     ...
+
+
 @overload
 def barplot(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
 ) -> bool:
     ...
+
+
 def barplot(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
@@ -484,6 +494,8 @@ def contour(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
 ) -> bool:
     ...
+
+
 @overload
 def contour(
         *,
@@ -531,12 +543,16 @@ def contour(
         yrange: Iterable[float] = ...
 ) -> bool:
     ...
+
+
 @overload
 def contour(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
 ) -> bool:
     ...
+
+
 def contour(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
@@ -549,6 +565,8 @@ def contourf(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
 ) -> bool:
     ...
+
+
 @overload
 def contourf(
         *,
@@ -596,12 +614,16 @@ def contourf(
         yrange: Iterable[float] = ...
 ) -> bool:
     ...
+
+
 @overload
 def contourf(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
 ) -> bool:
     ...
+
+
 def contourf(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
@@ -614,6 +636,8 @@ def heatmap(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
 ) -> bool:
     ...
+
+
 @overload
 def heatmap(
         *,
@@ -662,12 +686,16 @@ def heatmap(
         yrange: Iterable[float] = ...
 ) -> bool:
     ...
+
+
 @overload
 def heatmap(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
 ) -> bool:
     ...
+
+
 def heatmap(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
@@ -680,6 +708,8 @@ def nonuniformheatmap(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
 ) -> bool:
     ...
+
+
 @overload
 def nonuniformheatmap(
         *,
@@ -726,12 +756,16 @@ def nonuniformheatmap(
         yrange: Iterable[float] = ...
 ) -> bool:
     ...
+
+
 @overload
 def nonuniformheatmap(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
 ) -> bool:
     ...
+
+
 def nonuniformheatmap(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
@@ -744,6 +778,8 @@ def hexbin(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
 ) -> bool:
     ...
+
+
 @overload
 def hexbin(
         *,
@@ -788,12 +824,16 @@ def hexbin(
         yrange: Iterable[float] = ...
 ) -> bool:
     ...
+
+
 @overload
 def hexbin(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
 ) -> bool:
     ...
+
+
 def hexbin(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
@@ -806,6 +846,8 @@ def hist(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
 ) -> bool:
     ...
+
+
 @overload
 def hist(
         *,
@@ -853,12 +895,16 @@ def hist(
         yrange: Iterable[float] = ...
 ) -> bool:
     ...
+
+
 @overload
 def hist(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
 ) -> bool:
     ...
+
+
 def hist(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
@@ -871,6 +917,8 @@ def imshow(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
 ) -> bool:
     ...
+
+
 @overload
 def imshow(
         *,
@@ -914,12 +962,16 @@ def imshow(
         yrange: Iterable[float] = ...
 ) -> bool:
     ...
+
+
 @overload
 def imshow(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
 ) -> bool:
     ...
+
+
 def imshow(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
@@ -932,6 +984,8 @@ def isosurface(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
 ) -> bool:
     ...
+
+
 @overload
 def isosurface(
         *,
@@ -977,12 +1031,16 @@ def isosurface(
         yrange: Iterable[float] = ...
 ) -> bool:
     ...
+
+
 @overload
 def isosurface(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
 ) -> bool:
     ...
+
+
 def isosurface(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
@@ -995,6 +1053,8 @@ def line(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
 ) -> bool:
     ...
+
+
 @overload
 def line(
         *,
@@ -1043,12 +1103,16 @@ def line(
         yrange: Iterable[float] = ...
 ) -> bool:
     ...
+
+
 @overload
 def line(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
 ) -> bool:
     ...
+
+
 def line(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
@@ -1061,6 +1125,8 @@ def marginalheatmap(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
 ) -> bool:
     ...
+
+
 @overload
 def marginalheatmap(
         *,
@@ -1114,12 +1180,16 @@ def marginalheatmap(
         yrange: Iterable[float] = ...
 ) -> bool:
     ...
+
+
 @overload
 def marginalheatmap(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
 ) -> bool:
     ...
+
+
 def marginalheatmap(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
@@ -1132,6 +1202,8 @@ def pie(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
 ) -> bool:
     ...
+
+
 @overload
 def pie(
         *,
@@ -1173,12 +1245,16 @@ def pie(
         yrange: Iterable[float] = ...
 ) -> bool:
     ...
+
+
 @overload
 def pie(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
 ) -> bool:
     ...
+
+
 def pie(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
@@ -1191,6 +1267,8 @@ def plot3(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
 ) -> bool:
     ...
+
+
 @overload
 def plot3(
         *,
@@ -1244,12 +1322,16 @@ def plot3(
         yrange: Iterable[float] = ...
 ) -> bool:
     ...
+
+
 @overload
 def plot3(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
 ) -> bool:
     ...
+
+
 def plot3(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
@@ -1262,6 +1344,8 @@ def polar(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
 ) -> bool:
     ...
+
+
 @overload
 def polar(
         *,
@@ -1308,12 +1392,16 @@ def polar(
         yrange: Iterable[float] = ...
 ) -> bool:
     ...
+
+
 @overload
 def polar(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
 ) -> bool:
     ...
+
+
 def polar(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
@@ -1326,6 +1414,8 @@ def polar_heatmap(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
 ) -> bool:
     ...
+
+
 @overload
 def polar_heatmap(
         *,
@@ -1373,12 +1463,16 @@ def polar_heatmap(
         yrange: Iterable[float] = ...
 ) -> bool:
     ...
+
+
 @overload
 def polar_heatmap(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
 ) -> bool:
     ...
+
+
 def polar_heatmap(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
@@ -1391,6 +1485,8 @@ def nonuniformpolar_heatmap(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
 ) -> bool:
     ...
+
+
 @overload
 def nonuniformpolar_heatmap(
         *,
@@ -1438,12 +1534,16 @@ def nonuniformpolar_heatmap(
         yrange: Iterable[float] = ...
 ) -> bool:
     ...
+
+
 @overload
 def nonuniformpolar_heatmap(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
 ) -> bool:
     ...
+
+
 def nonuniformpolar_heatmap(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
@@ -1456,6 +1556,8 @@ def polar_histogram(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
 ) -> bool:
     ...
+
+
 @overload
 def polar_histogram(
         *,
@@ -1516,12 +1618,16 @@ def polar_histogram(
         yrange: Iterable[float] = ...
 ) -> bool:
     ...
+
+
 @overload
 def polar_histogram(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
 ) -> bool:
     ...
+
+
 def polar_histogram(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
@@ -1534,6 +1640,8 @@ def quiver(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
 ) -> bool:
     ...
+
+
 @overload
 def quiver(
         *,
@@ -1579,12 +1687,16 @@ def quiver(
         yrange: Iterable[float] = ...
 ) -> bool:
     ...
+
+
 @overload
 def quiver(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
 ) -> bool:
     ...
+
+
 def quiver(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
@@ -1597,6 +1709,8 @@ def scatter(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
 ) -> bool:
     ...
+
+
 @overload
 def scatter(
         *,
@@ -1648,12 +1762,16 @@ def scatter(
         yrange: Iterable[float] = ...
 ) -> bool:
     ...
+
+
 @overload
 def scatter(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
 ) -> bool:
     ...
+
+
 def scatter(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
@@ -1666,6 +1784,8 @@ def scatter3(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
 ) -> bool:
     ...
+
+
 @overload
 def scatter3(
         *,
@@ -1720,12 +1840,16 @@ def scatter3(
         yrange: Iterable[float] = ...
 ) -> bool:
     ...
+
+
 @overload
 def scatter3(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
 ) -> bool:
     ...
+
+
 def scatter3(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
@@ -1738,6 +1862,8 @@ def shade(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
 ) -> bool:
     ...
+
+
 @overload
 def shade(
         *,
@@ -1784,12 +1910,16 @@ def shade(
         yrange: Iterable[float] = ...
 ) -> bool:
     ...
+
+
 @overload
 def shade(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
 ) -> bool:
     ...
+
+
 def shade(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
@@ -1802,6 +1932,8 @@ def stairs(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
 ) -> bool:
     ...
+
+
 @overload
 def stairs(
         *,
@@ -1849,12 +1981,16 @@ def stairs(
         yrange: Iterable[float] = ...
 ) -> bool:
     ...
+
+
 @overload
 def stairs(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
 ) -> bool:
     ...
+
+
 def stairs(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
@@ -1867,6 +2003,8 @@ def stem(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
 ) -> bool:
     ...
+
+
 @overload
 def stem(
         *,
@@ -1914,12 +2052,16 @@ def stem(
         yrange: Iterable[float] = ...
 ) -> bool:
     ...
+
+
 @overload
 def stem(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
 ) -> bool:
     ...
+
+
 def stem(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
@@ -1932,6 +2074,8 @@ def surface(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
 ) -> bool:
     ...
+
+
 @overload
 def surface(
         *,
@@ -1987,12 +2131,16 @@ def surface(
         yrange: Iterable[float] = ...
 ) -> bool:
     ...
+
+
 @overload
 def surface(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
 ) -> bool:
     ...
+
+
 def surface(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
@@ -2005,6 +2153,8 @@ def tricont(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
 ) -> bool:
     ...
+
+
 @overload
 def tricont(
         *,
@@ -2052,12 +2202,16 @@ def tricont(
         yrange: Iterable[float] = ...
 ) -> bool:
     ...
+
+
 @overload
 def tricont(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
 ) -> bool:
     ...
+
+
 def tricont(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
@@ -2070,6 +2224,8 @@ def trisurf(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
 ) -> bool:
     ...
+
+
 @overload
 def trisurf(
         *,
@@ -2123,12 +2279,16 @@ def trisurf(
         yrange: Iterable[float] = ...
 ) -> bool:
     ...
+
+
 @overload
 def trisurf(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
 ) -> bool:
     ...
+
+
 def trisurf(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
@@ -2141,6 +2301,8 @@ def volume(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
 ) -> bool:
     ...
+
+
 @overload
 def volume(
         *,
@@ -2195,12 +2357,16 @@ def volume(
         yrange: Iterable[float] = ...
 ) -> bool:
     ...
+
+
 @overload
 def volume(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
 ) -> bool:
     ...
+
+
 def volume(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
@@ -2213,6 +2379,8 @@ def wireframe(
         args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]
 ) -> bool:
     ...
+
+
 @overload
 def wireframe(
         *,
@@ -2266,12 +2434,16 @@ def wireframe(
         yrange: Iterable[float] = ...
 ) -> bool:
     ...
+
+
 @overload
 def wireframe(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]],
         **kwargs: args._ElemType
 ) -> bool:
     ...
+
+
 def wireframe(
         args_container: Optional[Union[Mapping[str, args._ElemType], args._ArgumentContainer]] = None,
         **kwargs: args._ElemType
@@ -2314,7 +2486,7 @@ def merge(args_container: Union[Mapping[str, args._ElemType], args._ArgumentCont
 
 
 @_require_runtime_version(0, 47, 0)
-def merge_extended(args_container: args._ArgumentContainer, hold: bool, identificator: str) -> bool:
+def merge_extended(args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer], hold: bool, identificator: str) -> bool:
     """
     Merge the args_container into the internal, like merge_named, but hold specifies if the internal container should not be cleared.
 
@@ -2324,6 +2496,8 @@ def merge_extended(args_container: args._ArgumentContainer, hold: bool, identifi
 
     :raises TypeError: if the arguments passed are not the expected type
     """
+    if isinstance(args_container, dict):
+        args_container = args.new(args_container)
     if (
         not isinstance(args_container, args._ArgumentContainer)
         or not isinstance(hold, int)  # noqa W503
@@ -2335,7 +2509,7 @@ def merge_extended(args_container: args._ArgumentContainer, hold: bool, identifi
 
 
 @_require_runtime_version(0, 47, 0)
-def merge_hold(args_container: args._ArgumentContainer) -> bool:
+def merge_hold(args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer]) -> bool:
     """
     Merge the container while preserving the internally stored values.
 
@@ -2343,13 +2517,15 @@ def merge_hold(args_container: args._ArgumentContainer) -> bool:
 
     :raises TypeError: if the args_container is not a valid :class:`grm.args._ArgumentContainer`
     """
+    if isinstance(args_container, dict):
+        args_container = args.new(args_container)
     if not isinstance(args_container, args._ArgumentContainer):
         raise TypeError("The given parameter is not a valid ArgumentContainer.")
     return bool(_grm.grm_merge_hold(args_container.ptr))
 
 
 @_require_runtime_version(0, 47, 0)
-def merge_named(args_container: args._ArgumentContainer, identificator: str) -> bool:
+def merge_named(args_container: Union[Mapping[str, args._ElemType], args._ArgumentContainer], identificator: str) -> bool:
     """
     Merge the container, and the MERGE_END event is called with identificator set to the argument.
 
@@ -2359,6 +2535,8 @@ def merge_named(args_container: args._ArgumentContainer, identificator: str) -> 
     :raises TypeError: if the args_container is not a valid :class:`grm.args._ArgumentContainer`, or the
         identificator is not a string
     """
+    if isinstance(args_container, dict):
+        args_container = args.new(args_container)
     if not isinstance(args_container, args._ArgumentContainer):
         raise TypeError("The given parameter is not a valid ArgumentContainer.")
     if not isinstance(identificator, str):
