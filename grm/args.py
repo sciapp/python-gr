@@ -39,8 +39,8 @@ class _ArgumentContainer:
         :param ptr: The pointer returned by grm_args_new
         :param params: The data to set after init
         """
-        self._ptr = ptr  # type: Union[c_void_p, None]
-        self._bufs = {}  # type: Dict[str, Any]
+        self._ptr: Union[c_void_p, None] = ptr
+        self._bufs: Dict[str, Any] = {}
         self._is_child = False
         if params is not None:
             self.update(params)
@@ -150,7 +150,7 @@ class _ArgumentContainer:
         :raises ValueError: if one of the _ArgumentContainer elements is already a child of another or the container is already deleted.
         """
         # Remove type annotation to silence mypy
-        values = values_to_insert  # type: Any
+        values: Any = values_to_insert
         if not isinstance(name, str):
             raise TypeError("Name must be a string!")
 

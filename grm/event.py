@@ -74,7 +74,7 @@ class EVENT_MERGE_END(Structure):
     * ``identificator`` (type: c_char_p): The optional identificator which was given using merge_named or merge_extended
     """
 
-    _field_ = [("type", c_int), ("identificator", c_char_p)]
+    _fields_ = [("type", c_int), ("identificator", c_char_p)]
 
 
 class EVENT(Union):
@@ -87,7 +87,7 @@ class EVENT(Union):
 
 
 _event_callback_t = CFUNCTYPE(None, POINTER(EVENT))
-_registered_events = {}  # type: Dict[EventType, Callable[[EVENT], None]]
+_registered_events: Dict[EventType, Callable[[EVENT], None]] = {}
 
 
 @_require_runtime_version(0, 47, 0)

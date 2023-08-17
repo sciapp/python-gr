@@ -2542,7 +2542,7 @@ def merge_named(args_container: Union[Mapping[str, args._ElemType], args._Argume
     if not isinstance(identificator, str):
         raise TypeError("The given identificator is not a valid string.")
 
-    return bool(_grm.grm.merge_named(args_container.ptr, _encode_str_to_char_p(identificator)))
+    return bool(_grm.grm_merge_named(args_container.ptr, _encode_str_to_char_p(identificator)))
 
 
 @_require_runtime_version(0, 47, 0)
