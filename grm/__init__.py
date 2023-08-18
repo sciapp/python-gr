@@ -7,7 +7,7 @@ The complete module requires runtime version 0.47.0, and is only supported on Py
 from ctypes import create_string_buffer, cast, c_char_p
 from gr.runtime_helper import load_runtime
 
-_grm = load_runtime(lib_name="libGRM")
+_grm = load_runtime(lib_name="libGRM")  # type: ignore
 if _grm is None:
     raise ImportError("Failed to load GRM runtime!")
 
