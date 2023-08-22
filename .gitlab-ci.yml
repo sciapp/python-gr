@@ -242,10 +242,11 @@ install-arch-python3:
   script:
   - rm -rf install && mkdir install && cd install
   - pacman -Syu --noconfirm python-pip
-  - python3 -m pip install --upgrade pip
-  - python3 -m pip install ../dist/gr-*.tar.gz
-  - GKS_WSTYPE=png python3 -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
-  - python3 -c 'import gr3'
+  - python3 -m venv ./venv
+  - ./venv/bin/pip install --upgrade pip
+  - ./venv/bin/pip install ../dist/gr-*.tar.gz
+  - GKS_WSTYPE=png ./venv/bin/python3 -c 'import gr; gr.polyline([0, 1], [0, 1]); gr.updatews()'
+  - ./venv/bin/python3 -c 'import gr3'
   artifacts:
     paths:
     - install/gks.png

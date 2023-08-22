@@ -260,6 +260,20 @@ class FigureCanvasGR(FigureCanvasBase):
         self.draw()
         gr.endgraphics()
 
+    def print_svg(self, filename, *args, **kwargs):
+        gr.beginprint(filename)
+        self.draw()
+        gr.endprint()
+
+    def print_png(self, filename, *args, **kwargs):
+        gr.beginprint(filename)
+        self.draw()
+        gr.endprint()
+
+    def print_pdf(self, filename, *args, **kwargs):
+        gr.beginprint(filename)
+        self.draw()
+        gr.endprint()
 
 class FigureManagerGR(FigureManagerBase):
     """
