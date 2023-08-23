@@ -171,13 +171,9 @@ class _ArgumentContainer:
                         values_1 = values[0].ctypes.data_as(POINTER(c_double))
                         values_2 = values[1].ctypes.data_as(POINTER(c_double))
                         type_spec = create_string_buffer(b"nDD")
-                    elif values.dtype == np.int32:
-                        values_1 = values[0].ctypes.data_as(POINTER(c_int))
-                        values_2 = values[1].ctypes.data_as(POINTER(c_int))
-                        type_spec = create_string_buffer(b"nII")
                     else:
                         raise TypeError(
-                            "The ndarray has type " + values.dtype.name + ", but it must be either int32 or float64"
+                            "The ndarray has type " + values.dtype.name + ", but it must be float64"
                         )
 
                     self._bufs[name] = [values_1, values_2]
@@ -216,6 +212,25 @@ class _ArgumentContainer:
                     typ = dict
                 else:
                     raise TypeError("All values in the array must be of the same type!")
+
+            if name in ["relative", "absolute"] and (typ == list or typ == tuple):
+                typ = None
+                for v in values:
+                    for x in v:
+                        if typ is None:
+                            typ = type(x)
+                        elif typ is type(x):
+                            pass
+                        else:
+                            raise TypeError("All values in the array must be of the same type!")
+                values_1 = (c_double * len(values[0]))(*values[0])
+                values_2 = (c_double * len(values[1]))(*values[1])
+                type_spec = create_string_buffer(b"nDD")
+                self._bufs[name] = [values_1, values_2]
+                result = int(_grm.grm_args_push(
+                    self.ptr, _encode_str_to_char_p(name), type_spec, c_uint(len(values_1)), values_1, values_2
+                ))
+                return result != 0
 
             if typ == int or typ == bool:
                 type_spec = create_string_buffer(b"nI")
