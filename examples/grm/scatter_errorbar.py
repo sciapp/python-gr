@@ -1,22 +1,37 @@
 from math import pi, cos
-from random import random, seed
 from typing import Dict
+import platform
+import ctypes
 
 import grm
 
 
 LENGTH = 200
+INT_MAX = ctypes.c_uint(-1).value // 2
 
 
 def test_plot() -> None:
-    seed(151515)
+    try:
+        if platform.system() == "Darwin":
+            libc = ctypes.cdll.LoadLibrary("libSystem.dylib")  # type: ignore
+        else:
+            libc = ctypes.cdll.LoadLibrary("libc.so.6")  # type: ignore
+    except OSError:
+        libc = None
+
+    libc.srand(151515)
+
     x = [i / 200 * pi * 3 for i in range(LENGTH)]
-    y = [cos(x[i]) + random() for i in range(LENGTH)]
-    errors = [random() * (0.5 + cos(i / 200 * pi)) / 5 for i in range(LENGTH)]
-    errors.extend([random() * (0.5 + cos(i / 200 * pi)) / 5 for i in range(LENGTH)])
+    y = []
+    errors1 = []
+    errors2 = []
+    for i in range(len(x)):
+        y.append(cos(x[i]) + libc.rand() / INT_MAX)
+        errors1.append(libc.rand() / INT_MAX * (0.5 + cos(i / 200 * pi)) / 5)
+        errors2.append(libc.rand() / INT_MAX * (0.5 + cos(i / 200 * pi)) / 5)
 
     error = {
-        "absolute": (errors[:LENGTH], errors[LENGTH:]),
+        "absolute": (errors1, errors2),
         "upwardscap_color": -1,
         "downwardscap_color": -1,
         "errorbar_color": 4
