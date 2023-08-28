@@ -1,4 +1,3 @@
-import time
 from typing import Dict, Iterable, Union
 
 import grm
@@ -44,13 +43,13 @@ indices = [1, 2]
 # Draw the bar plot
 args: Dict[str, _ElemType] = {"y": y}
 grm.plot.barplot(args)
-time.sleep(3)
+input("Press enter to continue")
 
 # Draw the bar plot with locations specified by x and y values in the bars
 args["xticklabels"] = xticklabels
 args["ylabels"] = ylabels
 grm.plot.barplot(args)
-time.sleep(3)
+input("Press enter to continue")
 
 # Draw the bar plot with different bar_width, edge_width, edge_color and bar_color
 args["edge_width"] = edge_width
@@ -58,12 +57,12 @@ args["bar_width"] = bar_width
 args["edge_color"] = edge_color
 args["bar_color"] = bar_color
 grm.plot.barplot(args)
-time.sleep(3)
+input("Press enter to continue")
 # or
 args["bar_color"] = [0.66, 0.66, 0.66]
 args["edge_color"] = [0.33, 0.33, 0.33]
 grm.plot.barplot(args)
-time.sleep(3)
+input("Press enter to continue")
 
 # Draw the bar plot with bars that have individual bar_color, edge_color, edge_with
 ind_bar_color: Iterable[Dict[str, _ElemType]] = [
@@ -73,16 +72,16 @@ ind_bar_color: Iterable[Dict[str, _ElemType]] = [
 ind_edge_color = {"indices": 3, "rgb": (0.9, 0.6, 0.3)}
 ind_edge_width = {"indices": 3, "width": 5.0}
 grm.plot.barplot(args, ind_bar_color=ind_bar_color, ind_edge_color=ind_edge_color, ind_edge_width=ind_edge_width)
-time.sleep(3)
+input("Press enter to continue")
 
 # Draw the bar plot with colorlist
 args.clear()
 args["y"] = y
 grm.plot.barplot(args, c=c)
-time.sleep(3)
+input("Press enter to continue")
 # or
 grm.plot.barplot(args, c=c_rgb)
-time.sleep(3)
+input("Press enter to continue")
 
 # Draw a 2D bar plot lined
 series: Iterable[Dict[str, _ElemType]] = [
@@ -92,11 +91,11 @@ series: Iterable[Dict[str, _ElemType]] = [
 ]
 abc: Dict[str, _ElemType] = {}
 grm.plot.barplot(series=series, style="lined")
-time.sleep(3)
+input("Press enter to continue")
 
 # Draw a 2D bar plot stacked
 grm.plot.barplot(style="stacked", series=series)
-time.sleep(3)
+input("Press enter to continue")
 
 # Draw a 2D bar plot with colorlist
 series = [
@@ -105,7 +104,7 @@ series = [
     {"y": yy3}
 ]
 grm.plot.barplot(style="stacked", series=series)
-time.sleep(3)
+input("Press enter to continue")
 
 # Draw a 2D bar plot stacked with positive and negative values
 # The positive and negative values are stacked separately
@@ -114,7 +113,7 @@ args["y"] = yy_pos_neg
 args["style"] = "stacked"
 args["ylabels"] = yy_pos_neg_labels
 grm.plot.barplot(args)
-time.sleep(3)
+input("Press enter to continue")
 
 # Draw a bar plot that is lined and stacked with inner color list (rgb)
 args.clear()
@@ -124,12 +123,12 @@ inner_series: Iterable[Dict[str, Union[Iterable[int], Iterable[float]]]] = [
     {"y": inner_yy2_3}
 ]
 series = [
-    {"y": yy1, "c": inner_c_rgb},
+    {"y": yy1, "c": c_rgb},
     {"inner_series": inner_series, "c": c_rgb},
     {"y": yy3, "c": c_rgb}
 ]
 grm.plot.barplot(style="lined", series=series)
-time.sleep(3)
+input("Press enter to continue")
 
 # Draw a bar plot that is lined and stacked with inner color list and ylabels
 inner_series = [
@@ -145,4 +144,4 @@ series = [
 ]
 
 grm.plot.barplot(style="lined", series=series)
-time.sleep(3)
+input("Press enter to continue")
