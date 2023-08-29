@@ -20,5 +20,6 @@ from . import args  # noqa E402
 from . import event  # noqa E402
 from . import interaction  # noqa E402
 from . import plot  # noqa E402
+from . import net  # noqa E402
 
-__all__ = ["args", "event", "interaction", "plot"]
+__all__ = ["args", "event", "interaction", "plot", "net"]
