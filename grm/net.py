@@ -3,7 +3,8 @@ This module ...
 """
 from ctypes import c_int, c_char_p, c_uint, c_void_p
 from ctypes import CFUNCTYPE
-from typing import Callable, Union as UnionT, Dict, Optional
+from types import TracebackType
+from typing import Callable, Union as UnionT, Dict, Optional, overload, Type
 
 from gr import _require_runtime_version, _RUNTIME_VERSION
 import grm
@@ -16,7 +17,7 @@ _send_callback_t = CFUNCTYPE(None, c_char_p, c_uint, c_char_p)
 
 
 class Handle:
-    def __init__(self, ptr: c_void_p):
+    def __init__(self, ptr: c_void_p) -> None:
         self.ptr = ptr
 
     def close(self) -> None:
@@ -24,8 +25,8 @@ class Handle:
 
     def recv(
             self,
-            args_container: UnionT[Dict[str, grm.args._ElemType], grm.args._ArgumentContainer]
-    ) -> grm.args._ArgumentContainer:
+            args_container: Optional[UnionT[Dict[str, grm.args._ElemType], grm.args._ArgumentContainer]] = None
+    ) -> UnionT[Dict[str, grm.args._ElemType], grm.args._ArgumentContainer]:
         return recv(self, args_container)
 
     def send_args(
@@ -34,10 +35,15 @@ class Handle:
     ) -> int:
         return send_args(self, args_container)
 
-    def __enter__(self):
+    def __enter__(self) -> "Handle":
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ) -> None:
         self.close()
 
 
@@ -81,19 +87,41 @@ def close(handle: Handle) -> None:
     _grm.grm_close(handle.ptr)
 
 
+@overload
+def recv(
+        handle: Handle,
+        args_container: Optional[Dict[str, grm.args._ElemType]]
+) -> Dict[str, grm.args._ElemType]:
+    ...
+@overload
+def recv(
+        handle: Handle,
+        args_container: grm.args._ArgumentContainer
+) -> grm.args._ArgumentContainer:
+    ...
 @_require_runtime_version(0, 47, 0)
 def recv(
         handle: Handle,
-        args_container: UnionT[Dict[str, grm.args._ElemType], grm.args._ArgumentContainer]
-) -> grm.args._ArgumentContainer:
+        args_container: Optional[UnionT[Dict[str, grm.args._ElemType], grm.args._ArgumentContainer]] = None
+) -> UnionT[Dict[str, grm.args._ElemType], grm.args._ArgumentContainer]:
     """
 
     """
+    if args_container is None:
+        args_container = grm.args.new()
+        _grm.grm_recv(handle.ptr, args_container.ptr)
+        # TODO change return to dict
+        return args_container
     if isinstance(args_container, dict):
         args_container = grm.args.new(args_container)
-    if not isinstance(args_container, grm.args._ArgumentContainer):
-        raise ValueError("args_container is not a valid Dict or ArgumentContainer")
-    return _grm.grm_recv(handle.ptr, args_container.ptr)
+        _grm.grm_recv(handle.ptr, args_container.ptr)
+        # TODO change return to dict
+        return args_container
+    if isinstance(args_container, grm.args._ArgumentContainer):
+        _grm.grm_recv(handle.ptr, args_container.ptr)
+        return args_container
+
+    raise ValueError("args_container must be either None or a valid Dict or ArgumentContainer")
 
 
 @_require_runtime_version(0, 47, 0)
@@ -119,7 +147,7 @@ def send_args(
         args_container = grm.args.new(args_container)
     if not isinstance(args_container, grm.args._ArgumentContainer):
         raise ValueError("args_container is not a valid Dict or ArgumentContainer")
-    return _grm.grm_send_args(handle.ptr, args_container.ptr)
+    return int(_grm.grm_send_args(handle.ptr, args_container.ptr))
 
 
 if _RUNTIME_VERSION >= (0, 47, 0, 0):
