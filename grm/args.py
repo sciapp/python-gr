@@ -22,8 +22,8 @@ _ElemType = Union[
     int,
     float,
     str,
-    dict,
     "_ArgumentContainer",
+    Mapping[str, "_ElemType"],
     Iterable[Union[int, float]],
     Iterable[str],
     Iterable[Union[Mapping[str, "_ElemType"], "_ArgumentContainer"]],
@@ -220,7 +220,7 @@ class _ArgumentContainer:
                     result = int(_grm.grm_args_push(
                         self.ptr, _encode_str_to_char_p(name), type_spec, c_uint(values.shape[1]), values_1, values_2
                     ))
-                    return result != 0  # TODO: Exceptions
+                    return bool(result)  # TODO: Exceptions
 
                 self[name + "_dims"] = values.shape
                 values_orig = values = values.ravel()
@@ -270,7 +270,7 @@ class _ArgumentContainer:
                 result = int(_grm.grm_args_push(
                     self.ptr, _encode_str_to_char_p(name), type_spec, c_uint(len(values_1)), values_1, values_2
                 ))
-                return result != 0
+                return bool(result)
 
             if typ == int or typ == bool:
                 type_spec = create_string_buffer(b"nI")
@@ -315,7 +315,7 @@ class _ArgumentContainer:
         if self._ptr is not None:
             self.delete()
 
-    def __iter__(self):
+    def __iter__(self) -> "_ArgsIter":
         return _ArgsIter(_grm.grm_args_iter(self.ptr))
 
     def as_dict(self) -> Dict[str, _ElemType]:
@@ -355,38 +355,39 @@ _ArgValueIterStruct._fields_ = [
 
 
 class _ArgsIter:
-    def __init__(self, ptr: POINTER(_ArgsIterStruct)) -> None:
+    def __init__(self, ptr: POINTER(_ArgsIterStruct)) -> None:  # type: ignore[valid-type]
         self.ptr = ptr
 
-    def __next__(self):
+    def __next__(self) -> Tuple[str, _ElemType]:
         arg_ptr = self.ptr.contents.next(self.ptr)
         if not arg_ptr:
             raise StopIteration
 
-        key = arg_ptr.contents.key.decode()
-        value_ptr = arg_ptr.contents.value_ptr
-        value_format = arg_ptr.contents.value_format.decode()
+        key: str = arg_ptr.contents.key.decode()
 
         value_iter = _ArgValueIter(_grm.grm_arg_value_iter(arg_ptr))
 
         res = []
         for val in value_iter:
+            if val is None:
+                raise ValueError(f"No data found for key {key}")
             res.append(val)
 
         if len(res) == 1:
-            res = res[0]
+            return key, res[0]
 
-        return key, res
+        # TODO fix mypy without type ignore
+        return key, res  # type: ignore
 
 
 class _ArgValueIter:
-    def __init__(self, ptr: POINTER(_ArgValueIterStruct)) -> None:
+    def __init__(self, ptr: POINTER(_ArgValueIterStruct)) -> None:  # type: ignore[valid-type]
         self.ptr = ptr
 
-    def __iter__(self):
+    def __iter__(self) -> "_ArgValueIter":
         return self
 
-    def __next__(self):
+    def __next__(self) -> Optional[_ElemType]:
         val = self.ptr.contents.next(self.ptr)
         if val is None:
             raise StopIteration

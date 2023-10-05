@@ -23,6 +23,18 @@ class Handle:
     def close(self) -> None:
         _grm.grm_close(self.ptr)
 
+    @overload
+    def recv(
+            self, args_container: Optional[Dict[str, grm.args._ElemType]]
+    ) -> Dict[str, grm.args._ElemType]:
+        ...
+
+    @overload
+    def recv(
+            self, args_container: grm.args._ArgumentContainer
+    ) -> grm.args._ArgumentContainer:
+        ...
+
     def recv(
             self,
             args_container: Optional[UnionT[Dict[str, grm.args._ElemType], grm.args._ArgumentContainer]] = None
@@ -132,7 +144,7 @@ def send(
         args_container: UnionT[Dict[str, grm.args._ElemType], grm.args._ArgumentContainer]
 ) -> int:
     """
-
+    Alias for send_args
     """
     return send_args(handle, args_container)
 
