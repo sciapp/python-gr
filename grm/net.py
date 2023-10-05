@@ -93,12 +93,16 @@ def recv(
         args_container: Optional[Dict[str, grm.args._ElemType]]
 ) -> Dict[str, grm.args._ElemType]:
     ...
+
+
 @overload
 def recv(
         handle: Handle,
         args_container: grm.args._ArgumentContainer
 ) -> grm.args._ArgumentContainer:
     ...
+
+
 @_require_runtime_version(0, 47, 0)
 def recv(
         handle: Handle,
@@ -110,13 +114,11 @@ def recv(
     if args_container is None:
         args_container = grm.args.new()
         _grm.grm_recv(handle.ptr, args_container.ptr)
-        # TODO change return to dict
-        return args_container
+        return args_container.as_dict()
     if isinstance(args_container, dict):
         args_container = grm.args.new(args_container)
         _grm.grm_recv(handle.ptr, args_container.ptr)
-        # TODO change return to dict
-        return args_container
+        return args_container.as_dict()
     if isinstance(args_container, grm.args._ArgumentContainer):
         _grm.grm_recv(handle.ptr, args_container.ptr)
         return args_container
