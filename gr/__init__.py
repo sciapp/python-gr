@@ -3006,6 +3006,27 @@ def volume(data, algorithm=0, dmin=-1, dmax=-1):
     return _dmin.value, _dmax.value
 
 
+def panzoom(x, y, zoom):
+    """
+    Set pan and zoom attributes for the current window
+
+    **Parameters:**
+
+    `x` :
+        The X coordinate of the pan/zoom point
+    `y` :
+        The Y coordinate of the pan/zoom point
+    `zoom` :
+        The zoom factor to be applied to the current window's scale
+    """
+    _xmin = c_double()
+    _xmax = c_double()
+    _ymin = c_double()
+    _ymax = c_double()
+    __gr.gr_panzoom(x, y, zoom, zoom, byref(_xmin), byref(_xmax), byref(_ymin), byref(_ymax))
+    return [_xmin.value, _xmax.value, _ymin.value, _ymax.value]
+
+
 @_require_runtime_version(0, 41, 5, 43)
 def setresamplemethod(resample_method):
     """
@@ -4023,6 +4044,8 @@ __gr.gr_version.restype = c_char_p
 __gr.gr_quiver.argtypes = [c_int, c_int, POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double), c_int]
 __gr.gr_shadepoints.argtypes = [c_int, POINTER(c_double), POINTER(c_double), c_int, c_int, c_int]
 __gr.gr_shadelines.argtypes = [c_int, POINTER(c_double), POINTER(c_double), c_int, c_int, c_int]
+__gr.gr_panzoom.argtypes = [c_double, c_double, c_double, c_double, POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double)]
+
 
 # detect runtime version and use it for version dependent features
 _RUNTIME_VERSION_STR = str(__gr.gr_version().decode('ascii'))
