@@ -274,7 +274,11 @@ if _RUNTIME_VERSION >= (0, 47, 0, 0):
     _grm.grm_args_new.argtypes = []
     _grm.grm_args_new.restype = c_void_p
 
-    _grm.grm_args_push.argtypes = [c_void_p, c_char_p, c_char_p, c_uint, c_void_p]
+    # Import note: `grm_args_push` is a variadic function and only non-variadic function arguments must be specified in
+    # the `argtypes` attribute. The variadic part must not be declared here! Otherwise, calling `grm_args_push` will
+    # fail on some platforms, e.g. Apple Silicon. For more information see
+    # <https://docs.python.org/3/library/ctypes.html#calling-variadic-functions>.
+    _grm.grm_args_push.argtypes = [c_void_p, c_char_p, c_char_p]
     _grm.grm_args_push.restype = c_int
 
     _grm.grm_args_clear.argtypes = [c_void_p]

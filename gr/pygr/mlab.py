@@ -2559,7 +2559,7 @@ def _set_window(kind):
 
     x_min, x_max = _plt.kwargs['xrange']
     if not scale & gr.OPTION_X_LOG:
-        if _plt.kwargs.get('adjust_xlim', True) and kind not in ('heatmap',):
+        if _plt.kwargs.get('adjust_xlim', 'xlim' not in _plt.kwargs) and kind not in ('heatmap',):
             x_min, x_max = gr.adjustlimits(x_min, x_max)
         if kind in ('bar'):
             x_tick = 1
@@ -2585,7 +2585,7 @@ def _set_window(kind):
         else:
             y_min = 0
     if not scale & gr.OPTION_Y_LOG:
-        if _plt.kwargs.get('adjust_ylim', True) and kind not in ('heatmap',):
+        if _plt.kwargs.get('adjust_ylim', 'ylim' not in _plt.kwargs) and kind not in ('heatmap',):
             y_min, y_max = gr.adjustlimits(y_min, y_max)
         y_major_count = major_count
         y_tick = gr.tick(y_min, y_max) / y_major_count
@@ -2640,7 +2640,7 @@ def _set_window(kind):
     if kind in ('wireframe', 'surface', 'plot3', 'scatter3', 'trisurf', 'volume'):
         z_min, z_max = _plt.kwargs['zrange']
         if not scale & gr.OPTION_Z_LOG:
-            if _plt.kwargs.get('adjust_zlim', True):
+            if _plt.kwargs.get('adjust_zlim', 'zlim' not in _plt.kwargs):
                 z_min, z_max = gr.adjustlimits(z_min, z_max)
             z_major_count = major_count
             z_tick = gr.tick(z_min, z_max) / z_major_count
