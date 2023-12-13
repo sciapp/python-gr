@@ -61,7 +61,7 @@ l1 = 1.2       # length of rods
 l2 = 1.0
 m1 = 1.0       # weights of bobs
 m2 = 1.5
-t1 = 100.0     # inintial angles
+t1 = 100.0     # initial angles
 t2 = -20.0
 
 w1 = 0.0
