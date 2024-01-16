@@ -1,83 +1,60 @@
-#!/usr/bin/env python3
-"""
-[GRM] Event handling for resizing and new plots
-
-The following is printed:
-
-.. code-block:: none
-
-    filling argument container...
-    plotting data...
-    Got new plot event, plot_id: 0
-    Got size event, size: (600, 600)
-    Press any key to continue...
-    <ENTER>
-    plotting data...
-    Got size event, size: (1000, 1000)
-    Press any key to continue...
-    <ENTER>
-    plotting data...
-    Got new plot event, plot_id: 1
-    Got size event, size: (1000, 1000)
-    Press any key to continue...
-    <ENTER>
-"""
-import math
+from math import pi, sin, cos
 import sys
-import numpy as np
+from typing import Dict, List
+
 import grm
 
 
-def new_plot_callback(event):
+LENGTH = 1000
+
+
+def new_plot_callback(event: grm.event.EVENT_NEW_PLOT) -> None:
     print("Got new plot event, plot_id: %s" % event.plot_id, file=sys.stderr)
 
 
-def size_callback(event):
+def size_callback(event: grm.event.EVENT_SIZE) -> None:
     print("Got size event, size: (%s, %s)" % (event.width, event.width))
 
 
-n = 1000
-x_vals = np.linspace(0, 2 * math.pi, n)
+def test_line() -> None:
+    plot_x = [i * 2 * pi / LENGTH for i in range(LENGTH)]
+    plot_sin = [sin(i * 2 * pi / LENGTH) for i in range(LENGTH)]
+    plot_cos = [cos(i * 2 * pi / LENGTH) for i in range(LENGTH)]
 
-print("filling argument container...")
+    labels = ("sin", "cos")
 
+    series: List[Dict[str, grm.args._ElemType]] = [
+        {
+            "x": plot_x,
+            "y": plot_sin
+        },
+        {
+            "x": plot_x,
+            "y": plot_cos
+        }
+    ]
 
-args = grm.args.new(
-    {
-        "series": [{"x": x_vals, "y": np.sin(x_vals)}, {"x": x_vals, "y": np.cos(x_vals)}],
-        "labels": ["sin", "cos"],
-        "kind": "line",
+    grm.event.register(grm.event.EventType.NEW_PLOT, new_plot_callback)
+    grm.event.register(grm.event.EventType.SIZE, size_callback)
+
+    print("plotting data")
+    grm.plot.line(series=series, labels=labels)
+    input("Press enter to continue")
+
+    print("plotting data")
+    grm.plot.line(series=series, labels=labels, size=(1000.0, 1000.0))
+    input("Press enter to continue")
+
+    args: Dict[str, grm.args._ElemType] = {
+        "series": series,
+        "labels": labels,
+        "size": (1000.0, 1000.0)
     }
-)
+    print("plotting data")
+    grm.plot.switch(1)
+    grm.plot.line(args)
+    input("Press enter to continue")
 
-grm.event.register(grm.event.EventType.NEW_PLOT, new_plot_callback)
-grm.event.register(grm.event.EventType.SIZE, size_callback)
 
-print("plotting data...")
-
-grm.plot.plot(args)
-
-print("Press any key to continue...")
-sys.stdin.read(1)
-
-args["size"] = [1000.0, 1000.0]
-
-print("plotting data...")
-
-grm.plot.plot(args)
-
-print("Press any key to continue...")
-sys.stdin.read(1)
-
-args["size"] = [1000.0, 1000.0]
-
-print("plotting data...")
-
-grm.plot.switch(1)
-grm.plot.plot(args)
-
-print("Press any key to continue...")
-sys.stdin.read(1)
-
-del args
-grm.plot.finalize()
+if __name__ == "__main__":
+    test_line()
