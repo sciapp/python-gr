@@ -40,6 +40,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 QT_PYSIDE = "PySide"
+QT_PYSIDE2 = "PySide2"
+QT_PYSIDE6 = "PySide6"
 QT_PYQT4 = "PyQt4"
 QT_PYQT5 = "PyQt5"
 QT_PYQT6 = "PyQt6"
@@ -73,13 +75,10 @@ if hasattr(gr, "QT_BACKEND_ORDER"):
 elif hasattr(sys, "QT_BACKEND_ORDER"):
     # backwards compatible way
     QT_BACKEND_ORDER = sys.QT_BACKEND_ORDER
-elif 'PyQt4' in sys.modules and 'PySide' not in sys.modules:
-    # only PyQt already loaded, use it
-    QT_BACKEND_ORDER = [QT_PYQT4, QT_PYSIDE]
 else:
     # check which backend is already imported
     # fallback to default order if no import can be detected
-    QT_BACKEND_ORDER = [QT_PYQT4, QT_PYSIDE, QT_PYQT6, QT_PYQT5]
+    QT_BACKEND_ORDER = [QT_PYQT6, QT_PYSIDE6, QT_PYQT5, QT_PYSIDE2, QT_PYQT4, QT_PYSIDE]
     for i, backend in enumerate(QT_BACKEND_ORDER[:]):
         if backend in sys.modules:
             QT_BACKEND_ORDER.insert(0, QT_BACKEND_ORDER.pop(i))
@@ -122,8 +121,87 @@ def _importPySide():
     ctypes.CDLL(QtCore.__file__, ctypes.RTLD_GLOBAL)
 
     def getGKSConnectionId(widget, painter):
+        if sys.version_info.major >= 3:
+            long = int
         return "%x!%x" % (long(shiboken.getCppPointer(widget)[0]),
                           long(shiboken.getCppPointer(painter)[0]))
+
+
+def _importPySide2():
+    global QApplication, QtCore, QtGui, QtWidgets, QtPrintSupport, QWidget, \
+        QGesture, QGestureRecognizer, QPainter, QPrinter, QPrintDialog, uic
+    global getGKSConnectionId, QtVersionTuple, Modifier
+
+    from PySide2 import QtCore
+    from PySide2 import QtGui
+    from PySide2 import QtWidgets
+    from PySide2 import QtPrintSupport
+    from PySide2.QtGui import QPainter
+    from PySide2.QtWidgets import QApplication, QWidget, QGesture, QGestureRecognizer
+    from PySide2.QtPrintSupport import QPrinter, QPrintDialog
+    try:
+        from PySide2 import shiboken2
+    except ImportError:
+        import shiboken2  # Anaconda
+
+    QtVersionTuple = VersionTuple(*QtCore.__version_info__)
+    Modifier = _Modifier(
+        ShiftModifier = QtCore.Qt.ShiftModifier,
+        ControlModifier = QtCore.Qt.ControlModifier,
+        AltModifier = QtCore.Qt.AltModifier,
+        MetaModifier = QtCore.Qt.MetaModifier,
+        KeypadModifier = QtCore.Qt.KeypadModifier,
+        GroupSwitchModifier = QtCore.Qt.GroupSwitchModifier,
+    )
+
+    # Load QtCore module (which is a c++ extension module) and export all
+    # symbols globally
+    # -> The gks plugin loader can load the "qVersion" function with dlsym and
+    # determine the correct qt version
+    ctypes.CDLL(QtCore.__file__, ctypes.RTLD_GLOBAL)
+
+    def getGKSConnectionId(widget, painter):
+        if sys.version_info.major >= 3:
+            long = int
+        return "%x!%x" % (long(shiboken2.getCppPointer(widget)[0]),
+                          long(shiboken2.getCppPointer(painter)[0]))
+
+
+def _importPySide6():
+    global QApplication, QtCore, QtGui, QtWidgets, QtPrintSupport, QWidget, \
+        QGesture, QGestureRecognizer, QPainter, QPrinter, QPrintDialog, uic
+    global getGKSConnectionId, QtVersionTuple, Modifier
+
+    from PySide6 import QtCore
+    from PySide6 import QtGui
+    from PySide6 import QtWidgets
+    from PySide6 import QtPrintSupport
+    from PySide6.QtGui import QPainter
+    from PySide6.QtWidgets import QApplication, QWidget, QGesture, QGestureRecognizer
+    from PySide6.QtPrintSupport import QPrinter, QPrintDialog
+    import shiboken6
+
+    QtVersionTuple = VersionTuple(*QtCore.__version_info__)
+    Modifier = _Modifier(
+        ShiftModifier = QtCore.Qt.ShiftModifier,
+        ControlModifier = QtCore.Qt.ControlModifier,
+        AltModifier = QtCore.Qt.AltModifier,
+        MetaModifier = QtCore.Qt.MetaModifier,
+        KeypadModifier = QtCore.Qt.KeypadModifier,
+        GroupSwitchModifier = QtCore.Qt.GroupSwitchModifier,
+    )
+
+    # Load QtCore module (which is a c++ extension module) and export all
+    # symbols globally
+    # -> The gks plugin loader can load the "qVersion" function with dlsym and
+    # determine the correct qt version
+    ctypes.CDLL(QtCore.__file__, ctypes.RTLD_GLOBAL)
+
+    def getGKSConnectionId(widget, painter):
+        if sys.version_info.major >= 3:
+            long = int
+        return "%x!%x" % (long(shiboken6.getCppPointer(widget)[0]),
+                          long(shiboken6.getCppPointer(painter)[0]))
 
 
 def _importPyQt4():
@@ -243,10 +321,12 @@ def _importPyQt6():
                           sip.unwrapinstance(painter))
 
 
-_importers = {QT_PYSIDE: _importPySide,
-              QT_PYQT4:  _importPyQt4,
-              QT_PYQT5:  _importPyQt5,
-              QT_PYQT6: _importPyQt6}
+_importers = {QT_PYSIDE:  _importPySide,
+              QT_PYSIDE2: _importPySide2,
+              QT_PYSIDE6: _importPySide6,
+              QT_PYQT4:   _importPyQt4,
+              QT_PYQT5:   _importPyQt5,
+              QT_PYQT6:   _importPyQt6}
 
 for backend in QT_BACKEND_ORDER:
     try:
