@@ -235,17 +235,18 @@ class DownloadBinaryDistribution(build_py):
                 ):
                     operating_system, arch = 'Linux', 'i386'
 
-                # check for desired build variant (e.g. -msvc)
+                # check for desired build variant (e.g. "mingw" or "msvc")
                 variant = os.environ.get('GR_BUILD_VARIANT', '')
-                if variant:
-                    variant = '-' + variant
+                if operating_system == 'Windows' and variant == '':
+                    variant = 'msvc'
+                suffix = ('-' + variant) if variant and variant != 'mingw' else ''
 
                 # download binary distribution for system
-                file_name = 'gr-{version}-{os}-{arch}{variant}.tar.gz'.format(
+                file_name = 'gr-{version}-{os}-{arch}{suffix}.tar.gz'.format(
                     version=version,
                     os=operating_system,
                     arch=arch,
-                    variant=variant
+                    suffix=suffix
                 )
 
                 tar_gz_data = DownloadBinaryDistribution.get_file_from_mirrors(file_name, version, 'http')

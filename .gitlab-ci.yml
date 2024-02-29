@@ -11,7 +11,8 @@ build:
   - apt-get install -y python3-venv python3-pip git
   - python3 -m venv env
   - env/bin/pip install --upgrade pip
-  - env/bin/python setup.py sdist
+  - env/bin/pip install build
+  - env/bin/python -m build --sdist
   artifacts:
     paths:
     - dist/
