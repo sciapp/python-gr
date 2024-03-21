@@ -1010,9 +1010,9 @@ def surface(px, py, pz, option=0):
 
         `pz` :     an array of length nx * ny containing the z-coordinates
 
-        `option` : see the option parameter of gr_surface. OPTION_COLORED_MESH and OPTION_Z_SHADED_MESH are supported.
+        `option` : see the option parameter of gr_surface. OPTION_3D_MESH, OPTION_COLORED_MESH and OPTION_Z_SHADED_MESH are supported.
     """
-    if option in (gr.OPTION_Z_SHADED_MESH, gr.OPTION_COLORED_MESH):
+    if option in (gr.OPTION_Z_SHADED_MESH, gr.OPTION_COLORED_MESH, gr.OPTION_3D_MESH):
         nx = len(px)
         ny = len(py)
         px = floatarray(px, copy=False)
