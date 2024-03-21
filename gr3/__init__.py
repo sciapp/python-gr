@@ -8,6 +8,7 @@ __all__ = ['GR3_InitAttribute',
            'GR3_Quality',
            'GR3_Drawable',
            'GR3_ProjectionType',
+           'GR3_Transparency',
            'init',
            'terminate',
            'useframebuffer',
@@ -52,6 +53,8 @@ __all__ = ['GR3_InitAttribute',
            'drawslicemeshes',
            'createslicemeshes',
            'drawtrianglesurface',
+           'setalphamode',
+           'getalphamode',
            'setclipping',
            'getclipping',
            'setlightsources',
@@ -240,6 +243,12 @@ class GR3_ProjectionType(object):
     GR3_PROJECTION_PERSPECTIVE = 0
     GR3_PROJECTION_PARALLEL = 1
     GR3_PROJECTION_ORTHOGRAPHIC = 2
+
+
+class GR3_Transparency(object):
+    GR3_TRANSPARENCY_OPAQUE = 0
+    GR3_TRANSPARENCY_TRANSMIT = 1
+    GR3_TRANSPARENCY_FILTER = 2
 
 
 class GR3_Exception(Exception):
@@ -1010,9 +1019,9 @@ def surface(px, py, pz, option=0):
 
         `pz` :     an array of length nx * ny containing the z-coordinates
 
-        `option` : see the option parameter of gr_surface. OPTION_COLORED_MESH and OPTION_Z_SHADED_MESH are supported.
+        `option` : see the option parameter of gr_surface. OPTION_3D_MESH, OPTION_COLORED_MESH and OPTION_Z_SHADED_MESH are supported.
     """
-    if option in (gr.OPTION_Z_SHADED_MESH, gr.OPTION_COLORED_MESH):
+    if option in (gr.OPTION_Z_SHADED_MESH, gr.OPTION_COLORED_MESH, gr.OPTION_3D_MESH):
         nx = len(px)
         ny = len(py)
         px = floatarray(px, copy=False)
@@ -1577,6 +1586,25 @@ if hasattr(_gr3, 'gr3_setorthographicprojection'):
         :param zfar: far clipping plane distance
         """
         _gr3.gr3_setorthographicprojection(c_float(left), c_float(right), c_float(bottom), c_float(top), c_float(znear), c_float(zfar))
+
+if hasattr(_gr3, 'gr3_setalphamode'):
+    def setalphamode(mode):
+        """
+        Set the alpha mode.
+
+        :param mode: one of the GR3_Transparency constants
+        """
+        _gr3.gr3_setalphamode(c_int(mode))
+
+
+if hasattr(_gr3, 'gr3_getalphamode'):
+    def getalphamode():
+        """
+        :return: one of the GR3_Transparency constants
+        """
+        mode = c_int(0)
+        _gr3.gr3_getalphamode(byref(mode))
+        return mode
 
 
 if hasattr(_gr3, 'gr3_setclipping'):
