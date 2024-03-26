@@ -50,7 +50,7 @@ class GRDrawAttributes(object):
         self._linecolor, self._markercolor = linecolor, markercolor
         self._linewidth = linewidth
         if linecolor is None:
-            self._linecolor = ColorIndexGenerator.nextColorIndex()
+            self._linecolor = ColorIndexGenerator.getNextColorIndex()
         else:
             self._linecolor = linecolor
 
