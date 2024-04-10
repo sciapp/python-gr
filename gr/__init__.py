@@ -1615,7 +1615,7 @@ def inqtextext(x, y, string):
             [tby[0], tby[1], tby[2], tby[3]]]
 
 
-_axeslbl_callback = CFUNCTYPE(c_void_p, c_double, c_double, c_char_p, c_double)
+_axeslbl_callback = CFUNCTYPE(None, c_double, c_double, c_char_p, c_double)
 
 
 def setscientificformat(format_option):
