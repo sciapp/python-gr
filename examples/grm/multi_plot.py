@@ -1,50 +1,43 @@
-#!/usr/bin/env python3
-"""
-[GRM] Updating line plots
-"""
-import math
-import sys
-import numpy as np
+from math import pi, sin, cos
+from typing import Dict
+
 import grm
 
-n = 1000
-x_vals = np.linspace(0, 2 * math.pi, n)
-sin_y_vals = np.sin(x_vals)
-cos_y_vals = np.cos(x_vals)
-print("filling argument container...")
 
-args = grm.args.new({"x": x_vals, "y": sin_y_vals})
+LENGTH = 1000
 
-print("plotting sin...")
-grm.plot.plot(args)
-print("Press any key to continue...")
-sys.stdin.read(1)
 
-args.clear()
-args.update({"x": x_vals, "y": cos_y_vals})
+def test_multiple_plots() -> None:
+    plot_x = [i * 2 * pi / LENGTH for i in range(LENGTH)]
+    plot_sin = [sin(i * 2 * pi / LENGTH) for i in range(LENGTH)]
+    plot_cos = [cos(i * 2 * pi / LENGTH) for i in range(LENGTH)]
 
-print("plotting cos...")
-grm.plot.plot(args)
-print("Press any key to continue...")
-sys.stdin.read(1)
+    args: Dict[str, grm.args._ElemType] = {
+        "x": plot_x,
+        "y": plot_sin
+    }
+    print("plotting sin")
+    grm.plot.plot(args)
+    input("Press enter to continue")
 
-grm.plot.switch(1)
+    args["y"] = plot_cos
+    print("plotting cos")
+    grm.plot.plot(args)
+    input("Press enter to continue")
 
-args.clear()
-args.update({"x": x_vals, "y": sin_y_vals})
+    grm.plot.switch(1)
 
-print("plotting sin...")
-grm.plot.plot(args)
-print("Press any key to continue...")
-sys.stdin.read(1)
+    args["y"] = plot_sin
+    print("plotting sin")
+    grm.plot.plot(args)
+    input("Press enter to continue")
 
-args.clear()
-args.update({"x": x_vals, "y": cos_y_vals, "id": ":.2"})
+    args["y"] = plot_cos
+    args["id"] = ":.2"
+    print("plotting sin AND cos")
+    grm.plot.plot(args)
+    input("Press enter to continue")
 
-print("plotting sin AND cos...")
-grm.plot.plot(args)
-print("Press any key to continue...")
-sys.stdin.read(1)
 
-del args
-grm.plot.finalize()
+if __name__ == "__main__":
+    test_multiple_plots()

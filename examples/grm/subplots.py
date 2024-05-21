@@ -1,38 +1,31 @@
-#!/usr/bin/env python3
-"""
-[GRM] Multiple line plots example
-"""
-import math
-import sys
-import numpy as np
+from math import pi, sin, cos
+
 import grm
 
 
-n = 1000
-x_vals = np.linspace(0, 2 * math.pi, n)
+LENGTH = 1000
 
-plots = [[x_vals, np.sin(x_vals)], [x_vals, np.sin(x_vals * 2)], [x_vals, np.cos(x_vals)], [x_vals, np.cos(x_vals * 2)]]
 
-subplots = []
+def test_subplots() -> None:
+    x = [i * 2 * pi / LENGTH for i in range(LENGTH)]
+    plots = [
+        [sin(sin((i * 2) * pi / LENGTH)) for i in range(LENGTH)],
+        [sin(sin((i * 4) * pi / LENGTH)) for i in range(LENGTH)],
+        [sin(cos((i * 2) * pi / LENGTH)) for i in range(LENGTH)],
+        [sin(cos((i * 4) * pi / LENGTH)) for i in range(LENGTH)]
+    ]
 
-print("filling argument container...")
-
-for i in range(0, 4):
-    subplots.append(
+    subplots = [
         {
-            "x": plots[i][0],
-            "y": plots[i][1],
-            "subplot": [0.5 * (i % 2), 0.5 * (i % 2 + 1), 0.5 * (i // 2), 0.5 * (i // 2 + 1)],
+            "x": x,
+            "y": plots[i],
+            "subplot": (0.5 * (i % 2), 0.5 * (i % 2 + 1), 0.5 * (i // 2), 0.5 * (i // 2 + 1))
         }
-    )
+        for i in range(4)
+    ]
+    grm.plot.line(subplots=subplots)
+    input("Press enter to continue")
 
-args = grm.args.new({"subplots": subplots})
 
-print("plotting data...")
-
-grm.plot.plot(args)
-print("Press any key to continue...")
-sys.stdin.read(1)
-
-del args
-grm.plot.finalize()
+if __name__ == "__main__":
+    test_subplots()
