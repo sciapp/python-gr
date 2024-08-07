@@ -266,7 +266,7 @@ install-freebsd13-python3:
     GIT_STRATEGY: none
   script:
   - rm -rf install && mkdir install && cd install
-  - sudo pkg install -y python3 py39-pip py39-numpy
+  - sudo pkg install -y python3 py311-pip py311-numpy
   - python3 -m venv --system-site-packages env
   - env/bin/pip install --upgrade pip
   - env/bin/pip install ../dist/gr-*.tar.gz
