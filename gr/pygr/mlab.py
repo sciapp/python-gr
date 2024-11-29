@@ -22,6 +22,10 @@ try:
 except NameError:
     basestring = str
 
+copy_if_needed = False
+if np.lib.NumpyVersion(np.__version__) >= "2.0.0":
+    copy_if_needed = None
+
 
 def _close_gks_on_error(func):
     """
@@ -527,7 +531,7 @@ def heatmap(data, **kwargs):
     >>> mlab.heatmap(z[::-1, :], xlim=(-2, 2), ylim=(0, np.pi))
     """
     global _plt
-    data = np.array(data, copy=False)
+    data = np.array(data, copy=copy_if_needed)
     if len(data.shape) != 2:
         raise ValueError('expected 2-D array')
     _plt.kwargs.update(kwargs)
@@ -564,7 +568,7 @@ def polar_heatmap(data, **kwargs):
     >>> mlab.polar_heatmap(z, rlim=(1, 10), philim=(0, np.pi / 2))
     """
     global _plt
-    data = np.array(data, copy=False)
+    data = np.array(data, copy=copy_if_needed)
     if len(data.shape) != 2:
         raise ValueError('expected 2-D array')
     _plt.kwargs.update(kwargs)
@@ -3465,7 +3469,7 @@ def _convert_to_array(obj, may_be_2d=False, xvalues=None, always_flatten=False):
         except (AttributeError, TypeError):
             pass
     try:
-        a = np.array(a, copy=False)
+        a = np.array(a, copy=copy_if_needed)
     except TypeError:
         raise TypeError("expected a sequence, but got '{}'".format(type(obj)))
     if always_flatten:

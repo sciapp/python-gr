@@ -56,6 +56,10 @@ os.environ['GKS_ENCODING'] = 'utf-8'
 _impl = python_implementation()
 _mime_type = None
 
+copy_if_needed = False
+if np.lib.NumpyVersion(np.__version__) >= "2.0.0":
+    copy_if_needed = None
+
 try:
     from IPython.display import clear_output, display, SVG, Image, HTML
     from base64 import b64encode
@@ -3013,7 +3017,7 @@ def volume(data, algorithm=0, dmin=-1, dmax=-1):
     +------------------+---+-----------------------------+
     """
     import gr3
-    data = np.array(data, copy=False, ndmin=3)
+    data = np.array(data, copy=copy_if_needed, ndmin=3)
     nz, ny, nx = data.shape
     _data = floatarray(nx * ny * nz, data)
     _dmin = c_double(dmin)
@@ -3726,7 +3730,7 @@ def cpubasedvolume(data, algorithm, dmin, dmax, min_val, max_val):
     +---------------------+---+-----------------------------+
     """
 
-    data = np.array(data, copy=False, ndmin=3)
+    data = np.array(data, copy=copy_if_needed, ndmin=3)
     nz, ny, nx = data.shape
     _data = floatarray(nx * ny * nz, data)
     if dmin is None:
@@ -3804,7 +3808,7 @@ def volume_nogrid(data, algorithm, kernel, radius, extra_data=None):
     dmin = c_double(-1)
     dmax = c_double(-1)
 
-    data = np.array(data, copy=False, ndmin=2)
+    data = np.array(data, copy=copy_if_needed, ndmin=2)
     shape = data.shape
     if len(shape) != 2 and shape[1] != 4:
         raise ValueError("Data must be in shape (n, 4)!")
@@ -3843,7 +3847,7 @@ def volume_interp_gauss_init(det, sigma_inv_1_2):
     `sigma_inv_1_2` :
         The inverted and square rooted covariance matrix.
     """
-    sigma_inv_1_2 = np.array(sigma_inv_1_2, copy=False, ndmin=3)
+    sigma_inv_1_2 = np.array(sigma_inv_1_2, copy=copy_if_needed, ndmin=3)
     _s = floatarray(9, sigma_inv_1_2)
 
     __gr.gr_volume_interp_gauss_init(c_double(det), _s.data)
