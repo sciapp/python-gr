@@ -83,6 +83,9 @@ import numpy
 import os
 import gr
 
+copy_if_needed = False
+if numpy.lib.NumpyVersion(numpy.__version__) >= "2.0.0":
+    copy_if_needed = None
 
 try:
     from IPython.display import HTML, Image
@@ -169,7 +172,7 @@ class intarray:
 
 
 class floatarray:
-    def __init__(self, a, copy=False):
+    def __init__(self, a, copy=copy_if_needed):
         if _impl == 'PyPy':
             self.array = numpy.array(a, numpy.float32, copy=copy)
             self.data = cast(self.array.__array_interface__['data'][0],
@@ -886,9 +889,9 @@ def createsurfacemesh(nx, ny, px, py, pz, option=0):
     +-------------------------+----+----------------------------------------------------------------------------------------+
     """
     _mesh = c_uint(0)
-    px = floatarray(px, copy=False)
-    py = floatarray(py, copy=False)
-    pz = floatarray(pz, copy=False)
+    px = floatarray(px, copy=copy_if_needed)
+    py = floatarray(py, copy=copy_if_needed)
+    pz = floatarray(pz, copy=copy_if_needed)
     _gr3.gr3_createsurfacemesh(byref(_mesh), c_int(nx), c_int(ny),
                                px.data,
                                py.data,
@@ -1024,9 +1027,9 @@ def surface(px, py, pz, option=0):
     if option in (gr.OPTION_Z_SHADED_MESH, gr.OPTION_COLORED_MESH, gr.OPTION_3D_MESH):
         nx = len(px)
         ny = len(py)
-        px = floatarray(px, copy=False)
-        py = floatarray(py, copy=False)
-        pz = floatarray(pz, copy=False)
+        px = floatarray(px, copy=copy_if_needed)
+        py = floatarray(py, copy=copy_if_needed)
+        pz = floatarray(pz, copy=copy_if_needed)
         _gr3.gr3_surface(c_int(nx), c_int(ny),
                          px.data,
                          py.data,
@@ -1538,7 +1541,7 @@ def drawtrianglesurface(vertices):
         `vertices` : the vertices of the triangle mesh
     """
     global _gr3
-    vertices = numpy.array(vertices, copy=False)
+    vertices = numpy.array(vertices, copy=copy_if_needed)
     assert len(vertices.shape) <= 3
     if len(vertices.shape) == 3:
         assert vertices.shape[1:3] == (3, 3)
