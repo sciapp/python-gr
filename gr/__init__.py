@@ -1205,14 +1205,22 @@ def inqfillcolorind():
     return color.value
 
 
-def setresizebehaviour(flag):
-    __gr.gr_setresizebehaviour(1 if flag else 0)
+@_require_runtime_version(0, 73, 8, 54)
+def setnominalsize(factor):
+    """
+    Sets the nominal size.
+    """
+    __gr.gr_setnominalsize(factor)
 
 
-def inqresizebehaviour():
-    flag = c_int()
-    __gr.gr_inqresizebehaviour(byref(flag))
-    return True if flag else False
+@_require_runtime_version(0, 73, 8, 54)
+def inqnominalsize():
+    """
+    Returns the nominal size.
+    """
+    factor = c_double()
+    __gr.gr_inqnominalsize(byref(factor))
+    return factor.value
 
 
 def setcolorrep(index, red, green, blue):
@@ -3923,8 +3931,6 @@ __gr.gr_setfillstyle.argtypes = [c_int]
 __gr.gr_inqfillstyle.argtypes = [POINTER(c_int)]
 __gr.gr_setfillcolorind.argtypes = [c_int]
 __gr.gr_inqfillcolorind.argtypes = [POINTER(c_int)]
-__gr.gr_setresizebehaviour.argtypes = [c_int]
-__gr.gr_inqresizebehaviour.argtypes = [POINTER(c_int)]
 __gr.gr_setcolorrep.argtypes = [c_int, c_double, c_double, c_double]
 __gr.gr_setwindow.argtypes = [c_double, c_double, c_double, c_double]
 __gr.gr_inqwindow.argtypes = [POINTER(c_double), POINTER(c_double),
@@ -4160,6 +4166,10 @@ if _RUNTIME_VERSION >= (0, 67, 0, 0):
 
     __gr.gr_volume_interp_gauss.argtypes = [POINTER(_data_point3d_t), c_void_p, POINTER(_point3d_t), POINTER(_point3d_t)]
     __gr.gr_volume_interp_gauss.restype = c_double
+
+if _RUNTIME_VERSION >= (0, 73, 8, 54):
+    __gr.gr_setnominalsize.argtypes = [c_double]
+    __gr.gr_inqnominalsize.argtypes = [POINTER(c_double)]
 
 precision = __gr.gr_precision()
 text_maxsize = __gr.gr_text_maxsize()
