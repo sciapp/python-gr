@@ -8,6 +8,7 @@ __all__ = ['GR3_InitAttribute',
            'GR3_Quality',
            'GR3_Drawable',
            'GR3_ProjectionType',
+           'GR3_Transparency',
            'init',
            'terminate',
            'useframebuffer',
@@ -52,6 +53,8 @@ __all__ = ['GR3_InitAttribute',
            'drawslicemeshes',
            'createslicemeshes',
            'drawtrianglesurface',
+           'setalphamode',
+           'getalphamode',
            'setclipping',
            'getclipping',
            'setlightsources',
@@ -80,6 +83,9 @@ import numpy
 import os
 import gr
 
+copy_if_needed = False
+if numpy.lib.NumpyVersion(numpy.__version__) >= "2.0.0":
+    copy_if_needed = None
 
 try:
     from IPython.display import HTML, Image
@@ -166,7 +172,7 @@ class intarray:
 
 
 class floatarray:
-    def __init__(self, a, copy=False):
+    def __init__(self, a, copy=copy_if_needed):
         if _impl == 'PyPy':
             self.array = numpy.array(a, numpy.float32, copy=copy)
             self.data = cast(self.array.__array_interface__['data'][0],
@@ -240,6 +246,12 @@ class GR3_ProjectionType(object):
     GR3_PROJECTION_PERSPECTIVE = 0
     GR3_PROJECTION_PARALLEL = 1
     GR3_PROJECTION_ORTHOGRAPHIC = 2
+
+
+class GR3_Transparency(object):
+    GR3_TRANSPARENCY_OPAQUE = 0
+    GR3_TRANSPARENCY_TRANSMIT = 1
+    GR3_TRANSPARENCY_FILTER = 2
 
 
 class GR3_Exception(Exception):
@@ -877,9 +889,9 @@ def createsurfacemesh(nx, ny, px, py, pz, option=0):
     +-------------------------+----+----------------------------------------------------------------------------------------+
     """
     _mesh = c_uint(0)
-    px = floatarray(px, copy=False)
-    py = floatarray(py, copy=False)
-    pz = floatarray(pz, copy=False)
+    px = floatarray(px, copy=copy_if_needed)
+    py = floatarray(py, copy=copy_if_needed)
+    pz = floatarray(pz, copy=copy_if_needed)
     _gr3.gr3_createsurfacemesh(byref(_mesh), c_int(nx), c_int(ny),
                                px.data,
                                py.data,
@@ -1010,14 +1022,14 @@ def surface(px, py, pz, option=0):
 
         `pz` :     an array of length nx * ny containing the z-coordinates
 
-        `option` : see the option parameter of gr_surface. OPTION_COLORED_MESH and OPTION_Z_SHADED_MESH are supported.
+        `option` : see the option parameter of gr_surface. OPTION_3D_MESH, OPTION_COLORED_MESH and OPTION_Z_SHADED_MESH are supported.
     """
-    if option in (gr.OPTION_Z_SHADED_MESH, gr.OPTION_COLORED_MESH):
+    if option in (gr.OPTION_Z_SHADED_MESH, gr.OPTION_COLORED_MESH, gr.OPTION_3D_MESH):
         nx = len(px)
         ny = len(py)
-        px = floatarray(px, copy=False)
-        py = floatarray(py, copy=False)
-        pz = floatarray(pz, copy=False)
+        px = floatarray(px, copy=copy_if_needed)
+        py = floatarray(py, copy=copy_if_needed)
+        pz = floatarray(pz, copy=copy_if_needed)
         _gr3.gr3_surface(c_int(nx), c_int(ny),
                          px.data,
                          py.data,
@@ -1529,7 +1541,7 @@ def drawtrianglesurface(vertices):
         `vertices` : the vertices of the triangle mesh
     """
     global _gr3
-    vertices = numpy.array(vertices, copy=False)
+    vertices = numpy.array(vertices, copy=copy_if_needed)
     assert len(vertices.shape) <= 3
     if len(vertices.shape) == 3:
         assert vertices.shape[1:3] == (3, 3)
@@ -1577,6 +1589,25 @@ if hasattr(_gr3, 'gr3_setorthographicprojection'):
         :param zfar: far clipping plane distance
         """
         _gr3.gr3_setorthographicprojection(c_float(left), c_float(right), c_float(bottom), c_float(top), c_float(znear), c_float(zfar))
+
+if hasattr(_gr3, 'gr3_setalphamode'):
+    def setalphamode(mode):
+        """
+        Set the alpha mode.
+
+        :param mode: one of the GR3_Transparency constants
+        """
+        _gr3.gr3_setalphamode(c_int(mode))
+
+
+if hasattr(_gr3, 'gr3_getalphamode'):
+    def getalphamode():
+        """
+        :return: one of the GR3_Transparency constants
+        """
+        mode = c_int(0)
+        _gr3.gr3_getalphamode(byref(mode))
+        return mode
 
 
 if hasattr(_gr3, 'gr3_setclipping'):
