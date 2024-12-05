@@ -30,8 +30,19 @@ sys.path.insert(0, os.path.abspath('gr'))
 import runtime_helper
 sys.path.pop(0)
 
-_runtime_version = os.environ.get('GR_VERSION', runtime_helper.required_runtime_version())
-if _runtime_version == 'master':
+_runtime_version = os.environ.get('GR_VERSION', 'stable')
+if _runtime_version == 'stable':
+    try:
+        _runtime_version = runtime_helper.latest_runtime_version()
+    except runtime_helper.GitHubAPIError:
+        print(
+            'Failed to fetch latest runtime version from GitHub API, falling back to the minimum required version',
+            file=sys.stderr
+        )
+        _runtime_version = 'minimum'
+if _runtime_version == 'minimum':
+    _runtime_version = runtime_helper.required_runtime_version()
+elif _runtime_version == 'master':
     # allow 'master' as alias for 'latest'
     _runtime_version = 'latest'
 
