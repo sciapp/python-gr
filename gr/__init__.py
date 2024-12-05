@@ -56,6 +56,10 @@ os.environ['GKS_ENCODING'] = 'utf-8'
 _impl = python_implementation()
 _mime_type = None
 
+copy_if_needed = False
+if np.lib.NumpyVersion(np.__version__) >= "2.0.0":
+    copy_if_needed = None
+
 try:
     from IPython.display import clear_output, display, SVG, Image, HTML
     from base64 import b64encode
@@ -1205,14 +1209,22 @@ def inqfillcolorind():
     return color.value
 
 
-def setresizebehaviour(flag):
-    __gr.gr_setresizebehaviour(1 if flag else 0)
+@_require_runtime_version(0, 73, 8, 54)
+def setnominalsize(factor):
+    """
+    Sets the nominal size.
+    """
+    __gr.gr_setnominalsize(factor)
 
 
-def inqresizebehaviour():
-    flag = c_int()
-    __gr.gr_inqresizebehaviour(byref(flag))
-    return True if flag else False
+@_require_runtime_version(0, 73, 8, 54)
+def inqnominalsize():
+    """
+    Returns the nominal size.
+    """
+    factor = c_double()
+    __gr.gr_inqnominalsize(byref(factor))
+    return factor.value
 
 
 def setcolorrep(index, red, green, blue):
@@ -1615,7 +1627,7 @@ def inqtextext(x, y, string):
             [tby[0], tby[1], tby[2], tby[3]]]
 
 
-_axeslbl_callback = CFUNCTYPE(c_void_p, c_double, c_double, c_char_p, c_double)
+_axeslbl_callback = CFUNCTYPE(None, c_double, c_double, c_char_p, c_double)
 
 
 def setscientificformat(format_option):
@@ -2665,6 +2677,14 @@ def mathtex(x, y, string):
     return __gr.gr_mathtex(c_double(x), c_double(y), char(string))
 
 
+def inqmathtex(x, y, string):
+    tbx = (c_double * 4)()
+    tby = (c_double * 4)()
+    __gr.gr_inqmathtex(c_double(x), c_double(y), char(string), tbx, tby)
+    return [[tbx[0], tbx[1], tbx[2], tbx[3]],
+            [tby[0], tby[1], tby[2], tby[3]]]
+
+
 def beginselection(index, kind):
     __gr.gr_beginselection(c_int(index), c_int(kind))
 
@@ -2997,7 +3017,7 @@ def volume(data, algorithm=0, dmin=-1, dmax=-1):
     +------------------+---+-----------------------------+
     """
     import gr3
-    data = np.array(data, copy=False, ndmin=3)
+    data = np.array(data, copy=copy_if_needed, ndmin=3)
     nz, ny, nx = data.shape
     _data = floatarray(nx * ny * nz, data)
     _dmin = c_double(dmin)
@@ -3710,7 +3730,7 @@ def cpubasedvolume(data, algorithm, dmin, dmax, min_val, max_val):
     +---------------------+---+-----------------------------+
     """
 
-    data = np.array(data, copy=False, ndmin=3)
+    data = np.array(data, copy=copy_if_needed, ndmin=3)
     nz, ny, nx = data.shape
     _data = floatarray(nx * ny * nz, data)
     if dmin is None:
@@ -3788,7 +3808,7 @@ def volume_nogrid(data, algorithm, kernel, radius, extra_data=None):
     dmin = c_double(-1)
     dmax = c_double(-1)
 
-    data = np.array(data, copy=False, ndmin=2)
+    data = np.array(data, copy=copy_if_needed, ndmin=2)
     shape = data.shape
     if len(shape) != 2 and shape[1] != 4:
         raise ValueError("Data must be in shape (n, 4)!")
@@ -3827,7 +3847,7 @@ def volume_interp_gauss_init(det, sigma_inv_1_2):
     `sigma_inv_1_2` :
         The inverted and square rooted covariance matrix.
     """
-    sigma_inv_1_2 = np.array(sigma_inv_1_2, copy=False, ndmin=3)
+    sigma_inv_1_2 = np.array(sigma_inv_1_2, copy=copy_if_needed, ndmin=3)
     _s = floatarray(9, sigma_inv_1_2)
 
     __gr.gr_volume_interp_gauss_init(c_double(det), _s.data)
@@ -3915,8 +3935,6 @@ __gr.gr_setfillstyle.argtypes = [c_int]
 __gr.gr_inqfillstyle.argtypes = [POINTER(c_int)]
 __gr.gr_setfillcolorind.argtypes = [c_int]
 __gr.gr_inqfillcolorind.argtypes = [POINTER(c_int)]
-__gr.gr_setresizebehaviour.argtypes = [c_int]
-__gr.gr_inqresizebehaviour.argtypes = [POINTER(c_int)]
 __gr.gr_setcolorrep.argtypes = [c_int, c_double, c_double, c_double]
 __gr.gr_setwindow.argtypes = [c_double, c_double, c_double, c_double]
 __gr.gr_inqwindow.argtypes = [POINTER(c_double), POINTER(c_double),
@@ -4153,6 +4171,10 @@ if _RUNTIME_VERSION >= (0, 67, 0, 0):
     __gr.gr_volume_interp_gauss.argtypes = [POINTER(_data_point3d_t), c_void_p, POINTER(_point3d_t), POINTER(_point3d_t)]
     __gr.gr_volume_interp_gauss.restype = c_double
 
+if _RUNTIME_VERSION >= (0, 73, 8, 54):
+    __gr.gr_setnominalsize.argtypes = [c_double]
+    __gr.gr_inqnominalsize.argtypes = [POINTER(c_double)]
+
 precision = __gr.gr_precision()
 text_maxsize = __gr.gr_text_maxsize()
 
@@ -4248,6 +4270,16 @@ OPTION_Z_LOG = 4
 OPTION_FLIP_X = 8
 OPTION_FLIP_Y = 16
 OPTION_FLIP_Z = 32
+OPTION_X_LOG2 = 64
+OPTION_Y_LOG2 = 128
+OPTION_Z_LOG2 = 256
+OPTION_X_LN = 512
+OPTION_Y_LN = 1024
+OPTION_Z_LN = 2048
+
+SPEC_LINE = 1
+SPEC_MARKER = 2
+SPEC_COLOR = 4
 
 OPTION_LINES = 0
 OPTION_MESH = 1
@@ -4256,6 +4288,7 @@ OPTION_Z_SHADED_MESH = 3
 OPTION_COLORED_MESH = 4
 OPTION_CELL_ARRAY = 5
 OPTION_SHADED_MESH = 6
+OPTION_3D_MESH = 7
 
 MODEL_RGB = 0
 MODEL_HSV = 1
