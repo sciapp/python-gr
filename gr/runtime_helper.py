@@ -4,13 +4,54 @@
 """
 
 import ctypes
+import json
 import os
 import sys
+try:
+    from json import JSONDecodeError
+except ImportError:
+    JSONDecodeError = ValueError
+try:
+    from urllib.request import urlopen, URLError
+except ImportError:
+    from urllib2 import urlopen, URLError
+
+
+class GitHubAPIError(Exception):
+    pass
 
 
 def required_runtime_version():
     # TODO: load runtime version from file
     return '0.71.5'
+
+
+def latest_runtime_version():
+    github_project = 'sciapp/gr'
+    github_api_url = 'https://api.github.com/repos/{}/releases/latest'.format(github_project)
+
+    response = None
+    try:
+        response = urlopen(github_api_url)
+        data = json.loads(response.read().decode('utf-8'))
+        latest_release = data['tag_name']
+    except (URLError, JSONDecodeError, KeyError) as e:
+        github_api_error = GitHubAPIError(
+            'Failed to fetch latest release for GitHub project "{}" from GitHub API'.format(github_project)
+        )
+        if sys.version_info[0] < 3:
+            raise github_api_error
+        else:
+            # This is an ugly way to raise a chained exception (`raise github_api_error from e`) which can be
+            # interpreted by Python 2 without syntax error
+            raise github_api_error.with_traceback(e.__traceback__)
+    finally:
+        if response is not None:
+            response.close()
+
+    if latest_release.startswith("v"):
+        latest_release = latest_release[1:]
+    return latest_release
 
 
 def version_string_to_tuple(version_string):
