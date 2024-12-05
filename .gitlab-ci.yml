@@ -32,6 +32,7 @@ install-tox:
   - when: on_success
   variables:
     GIT_STRATEGY: none
+    GR_VERSION: minimum
   needs:
   - build
   script:
@@ -52,6 +53,8 @@ rebuild-images:
     when: on_success
   - if: '$GR_REBUILD_REFERENCE'
     when: on_success
+  variables:
+    GR_VERSION: minimum
   needs:
   - build
   script:
