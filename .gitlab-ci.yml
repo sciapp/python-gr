@@ -21,7 +21,7 @@ build:
 
 install-tox:
   stage: install
-  image: iffregistry.fz-juelich.de/scientific-it-systems/gr-test/python-testing
+  image: iffregistry.fz-juelich.de/scientific-it-systems/gr-test/python-testing:latest-ubuntu-20.04
   rules:
   - if: '$CI_MERGE_REQUEST_ID'
     when: never
@@ -45,7 +45,7 @@ install-tox:
 
 rebuild-images:
   stage: install
-  image: iffregistry.fz-juelich.de/scientific-it-systems/gr-test/python-testing:latest
+  image: iffregistry.fz-juelich.de/scientific-it-systems/gr-test/python-testing:latest-ubuntu-20.04
   rules:
   - if: '$CI_MERGE_REQUEST_ID'
     when: never
