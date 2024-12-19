@@ -65,7 +65,7 @@ class GraphicsWidget(GRWidget):
     def paintEvent(self, ev):
         super(GraphicsWidget, self).paintEvent(ev)
         painter = QtGui.QPainter(self)
-        painter.drawText(15, 15, "Contour Example using PySide2/GRWidget ...")
+        painter.drawText(15, 15, "Contour Example using PySide6/GRWidget ...")
 
 
 if __name__ == '__main__':
