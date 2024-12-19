@@ -4619,7 +4619,8 @@ def _plot_args(args, fmt='xys'):
     global _plt
     args = list(args)
     parsed_args = []
-    while args:
+    column = 0
+    while args or column > 0:
         # Try to read x, y, z and c
         x = y = z = c = None
         if fmt == 'xyuv':
@@ -4655,20 +4656,32 @@ def _plot_args(args, fmt='xys'):
             except TypeError:
                 x = y = z = c = None
 
-        if x is None:
-            a = _convert_to_array(args.pop(0), may_be_2d=True)
+        if x is None or column > 0:
+            if column == 0:
+                a = np.array(args[0])
 
-            if len(a.shape) == 2:
-                x, y = a[:, 0], a[:, 1]
+            if len(a.shape) == 2 and a.shape[0] == 2:
+                x, y = a[0, :], a[1, :]
+                args.pop(0)
             else:
                 if fmt == 'xys':
-                    try:
-                        x = a
-                        y = _convert_to_array(args[0], xvalues=x)
-                        args.pop(0)
-                    except (TypeError, IndexError):
-                        y = a
-                        x = np.arange(1, len(a) + 1)
+                    if len(a.shape) == 2:
+                        x = np.arange(1, a.shape[1] + 1)
+                        y = a[column, :]
+                        if column + 1 < a.shape[0]:
+                            column += 1
+                        else:
+                            column = 0
+                            break
+                    else:
+                        a = _convert_to_array(args.pop(0), may_be_2d=True)
+                        try:
+                            x = a
+                            y = _convert_to_array(args[0], xvalues=x)
+                            args.pop(0)
+                        except (TypeError, IndexError):
+                            y = a
+                            x = np.arange(1, len(a) + 1)
                 elif fmt == 'y':
                     y = a
                     x = np.arange(1, len(a) + 1)
