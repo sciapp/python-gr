@@ -9,6 +9,7 @@ import collections
 import functools
 import os
 import sys
+import typing
 import warnings
 import numpy as np
 from numpy import array, ndarray, float64, int32, empty, prod
@@ -67,14 +68,17 @@ except ImportError:
     clear_output = None
 
 
-def _require_runtime_version(*_minimum_runtime_version):
+T = typing.TypeVar("T")
+
+
+def _require_runtime_version(*_minimum_runtime_version: int) -> typing.Callable[[T], T]:
     """
     Decorator to add GR runtime version requirements to functions.
 
     :param _minimum_runtime_version: required version as integers
     :return: the wrapped function with a version check
     """
-    def require_runtime_version_decorator(_func, _minimum_runtime_version=_minimum_runtime_version):
+    def require_runtime_version_decorator(_func: T, _minimum_runtime_version: typing.Tuple[int] = _minimum_runtime_version) -> T:
         # remove extraneous 0s from version
         while _minimum_runtime_version[-1] == 0:
             _minimum_runtime_version = _minimum_runtime_version[:-1]
