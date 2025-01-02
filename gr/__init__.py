@@ -2733,11 +2733,14 @@ def show():
     emergencyclosegks()
     if _mime_type == 'svg':
         try:
-            data = open('gks.svg', 'rb').read()
+            data = open('gks.svg', 'r').read()
         except IOError:
             return None
         if not data:
             return None
+        if 'marimo' in sys.modules:
+            from marimo import Html
+            return Html(data)
         content = SVG(data=data)
         display(content)
     elif _mime_type == 'png':
@@ -4520,6 +4523,7 @@ if _RUNTIME_VERSION >= (0, 58, 0, 0):
     VOLUME_WITHOUT_BORDER = 0
     VOLUME_WITH_BORDER = 1
 
-# automatically switch to inline graphics in Jupyter Notebooks
-if 'ipykernel' in sys.modules:
+# automatically switch to inline graphics in Jupyter or Marimo notebooks
+if 'ipykernel' in sys.modules or 'marimo' in sys.modules:
     inline()
+
