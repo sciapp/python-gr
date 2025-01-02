@@ -340,6 +340,7 @@ deploy-to-obs:
     mv -f science\:gr-framework/python-gr/_service.new
     science\:gr-framework/python-gr/_service
   - osc commit science\:gr-framework/python-gr/_service -m "Release $CI_COMMIT_TAG"
+  - osc results -w -F science\:gr-framework/python-gr
 
 deploy-to-aur:
   stage: deploy
