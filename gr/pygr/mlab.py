@@ -4658,10 +4658,10 @@ def _plot_args(args, fmt='xys'):
         if x is None or column > 0:
             if column == 0:
                 a = np.array(args[0])
-                
+                args.pop(0)
+        
             if len(a.shape) == 2 and a.shape[0] == 2:
                 x, y = a[0, :], a[1, :]
-            args.pop(0)
             else:
                 if fmt == 'xys':
                     if len(a.shape) == 2:
