@@ -3068,7 +3068,7 @@ def _plot_data(**kwargs):
             if z is not None or c is not None:
                 if c is not None:
                     c_min = c.min()
-                    c_ptp = c.ptp()
+                    c_ptp = np.ptp(c)
                 for i in range(len(x)):
                     if z is not None:
                         gr.setmarkersize(z[i] / 100.0)
@@ -3253,7 +3253,7 @@ def _plot_data(**kwargs):
             gr.setmarkertype(gr.MARKERTYPE_SOLID_CIRCLE)
             if c is not None:
                 c_min = c.min()
-                c_ptp = c.ptp()
+                c_ptp = np.ptp(c)
                 for i in range(len(x)):
                     c_index = 1000 + int(255 * (c[i] - c_min) / c_ptp)
                     gr.setmarkercolorind(c_index)
@@ -3328,7 +3328,7 @@ def _plot_img(image):
     else:
         image = np.array(image)
         height, width = image.shape
-        data = np.array(1000 + (1.0 * image - image.min()) / image.ptp() * 255, np.int32)
+        data = np.array(1000 + (1.0 * image - image.min()) / np.ptp(image) * 255, np.int32)
 
     if _plt.kwargs['clear']:
         gr.clearws()
