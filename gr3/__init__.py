@@ -1221,7 +1221,7 @@ def drawmolecule(positions_or_filename, colors=None, radii=None, spins=None,
 
     if set_camera:
         cx, cy, cz = numpy.mean(positions, axis=0)
-        dx, dy, dz = positions.ptp(axis=0)
+        dx, dy, dz = numpy.ptp(positions, axis=0)
         d = max(dx, dy)/2 / 0.4142 + 3
         r = dz/2+d
         rx = r*numpy.sin(numpy.radians(tilt))*numpy.sin(numpy.radians(rotation))
