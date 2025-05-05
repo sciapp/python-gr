@@ -78,7 +78,7 @@ def compare(test_case, wstype, ref, test, results_dir):
 
         if result.is_equal():
             return None
-    except FileNotFoundError as ex:
+    except FileNotFoundError:
         this_out_dir = os.path.join(results_dir, test_case.name, wstype.dst_ext)
         safe_mkdirs(this_out_dir)
 
@@ -86,7 +86,7 @@ def compare(test_case, wstype, ref, test, results_dir):
         if base_name is not None:
             shutil.copy(base_name, os.path.join(this_out_dir, os.path.basename(base_name)))
 
-        return "%s/%s/%s (missing)" % (test_case.name, wstype.dst_ext, file_name)
+        return f"{test_case}/{wstype} (missing)"
 
     this_out_dir = os.path.join(results_dir, test_case.name, wstype.dst_ext)
     safe_mkdirs(this_out_dir)
@@ -110,9 +110,9 @@ def compare(test_case, wstype, ref, test, results_dir):
 
     stats = result.diff_stats()
     with np.printoptions(precision=3, suppress=True):
-        print(" max  %s" % stats[0])
-        print(" mean %s" % stats[1])
-        print(" std  %s" % stats[2])
-        print(" sum  %s" % stats[3])
+        print(" max  %s" % stats.max)
+        print(" mean %s" % stats.mean)
+        print(" std  %s" % stats.std)
+        print(" sum  %s" % stats.sum)
 
-    return "%s/%s/%s" % (test_case.name, wstype.dst_ext, file_name)
+    return f"{test_case}/{wstype}/{file_name}"
