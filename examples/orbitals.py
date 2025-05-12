@@ -13,7 +13,13 @@ from __future__ import unicode_literals
 
 import numpy as np
 from scipy.constants import physical_constants
-from pygsl.testing import sf
+
+try:
+    from pygsl.testing.sf import legendre_Plm, laguerre_n
+except ImportError:
+    from scipy.special import eval_genlaguerre as laguerre_n
+    from scipy.special import assoc_legendre_p as legendre_Plm
+
 
 from gr.pygr.mlab import isosurface
 
@@ -22,12 +28,12 @@ __author__ = 'Florian Rhiem <f.rhiem@fz-juelich.de>'
 
 def Yml(m, l, theta, phi):
     """ The θ and ϕ dependence """
-    return (-1)**m * sf.legendre_Plm(l, abs(m), np.cos(theta)) * np.exp(1j * m * phi)
+    return (-1)**m * legendre_Plm(l, abs(m), np.cos(theta)) * np.exp(1j * m * phi)
 
 
 def R(n, l, rho):
     """ The radial dependence """
-    return sf.laguerre_n(n-l-1, 2*l+1, rho) * np.exp(-rho/2) * rho**l
+    return laguerre_n(n-l-1, 2*l+1, rho) * np.exp(-rho/2) * rho**l
 
 
 def norm(n, l):
