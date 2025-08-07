@@ -4,7 +4,6 @@ import os
 import warnings
 
 from matplotlib import __version__
-from matplotlib.cbook import maxdict
 from matplotlib._pylab_helpers import Gcf
 from matplotlib.backend_bases import RendererBase, GraphicsContextBase,\
     FigureManagerBase, FigureCanvasBase, register_backend
@@ -26,8 +25,6 @@ class RendererGR(RendererBase):
     """
     Handles drawing/rendering operations using GR
     """
-
-    texd = maxdict(50)  # a cache of tex image rasters
 
     def __init__(self, dpi, width, height):
         super(RendererGR, self).__init__()
@@ -132,10 +129,8 @@ class RendererGR(RendererBase):
     def draw_tex(self, gc, x, y, s, prop, angle, ismath='TeX!', mtext=None):
         size = prop.get_size_in_points()
         key = s, size, self.dpi, angle, self.texmanager.get_font_config()
-        im = self.texd.get(key)
-        if im is None:
-            Z = self.texmanager.get_grey(s, size, self.dpi)
-            Z = np.array(255.0 - Z * 255.0, np.uint8)
+        Z = self.texmanager.get_grey(s, size, self.dpi)
+        Z = np.array(255.0 - Z * 255.0, np.uint8)
 
         self.draw_mathtext(x, y, angle, Z)
 
