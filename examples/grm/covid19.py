@@ -34,12 +34,12 @@ def main():
                 }
                 for country in COUNTRIES
             ],
-            "xlim": (0.0, number_of_days + 1.0),
-            "ylim": (10.0, 20_000_000.0),
-            "ylog": 1,
+            "x_lim": (0.0, number_of_days + 1.0),
+            "y_lim": (10.0, 20_000_000.0),
+            "y_log": 1,
             "title": "Confirmed SARS–CoV–2 infections",
-            "xlabel": "Day",
-            "ylabel": "Confirmed",
+            "x_label": "Day",
+            "y_label": "Confirmed",
             "labels": COUNTRIES,
             "location": 4,
         }
