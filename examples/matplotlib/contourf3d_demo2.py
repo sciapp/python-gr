@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 
 fig = plt.figure()
-ax = fig.gca(projection='3d')
+ax = fig.add_subplot(projection = '3d')
 X, Y, Z = axes3d.get_test_data(0.05)
 ax.plot_surface(X, Y, Z, rstride=8, cstride=8, alpha=0.3)
 ax.contourf(X, Y, Z, zdir='z', offset=-100, cmap=cm.coolwarm)

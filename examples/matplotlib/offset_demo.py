@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 # automatically trigger it.
 
 fig = plt.figure()
-ax = fig.gca(projection='3d')
+ax = fig.add_subplot(projection = '3d')
 X, Y = np.mgrid[0:6 * np.pi:0.25, 0:4 * np.pi:0.25]
 Z = np.sqrt(np.abs(np.cos(X) + np.cos(Y)))
 
