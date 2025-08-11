@@ -25,7 +25,7 @@ y = np.append(0, (radii * np.sin(angles)).flatten())
 z = np.sin(-x * y)
 
 fig = plt.figure()
-ax = fig.gca(projection='3d')
+ax = fig.add_subplot(projection = '3d')
 
 ax.plot_trisurf(x, y, z, cmap=cm.jet, linewidth=0.2)
 
