@@ -113,7 +113,8 @@ class RendererGR(RendererBase):
         img = np.zeros((h, w), np.uint32)
         for i in range(h):
             for j in range(w):
-                img[i, j] = (255 - Z[i, j]) << 24
+                b = np.uint32(Z[i, j])
+                img[i, j] = 0xff000000 | (b << 16) | (b << 8) | b
         a = int(angle)
         if a == 90:
             gr.drawimage(x - h, x, y, y + w, h, w,
@@ -128,14 +129,16 @@ class RendererGR(RendererBase):
 
     def draw_tex(self, gc, x, y, s, prop, angle, ismath='TeX!', mtext=None):
         size = prop.get_size_in_points()
-        key = s, size, self.dpi, angle, self.texmanager.get_font_config()
-        Z = self.texmanager.get_grey(s, size, self.dpi)
+
+        texmanager = self.get_texmanager()
+
+        Z = texmanager.get_grey(s, size, self.dpi)
         Z = np.array(255.0 - Z * 255.0, np.uint8)
 
         self.draw_mathtext(x, y, angle, Z)
 
     def _draw_mathtext(self, gc, x, y, s, prop, angle):
-        ox, oy, width, height, descent, image, used_characters = \
+        ox, oy, width, height, descent, image = \
             self.mathtext_parser.parse(s, self.dpi, prop)
         self.draw_mathtext(x, y, angle, 255 - np.asarray(image))
 
@@ -171,7 +174,7 @@ class RendererGR(RendererBase):
                 s, fontsize, renderer=self)
             return w, h, d
         if ismath:
-            ox, oy, width, height, descent, fonts, used_characters = \
+            ox, oy, width, height, descent, fonts = \
                 self.mathtext_parser.parse(s, self.dpi, prop)
             return width, height, descent
 #       family =  prop.get_family()
