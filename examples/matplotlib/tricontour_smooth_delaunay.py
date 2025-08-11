@@ -104,7 +104,7 @@ plot_expected = False  # plot of analytical function values for comparison
 
 # Graphical options for tricontouring
 levels = np.arange(0., 1., 0.025)
-cmap = cm.get_cmap(name='Blues', lut=None)
+cmap = plt.get_cmap(name='Blues', lut=None)
 
 plt.figure()
 plt.gca().set_aspect('equal')
