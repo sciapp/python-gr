@@ -26,7 +26,7 @@ class RendererGR(RendererBase):
     Handles drawing/rendering operations using GR
     """
 
-    def __init__(self, dpi, width, height):
+    def __init__(self, width, height, dpi):
         super(RendererGR, self).__init__()
         self.dpi = dpi
         if __version__[0] >= '2':
@@ -138,13 +138,14 @@ class RendererGR(RendererBase):
         self.draw_mathtext(x, y, angle, Z)
 
     def _draw_mathtext(self, gc, x, y, s, prop, angle):
-        ox, oy, width, height, descent, image = \
-            self.mathtext_parser.parse(s, self.dpi, prop)
-        self.draw_mathtext(x, y, angle, 255 - np.asarray(image))
+       ox, oy, width, height, descent, image = \
+           self.mathtext_parser.parse(s, self.dpi, prop)
+       self.draw_mathtext(x, y, angle, 255 - np.asarray(image))
 
     def draw_text(self, gc, x, y, s, prop, angle, ismath=False, mtext=None):
+        gr.settextfontprec(233, 3)
         if ismath:
-            self._draw_mathtext(gc, x, y, s, prop, angle)
+            self._draw_text_as_path(gc, x, y, s, prop, angle, ismath)
         else:
             x, y = gr.wctondc(x, y)
             fontsize = prop.get_size_in_points()
@@ -152,6 +153,7 @@ class RendererGR(RendererBase):
             color = gr.inqcolorfromrgb(rgba[0], rgba[1], rgba[2])
             gr.settransparency(rgba[3])
             gr.setcolorrep(color, rgba[0], rgba[1], rgba[2])
+            gr.settextalign(1, 4)
             gr.setcharheight(fontsize * self.nominal_fontsize)
             gr.settextcolorind(color)
             if angle != 0:
@@ -239,7 +241,10 @@ class FigureCanvasGR(FigureCanvasBase):
     def __init__(self, figure):
         FigureCanvasBase.__init__(self, figure)
         width, height = self.get_width_height()
-        self.renderer = RendererGR(figure.dpi, width, height)
+        self.renderer = RendererGR(width, height, figure.dpi)
+
+    def get_renderer(self):
+        return self.renderer
 
     def draw(self):
         """
